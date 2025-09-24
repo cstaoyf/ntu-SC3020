@@ -1,0 +1,415 @@
+\documentclass{beamer}
+
+\usetheme{Warsaw}
+%\usetheme{CambridgeUS}
+
+\input{./def/yf-beamer.tex}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[skins,breakable]{tcolorbox}
+
+\def\done{\hfill$\square$}
+\def\ttt{\texttt}
+\def\vgap{\vspace{5mm}}
+
+\newenvironment{example*}
+  {\addtocounter{theorem}{-1}\example}
+  {\endexample}
+
+\title{Minimum Spanning Trees}
+
+\author[Yufei Tao]{Yufei Tao}
+\institute[]
+{Department of Computer Science and Engineering \\ Chinese University of Hong Kong}
+\date{}
+
+% \def\dtm{\mathit{d\mbox{-}tm}}
+% \def\ftm{\mathit{f\mbox{-}tm}}
+\def\bestext{\mathit{best\mbox{-}ext}}
+
+\begin{document}
+%-------------------------------------------------------------
+\begin{frame}
+    \titlepage
+%     \begin{tcolorbox}[arc=0mm, colframe=green!50!black, colback=green!10!white] 
+%     \end{tcolorbox}
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox{Undirected Weighted Graphs} 
+
+    \vgap 
+    
+    Let $\red{G} = (V, E)$ be an undirected graph. Let $\red{w}$ be a function that maps each edge $\red{e}$ of $G$ to a positive integer value $w(e)$, which we call the \blue{\bf weight} of $e$.
+    
+    \vgap 
+    
+    An \blue{\bf undirected weighted graph} is defined as a pair $(G, w)$.
+   
+    \vgap 
+    
+    We will denote an edge between vertices $u$ and $v$ in $G$ as \red{$\{u, v\}$} --- instead of $(u, v)$ --- to emphasize that the ordering of $u, v$ does not matter.
+    
+    \vgap 
+    
+    We consider that $G$ is \red{\bf connected}, namely, there is a path between any two vertices in $V$. 
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox[green]{Example} 
+
+    \vgap 
+    
+    \begin{center} 
+        \includegraphics[height=27mm]{./artwork/graph}
+    \end{center}
+
+    The integer on each edge indicates its weight. For example, the weight of $\{g, h\}$ is $9$, and that of $\{d, g\}$ is 11. 
+    
+   
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox{Spanning Trees} 
+
+    \vgap 
+    
+    Recall that a \blue{\bf tree} is defined as a connected undirected graph with no cycles. 
+    
+    \vgap 
+    
+    Given a connected undirected weighted graph $(G, w)$ with $G = (V, E)$, a \blue{\bf spanning tree} $\red{T}$ is a tree satisfying the following conditions: 
+    \begin{itemize} 
+        \item The vertex set of $T$ is $V$. 
+        \item Every edge of $T$ is an edge in $G$. 
+    \end{itemize}
+
+    \vgap
+    
+    The \blue{\bf cost} of $T$ is defined as the sum of the weights of all the edges in $T$ (note that $T$ must have $|V| - 1$ edges). 
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox[green]{Example} 
+
+    \begin{center} 
+        \includegraphics[height=27mm]{./artwork/graph} \\[2mm] 
+        \begin{tabular}{ccc} 
+            \includegraphics[height=20mm]{./artwork/tree0} &
+            \includegraphics[height=20mm]{./artwork/tree1} & 
+            \includegraphics[height=20mm]{./artwork/tree2}
+        \end{tabular}
+
+    \end{center}
+
+    The second row shows three spanning trees (of the graph in the first row). The cost of the first two trees is 37, and that of the right tree is 48.
+   
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox{The Minimum Spanning Tree Problem} 
+
+    \vgap 
+    
+    Given a connected undirected weighted graph $(G, w)$ with $G = (V, E)$, the goal of the \blue{\bf minimum spanning tree (MST) problem} is to find a spanning tree of the smallest cost. 
+    
+    \vgap 
+    
+    Such a tree is called an MST of $(G, w)$. 
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox[green]{Example} 
+
+    \begin{center} 
+        \includegraphics[height=27mm]{./artwork/graph} \\[2mm] 
+        \begin{tabular}{ccc} 
+            \includegraphics[height=20mm]{./artwork/tree0} &
+            \includegraphics[height=20mm]{./artwork/tree1}  
+        \end{tabular}
+    \end{center}
+
+    Both trees in the second row are MSTs. This means that MSTs may not be unique. 
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox{Prim's Algorithm} 
+
+    \vgap 
+    
+   Next, we will introduce \blue{\bf Prim's algorithm} for solving the MST problem.
+   
+   \vgap
+   
+    The algorithm grows a tree \red{$T_{mst}$} by including one vertex at a time. At any moment, it divides the vertex set $V$ into two parts: 
+    \begin{itemize} 
+        \item The set \red{$S$} of vertices that are already in $T_{mst}$. 
+        
+        \item The set of other vertices: $V \setminus S$. 
+    \end{itemize}
+    If an edge connects a vertex in $S$ and a vertex in $V \setminus S$, we call it a \blue{cross edge}.
+    
+    \vgap 
+    
+    \red{\bf Greedy:} The algorithm works by repeatedly taking the \red{\bf lightest} cross edge.
+\end{small}    
+\end{frame}
+
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox[green]{Example} 
+
+    Edge $\{a, b\}$ is the lightest of all. So, $S = \{a, b\}$ in the beginning. The MST we are growing now contains the only red edge in the figure. Cross edges are shown in blue.
+
+    
+    
+    \begin{center} 
+        \includegraphics[height=27mm]{./artwork/graph1} 
+    \end{center}
+    
+    Cross edges $\{c, a\}$ and $\{c, b\}$ are both the lightest. Either one can be taken into the tree. Without of loss generality, suppose we take $\{c, a\}$.
+
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox[green]{Example} 
+
+    Now $S = \{a, b, c\}$. The MST we are growing now contains the red edges in the figure. Cross edges are shown in blue.
+
+    \vgap
+    
+    \begin{center} 
+        \includegraphics[height=27mm]{./artwork/graph2} 
+    \end{center}
+
+    Note that $\{b, c\}$ is not a cross edge. \\
+    The lightest cross edge is $\{c, f\}$.
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox[green]{Example} 
+
+    Now $S = \{a, b, c, f\}$. The MST we are growing now contains the red edges in the figure. Cross edges are shown in blue.
+
+    \vgap
+    
+    \begin{center} 
+        \includegraphics[height=27mm]{./artwork/graph3} 
+    \end{center}
+
+    The lightest cross edge is $\{e, f\}$.
+
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox[green]{Example} 
+
+    Now $S = \{a, b, c, f, e\}$. The MST we are growing now contains the red edges in the figure. Cross edges are shown in blue.
+
+    \vgap
+    
+    \begin{center} 
+        \includegraphics[height=27mm]{./artwork/graph4} 
+    \end{center}
+
+    The lightest cross edge is $\{c, h\}$.
+
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox[green]{Example} 
+
+    Now $S = \{a, b, c, f, e, h\}$. The MST we are growing now contains the red edges in the figure. Cross edges are shown in blue.
+
+    \vgap
+    
+    \begin{center} 
+        \includegraphics[height=27mm]{./artwork/graph5} 
+    \end{center}
+
+    The lightest cross edge is $\{g, h\}$.
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox[green]{Example} 
+
+    Now $S = \{a, b, c, f, e, h, g\}$. The MST we are growing now contains the red edges in the figure. Cross edges are shown in blue.
+
+    \vgap
+    
+    \begin{center} 
+        \includegraphics[height=27mm]{./artwork/graph6} 
+    \end{center}
+
+    The lightest cross edge is $\{g, d\}$.
+
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    \xmybox[green]{Example} 
+
+    Now $S = \{a, b, c, f, e, h, g, d\}$. We now have the final MST. 
+
+    \vgap
+    
+    \begin{center} 
+        \includegraphics[height=27mm]{./artwork/graph7} 
+    \end{center}
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small} \label{frm::claim} 
+    \begin{tcolorbox}[arc=0mm, colframe=blue!50!black, colback=blue!10!white] 
+        Next we will prove that the algorithm is correct, namely, the tree output is indeed an MST. We will do so by induction on the sequence of edges added to the tree. Specifically, the claim to be proven is: 
+        
+        \vgap 
+        
+        \blue{Claim:} For any $\red{i} \in [1, |V|-1]$, there is an MST containing \red{all} the first $i$ edges chosen by our algorithm.
+        
+
+    \end{tcolorbox}
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame} 
+\begin{small} 
+    \xmybox{Correctness Proof} 
+    
+    \vgap 
+    
+    Let us first recall a fundamental property of undirected graphs: 
+    
+    \vgap
+    
+    \blue{Lemma:} Let $T$ be a tree of $n$ vertices. Adding an arbitrary edge between two vertices in $T$ introduces a cycle. 
+    
+    \vgap
+    
+    \blue{Proof:} Suppose that the edge is added between $u$ and $v$. Before the edge was added, there is already a path allowing us to go from $u$ to $v$ in $T$. Therefore, the edge $\{u, v\}$ allows us to move from $v$ back to $u$, thus witnessing a cycle. \qed
+    
+    \vgap 
+\end{small}     
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small} 
+    \xmybox{Correctness Proof} 
+    
+    \vgap 
+    
+    Now we proceed to prove the claim on Slide~\ref{frm::claim}. 
+    
+    \vgap 
+    
+    \blue{Base Case:} $i = 1$. Let \red{$\{u, v\}$} be an edge with the smallest weight in the graph. We will prove that the edge must exist in some MST. 
+    
+    \vgap 
+    
+    Take any MST \red{$T$} that does not contain edge $\{u, v\}$. Add the edge to $T$, which creates a cycle. Remove an arbitrary edge $\red{e} \neq \{u, v\}$ in the cycle, which gives a new tree $T'$. Since $\{u, v\}$ has the smallest weight, the cost of $T'$ is smaller than or equal to that of $T$. This means that $T'$ is also an MST.
+    
+    \vgap 
+    
+    Hence, the claim holds for $i = 1$. 
+\end{small}     
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small} 
+    \xmybox{Correctness Proof} 
+    
+    \blue{Inductive Case:} Assuming that the claim holds for $i \le k - 1$ ($k \ge 2$), next we prove that it also holds for $i = k$. Let \red{$\{u, v\}$} be the $k$-th edge added by our algorithm, and $\red{S}$ be the set of vertices already in the algorithm's tree \red{before} the addition of $\{u, v\}$. Without loss of generality, suppose that $u \in S$, and $v \notin S$.  
+    
+    \vgap 
+    
+    By the inductive assumption, we know that there is some MST $\red{T}$ that includes all the first $k - 1$ edges. If $T$ also includes edge $\{u, v\}$, then the claim already holds. 
+    
+    \vgap 
+    
+    Next, we consider the case where $T$ does not have $\{u, v\}$. 
+\end{small}     
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small} 
+    \xmybox{Correctness Proof} 
+    
+    We add $\{u, v\}$ to $T$, which creates a cycle. Let us walk on this cycle starting from $v$, cross $\{u, v\}$ into $S$, keep walking within $S$ until traveling out of $S$ for the first time. Let the edge that brought us out of $S$ be $\{u', v'\}$. 
+    
+    \begin{center}
+        \includegraphics[height=25mm]{./artwork/proof}
+    \end{center}
+
+    Note that both $\{u, v\}$ and $\{u',v'\}$ are extension edges right before the moment our algorithm picks the $k$-th edge. Since $\{u, v\}$ has the smallest weight among all the extension edges, we know that the weight of $\{u,v\}$ is smaller than or equal to that of $\{u',v'\}$. 
+    
+\end{small}     
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small} 
+    \xmybox{Correctness Proof} 
+    
+    \vgap
+    
+    Now, remove edge $\{u', v'\}$ from $T$, which gives another tree $T'$. The cost of $T'$ cannot be more than that of $T$. This means that $T'$ must also be an MST. 
+    
+    \vgap 
+    
+    We thus have proved that the claim holds for $i = k$ as well. \qed
+    
+\end{small}     
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small} 
+    \xmybox{Running Time} 
+    
+    \vgap
+    
+    \blue{Think:} How to implement Prim's algorithm in \red{$O((|V| + |E|) \cdot \log|V|)$} time?
+
+\end{small}     
+\end{frame}
+%-------------------------------------------------------------
+\end{document} 
