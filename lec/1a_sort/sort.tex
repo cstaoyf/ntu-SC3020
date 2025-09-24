@@ -16,7 +16,7 @@
 
 \title[DATABASE SYSTEM PRINCIPLES]{Query Processing 2:\\ I/O-Efficient Sorting}
 
-\author[Yufei Tao@NTU]{Yufei Tao}
+\author[Yufei Tao @ NTU]{Yufei Tao}
 \institute[]{}
 \date{}
 
@@ -34,7 +34,9 @@
 %-------------------------------------------------------------
 \begin{frame}
 \begin{small}
-    Sorting is a fundamental operation in database systems. This lecture will introduce an algorithm for sorting \bred{disk-resident} data with a small \bred{I/O cost}.
+    %Sorting is a fundamental operation in database systems.
+    This lecture will introduce an algorithm for sorting \bred{disk-resident} data
+    with a small \bred{I/O cost}.
 
     %\vgap
 \end{small}    
@@ -46,7 +48,7 @@
     \vgap
 
     $\red{R}$: a set of elements drawn from a total order, each represented with the same number of words. \\
-    $\red{B}(R) =$ the number of disk blocks that $R$ occupies. \\
+    $\red{B(R)} =$ the number of disk blocks that $R$ occupies. \\
     $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks). \\
 
     \vgap
@@ -61,7 +63,9 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    Next, we will take a ``detour'' to discuss a stand-alone problem called \bred{merging}. As we will see, a fast algorithm for merging implies a fast algorithm for sorting.
+    \cbox{yellow}{
+        Next, we will take a ``detour'' to discuss a stand-alone problem called \bred{merging}. As we will see, a fast algorithm for merging implies a fast algorithm for sorting.
+    }
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -127,6 +131,191 @@
         \includegraphics[height=40mm]{./artwork/em-merge2}
     \end{center}
 
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Merging}
+
+    \vgap
+
+    If the output buffer is full, output it to the sorted file on disk.
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-merge3}
+    \end{center}
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Merging}
+
+    \vgap
+
+    Move the smallest integer in the input buffers to the output buffer \bred{until}
+    \myitems{
+        \item \bred{either} the output buffer is full
+        \item \bred{or} an input buffer becomes empty.
+    }
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-merge4}
+    \end{center}
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Merging}
+
+    \vgap
+
+    If the output buffer is full, output it to the sorted file on disk.
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-merge5}
+    \end{center}
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Merging}
+
+    \vgap
+
+    Move the smallest integer in the input buffers to the output buffer \bred{until}
+    \myitems{
+        \item \bred{either} the output buffer is full
+        \item \bred{or} an input buffer becomes empty.
+    }
+    If an input buffer is empty --- say the buffer is for $\red{R_i}$ --- fill it with the next block of $R_i$ (if it exists).
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-merge6}
+    \end{center}
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Merging}
+
+    \vgap
+
+    Repeat the above steps until all of $R_1, ..., R_{M-1}$ have been exhausted.
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-merge6}
+    \end{center}
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Merging}
+
+    \vgap
+
+    I/O cost:
+    \myitems{
+        \item Number of Read I/Os $= \sum_{i=1}^{M-1} B(R_i)$\\
+        (every input block read once)
+        \item Number of Write I/Os $\le \sum_{i=1}^{M-1} B(R_i)$ \\
+        (the sorted file cannot have more blocks).
+    }
+
+    \cbox{green}{
+        Total I/O cost $\le 2 \sum_{i=1}^{M-1} B(R_i)$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        \centering
+        We now return to the sorting problem.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Sorting}
+
+    Recall that the input is $\red{R}$, which occupies $\red{B(R)}$ blocks.
+
+    \vgap
+
+
+    \mybox[green]{The Initial Step}
+
+    Chop $R$ into $\red{n_0} = \red{\lc {B(R)/M} \rc}$ \blue{runs}, each consisting of $M$ consecutive blocks (except possibly the last run).
+
+    \vgap
+
+    \bred{For each run}: load its elements into memory, sort them, and write them back to the disk, replacing the original run --- this produces a \blue{sorted run}.
+
+    \begin{center}
+        \includegraphics[height=20mm]{./artwork/em-sort0}
+    \end{center}
+
+    I/O cost = $2 \cdot B(R)$ (\blue{think:} why 2?)
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Sorting}
+
+    \mybox[green]{Merging Step 1}
+
+    \bred{For every $M - 1$ sorted runs}: merge them into one sorted run. \\
+
+    The number of new sorted runs is
+    \myeqn{
+        \red{n_1} = \lc n_0 / (M-1) \rc. \nn
+    }
+    A new sorted run has $M (M-1)$ blocks (except possibly for the last one).
+
+
+    %\vgap
+
+    \begin{center}
+        \includegraphics[height=35mm]{./artwork/em-sort1}
+    \end{center}
+
+    I/O cost $\le 2 \cdot B(R)$ (\blue{think:} why?)
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Sorting}
+
+    \mybox[green]{Merging Step $\red{i} \ge 1$}
+
+    \bred{For every $M - 1$ sorted runs from the last step}: merge them into one sorted run.
+    The number of new sorted runs is
+    \myeqn{
+        \red{n_i} = \lc n_{i-1} / (M-1) \rc. \nn
+    }
+    A new sorted run has $M (M-1)^i$ blocks (except possibly for the last one).
+
+
+    \vgap
+
+    I/O cost $\le 2 \cdot B(R)$.
+
+    \vgap
+
+    When $n_i = 1$, we are done.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Sorting}
+
+    \vgap
+
+    $\red{h} =$ the total number of merging steps.
+
+    \cbox{blue}{
+        The total I/O cost of sorting is at most $
+            2 \cdot B(R) \cdot (h + 1).
+        $
+    }
+
+    \vgap
+
+    \blue{Remark:} In practice,
 }
 %-------------------------------------------------------------
 \end{document} 
