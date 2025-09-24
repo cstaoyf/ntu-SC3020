@@ -228,7 +228,7 @@
 \myfrm{
     \cbox{yellow}{
         \centering
-        We now return to the sorting problem.
+        We now return to the sorting problem.\\ The algorithm we will introduce is called \blue{external sort}.
     }
 }
 %-------------------------------------------------------------
@@ -252,7 +252,7 @@
         \includegraphics[height=20mm]{./artwork/em-sort0}
     \end{center}
 
-    I/O cost = $2 \cdot B$ (\blue{think:} why 2?)
+    I/O cost = $2 \cdot B$ (\blue{think:} why 2? \blue{hint:} apply our merging algorithm).
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -315,7 +315,28 @@
 
     \vgap
 
-    \blue{Remark:} In practice, we typically have $B \le M(M-1)$, in which case there is only one merging step and the I/O cost is $4 B$.
+    \cbox{green}{
+        \blue{Remark:} In practice, we typically have $B \le M(M-1)$, in which case there is only one merging step and the I/O cost is $4 B$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    The following questions are left to you.
+
+    \cbox{blue}{
+        We have assumed that $R$ has no duplicate elements. How to adapt the algorithm to sort without this assumption? \\[1mm]
+        \blue{Hint:} you don't need to change the algorithm at all --- what should be the ``total order'' now?
+    }
+
+    \cbox{blue}{
+        If $R$ has duplicate elements, how do we remove duplicates with a small I/O cost?
+    }
+
+    \cbox{blue}{
+        Suppose that we have a relation $R(A, B)$. How to use sorting to answer the query below? \\
+
+        \ttt{SELECT} $A$, \ttt{COUNT}($B$) \ttt{FROM} $R$ \ttt{GROUP BY} $A$
+    }
 }
 %-------------------------------------------------------------
 \end{document} 
