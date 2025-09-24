@@ -48,7 +48,7 @@
     \vgap
 
     $\red{R}$: a set of elements drawn from a total order, each represented with the same number of words. \\
-    $\red{B(R)} =$ the number of disk blocks that $R$ occupies. \\
+    $\red{B} =$ the number of disk blocks that $R$ occupies. \\
     $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks). \\
 
     \vgap
@@ -80,7 +80,7 @@
         \item $R_1, ..., R_{M-1}$ are mutually disjoint;
         \item each $R_i$ ($1 \le i \le M-1$) is \bred{sorted}.
     }
-    For each $\red{i} \in [1, M-1]$, denote by $\red{B}(R_i)$ the number of disk blocks that $R_i$ occupies.
+    For each $\red{i} \in [1, M-1]$, denote by $\red{B_i}$ the number of disk blocks that $R_i$ occupies.
 
     \vgap
 
@@ -214,14 +214,14 @@
 
     I/O cost:
     \myitems{
-        \item Number of Read I/Os $= \sum_{i=1}^{M-1} B(R_i)$\\
+        \item Number of Read I/Os $= \sum_{i=1}^{M-1} B_i$\\
         (every input block read once)
-        \item Number of Write I/Os $\le \sum_{i=1}^{M-1} B(R_i)$ \\
+        \item Number of Write I/Os $\le \sum_{i=1}^{M-1} B_i$ \\
         (the sorted file cannot have more blocks).
     }
 
     \cbox{green}{
-        Total I/O cost $\le 2 \sum_{i=1}^{M-1} B(R_i)$.
+        Total I/O cost $\le 2 \sum_{i=1}^{M-1} B_i$.
     }
 }
 %-------------------------------------------------------------
@@ -235,14 +235,14 @@
 \myfrm{
     \xmybox{(Disk-Based) Sorting}
 
-    Recall that the input is $\red{R}$, which occupies $\red{B(R)}$ blocks.
+    Recall that the input is $\red{R}$, which occupies $\red{B}$ blocks.
 
     \vgap
 
 
     \mybox[green]{The Initial Step}
 
-    Chop $R$ into $\red{n_0} = \red{\lc {B(R)/M} \rc}$ \blue{runs}, each consisting of $M$ consecutive blocks (except possibly the last run).
+    Chop $R$ into $\red{n_0} = \red{\lc {B/M} \rc}$ \blue{runs}, each consisting of $M$ consecutive blocks (except possibly the last run).
 
     \vgap
 
@@ -252,7 +252,7 @@
         \includegraphics[height=20mm]{./artwork/em-sort0}
     \end{center}
 
-    I/O cost = $2 \cdot B(R)$ (\blue{think:} why 2?)
+    I/O cost = $2 \cdot B$ (\blue{think:} why 2?)
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -275,7 +275,7 @@
         \includegraphics[height=35mm]{./artwork/em-sort1}
     \end{center}
 
-    I/O cost $\le 2 \cdot B(R)$ (\blue{think:} why?)
+    I/O cost $\le 2 \cdot B$ (\blue{think:} why?)
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -293,7 +293,7 @@
 
     \vgap
 
-    I/O cost $\le 2 \cdot B(R)$.
+    I/O cost $\le 2 \cdot B$.
 
     \vgap
 
@@ -309,13 +309,13 @@
 
     \cbox{blue}{
         The total I/O cost of sorting is at most $
-            2 \cdot B(R) \cdot (h + 1).
+            2 \cdot B \cdot (h + 1).
         $
     }
 
     \vgap
 
-    \blue{Remark:} In practice,
+    \blue{Remark:} In practice, we typically have $B \le M(M-1)$, in which case there is only one merging step and the I/O cost is $4 B$.
 }
 %-------------------------------------------------------------
 \end{document} 
