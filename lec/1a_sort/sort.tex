@@ -45,7 +45,7 @@
 
     \vgap
 
-    $\red{R}$: a set of elements on which a total order exists. \\
+    $\red{R}$: a set of elements drawn from a total order, each represented with the same number of words. \\
     $\red{B}(R) =$ the number of disk blocks that $R$ occupies. \\
     $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks). \\
 
@@ -72,7 +72,7 @@
     $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks). \\
     We have $\red{R_1}, \red{R_2}, ..., \red{R_{M-1}}$ where
     \myitems{
-        \item all the elements in $R_1, ..., R_{M-1}$ are from a total order;
+        \item all the elements in $R_1, ..., R_{M-1}$ are drawn from a total order, each represented with the same number of words;
         \item $R_1, ..., R_{M-1}$ are mutually disjoint;
         \item each $R_i$ ($1 \le i \le M-1$) is \bred{sorted}.
     }
@@ -90,7 +90,7 @@
 
     \blue{Example:} $M = 5$.
     \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-merge-data}
+        \includegraphics[height=40mm]{./artwork/em-merge0}
     \end{center}
 
 }
@@ -107,7 +107,24 @@
     Load the first page of each $R_i$ ($1 \le i \le M-1$) into its input buffer.
 
     \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-merge}
+        \includegraphics[height=40mm]{./artwork/em-merge1}
+    \end{center}
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Merging}
+
+    \vgap
+
+    Move the smallest integer in the input buffers to the output buffer \bred{until}
+    \myitems{
+        \item \bred{either} the output buffer is full
+        \item \bred{or} an input buffer becomes empty.
+    }
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-merge2}
     \end{center}
 
 }
