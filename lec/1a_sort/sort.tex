@@ -83,4 +83,33 @@
     \blue{Goal:} Produce a sorted list of $R_1 \cup R_2 \cup ... \cup R_{M-1}$ on disk.
 }
 %-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Merging}
+
+    \vgap
+
+    \blue{Example:} $M = 5$.
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-merge-data}
+    \end{center}
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{(Disk-Based) Merging}
+
+    \vgap
+
+    To solve the problem, we allocate one memory block to each $R_i$ ($1 \le i \le M-1$) as its \blue{input buffer}. This consumes $M - 1$ memory blocks. The remaining memory block is allocated as the \blue{output buffer}.
+
+    \vgap
+
+    Load the first page of each $R_i$ ($1 \le i \le M-1$) into its input buffer.
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-merge}
+    \end{center}
+
+}
+%-------------------------------------------------------------
 \end{document} 
