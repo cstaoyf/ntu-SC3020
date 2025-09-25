@@ -14,6 +14,8 @@
 \def\ttt{\texttt}
 \def\vgap{\vspace{5mm}}
 
+\def\sort{\mit{sort}}
+
 \title[DATABASE SYSTEM PRINCIPLES]{Query Processing 3:\\ Sort Join}
 
 \author[Yufei Tao @ NTU]{Yufei Tao}
@@ -50,7 +52,7 @@
     $\red{B_2} =$ the number of disk blocks that $R_2$ occupies. \\
     $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks). \\
     \myitems{
-        \item We assume $M \ge 5$.
+        \item We assume $M \ge 3$.
     }
 
     \vgap
@@ -62,7 +64,7 @@
     We will carry out our discussion under another assumption: \\
     \cbox{red}{
         \blue{No skew assumption:} \\
-        For any $X$-value, the tuples of $R_1$ having that value fit in at most $M-3$ blocks.
+        For any $X$-value, the tuples of $R_1$ having that $X$-value fit in at most $M-2$ blocks.
     }
 
 }
@@ -130,7 +132,7 @@
     \xmybox{Sort Join: Step 2}
 
     \bred{If $x_1 = x_2$}, read into memory all tuples of $R_1$ with $X$-value equal to $x_1$. \\
-    By the no-skew assumption, they occupy at most $M-3$ memory blocks.
+    By the no-skew assumption, they occupy at most $M-2$ memory blocks.
 
     %\vgap
 
@@ -142,9 +144,6 @@
 %-------------------------------------------------------------
 \myfrm{
     \xmybox{Sort Join: Step 2}
-
-    %\bred{If $x_1 = x_2$}, read into memory all tuples of $R_1$ with $X$-value equal to $x_1$. \\
-    %By the no-skew assumption, they occupy at most $M-2$ memory blocks. \\
 
     Then use one memory block to read every block of $R_2$ containing tuples whose $X$-values equal $x_2$ (one block at a time). For each block read, produce all the result tuples whose $X$-values equal $x_2$.
 
@@ -171,4 +170,37 @@
     The algorithm continues in the same fashion until $R_1$ or $R_2$ is exhausted.
 }
 %-------------------------------------------------------------
+\myfrm{
+    Every block of $R_1$ and $R_2$ is read exactly once. Hence, Step 2 performs $B_1 + B_2$ I/Os.
+
+    \cbox{blue}{
+        The total I/O cost of the sort join algorithm is bounded by $\sort(B_1) + \sort(B_2) + B_1 + B_2$ where $\red{\sort(x)}$ is the I/O cost of sorting $x$ blocks of tuples.
+    }
+
+    \cbox{green}{
+        In practice, we typically have $B_1 \le M(M-1)$ and $B_2 \le M(M-1)$, in which case the total I/O cost is bounded by $5 (B_1 + B_2)$.
+    }
+
+    \cbox{blue}{
+        \blue{Remark:} The above analysis has not considered the cost of writing the join result to the disk. If that is necessary, you should add $\red{B_\mit{out}}$ to the I/O cost where $B_\mit{out}$ is the number of blocks needed to store the join result.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    Here is an interesting question for you:
+
+    \cbox{yellow}{
+        $\red{R_1(X, A_1)}$: A relation with attributes $X$ and $A_1$. \\
+        $\red{R_2(X, A_2)}$: A relation with attributes $X$ and $A_2$. \\
+        $\red{R_3(X, A_3)}$: A relation with attributes $X$ and $A_2$. \\
+        $\red{B_i} =$ the number of disk blocks that $R_i$ occupies ($1 \le i \le 3$). \\
+        $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks).
+
+        \vgap
+
+        Under what ``skew-free condition'' would you be able to modify the sort-join algorithm to compute $R_1 \bowtie R_2 \bowtie R_3$ in $5 (B_1 + B_2 + B_3)$ I/Os, assuming $B_i \le M(M-1)$ for all $i \in [1, 3]$?
+    }
+}
+%-------------------------------------------------------------
 \end{document} 
+
