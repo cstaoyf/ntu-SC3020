@@ -14,7 +14,7 @@
 \def\ttt{\texttt}
 \def\vgap{\vspace{5mm}}
 
-\title[DATABASE SYSTEM PRINCIPLES]{Query Processing 2:\\ I/O-Efficient Sorting}
+\title[DATABASE SYSTEM PRINCIPLES]{Query Processing 3:\\ Sort Join}
 
 \author[Yufei Tao @ NTU]{Yufei Tao}
 \institute[]{\url{https://www.cse.cuhk.edu.hk/~taoyf}}
@@ -34,311 +34,141 @@
 %-------------------------------------------------------------
 \begin{frame}
 \begin{small}
-    %Sorting is a fundamental operation in database systems.
-    This lecture will introduce an algorithm for sorting \bred{disk-resident} data
-    with a small \bred{I/O cost}.
-
+    This lecture will introduce the \blue{sort join} algorithm for computing a natural join involving two relations.
     %\vgap
 \end{small}    
 \end{frame}
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{(Disk-Based) Sorting}
+    \xmybox{The Binary Join Problem}
 
     \vgap
 
-    $\red{R} =$ a set of elements drawn from a total order, each represented with the same number of words. \\
-    $\red{B} =$ the number of disk blocks that $R$ occupies. \\
+    $\red{R_1(X, Y)}$: A relation with attributes $X$ and $Y$. \\
+    $\red{R_2(X, Z)}$: A relation with attributes $X$ and $Z$. \\
+    $\red{B_1} =$ the number of disk blocks that $R_1$ occupies. \\
+    $\red{B_2} =$ the number of disk blocks that $R_2$ occupies. \\
     $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks). \\
+    \myitems{
+        \item We assume $M \ge 5$.
+    }
 
     \vgap
 
-    \blue{Goal:} Produce a sorted list of the elements in $R$ on disk.
+    \blue{Goal:} Compute the join result $R_1 \bowtie R_2$.
 
     \vgap
+
+    We will carry out our discussion under another assumption: \\
+    \cbox{red}{
+        \blue{No skew assumption:} \\
+        For any $X$-value, the tuples of $R_1$ having that value fit in at most $M-3$ blocks.
+    }
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    %\xmybox{Binary Join}
+
+    \vgap
+
+    \blue{Example}
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Sort Join}
+
+    \vgap
+
+    \blue{Step 1:} Sort $R_1(X, Y)$ on $X$, and sort $R_2(X, Z)$ on $X$ \\
+    \myitems{
+        \item Using the external sort algorithm.
+    }
+    \blue{Step 2:} Scan the sorted $R_1$ and $R_2$ synchronously to output the result.
+
+    \vgap
+
+    Next, we will explain how to do Step 2 in $B_1 + B_2$ I/Os.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Sort Join: Step 2}
+
+    %\vgap
+
+    We will maintain a value $\red{x_1}$ for $R_1$ and a value $\red{x_2}$ for $R_2$ to enforce the following invariant:
 
     \cbox{blue}{
-        \blue{Think:} Why not use a ``memory-sorting'' algorithm such as merge sort or quick sort?
+        \blue{Invariant:} All the result tuples of $R_1$ (resp., $R_2$) with $X$-values less than $x_1$ (resp., $x_2$) have been output.
     }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \cbox{yellow}{
-        Next, we will take a ``detour'' to discuss a stand-alone problem called \bred{merging}. As we will see, a fast algorithm for merging implies a fast algorithm for sorting.
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{(Disk-Based) Merging}
 
-    \vgap
+    %\vgap
 
-    $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks). \\
-    We have $\red{R_1}, \red{R_2}, ..., \red{R_{M-1}}$ where
-    \myitems{
-        \item all the elements in $R_1, ..., R_{M-1}$ are drawn from a total order, each represented with the same number of words;
-        \item $R_1, ..., R_{M-1}$ are mutually disjoint;
-        \item each $R_i$ ($1 \le i \le M-1$) is \bred{sorted}.
-    }
-    For each $\red{i} \in [1, M-1]$, denote by $\red{B_i}$ the number of disk blocks that $R_i$ occupies.
+    In the beginning, load the first blocks of $R_1$ and $R_2$ into memory. \\
+    Set $x_1$ (resp., $x_2$) to the $X$-value of the first tuple of $R_1$ (resp., $R_2$).
 
-    \vgap
-
-    \blue{Goal:} Produce a sorted list of $R_1 \cup R_2 \cup ... \cup R_{M-1}$ on disk.
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{(Disk-Based) Merging}
-
-    \vgap
-
-    \blue{Example:} $M = 5$.
     \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-merge0}
+        \includegraphics[height=40mm]{./artwork/em-sj1}
     \end{center}
 
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{(Disk-Based) Merging}
+    \xmybox{Sort Join: Step 2}
+
+    \bred{If $x_1 < x_2$}, move $x_1$ to the next element of $R_1$ (loading the next block of $R_1$ into memory if necessary).
+    \bred{If $x_2 < x_1$}, move $x_2$ to the next element of $R_2$ (loading the next block of $R_2$ into memory if necessary).
 
     \vgap
-
-    To solve the problem, we allocate one memory block to each $R_i$ ($1 \le i \le M-1$) as its \blue{input buffer}. This consumes $M - 1$ memory blocks. The remaining memory block is allocated as the \blue{output buffer}.
-
-    \vgap
-
-    Load the first page of each $R_i$ ($1 \le i \le M-1$) into its input buffer.
 
     \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-merge1}
+        \includegraphics[height=40mm]{./artwork/em-sj2}
     \end{center}
-
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{(Disk-Based) Merging}
+    \xmybox{Sort Join: Step 2}
 
-    \vgap
-
-    Move the smallest integer in the input buffers to the output buffer \bred{until}
-    \myitems{
-        \item \bred{either} the output buffer is full
-        \item \bred{or} an input buffer becomes empty.
-    }
-
-    \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-merge2}
-    \end{center}
-
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{(Disk-Based) Merging}
-
-    \vgap
-
-    If the output buffer is full, output it to the sorted file on disk.
-
-    \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-merge3}
-    \end{center}
-
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{(Disk-Based) Merging}
-
-    \vgap
-
-    Move the smallest integer in the input buffers to the output buffer \bred{until}
-    \myitems{
-        \item \bred{either} the output buffer is full
-        \item \bred{or} an input buffer becomes empty.
-    }
-
-    \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-merge4}
-    \end{center}
-
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{(Disk-Based) Merging}
-
-    \vgap
-
-    If the output buffer is full, output it to the sorted file on disk.
-
-    \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-merge5}
-    \end{center}
-
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{(Disk-Based) Merging}
-
-    \vgap
-
-    Move the smallest integer in the input buffers to the output buffer \bred{until}
-    \myitems{
-        \item \bred{either} the output buffer is full
-        \item \bred{or} an input buffer becomes empty.
-    }
-    If an input buffer is empty --- say the buffer is for $\red{R_i}$ --- fill it with the next block of $R_i$ (if it exists).
-
-    \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-merge6}
-    \end{center}
-
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{(Disk-Based) Merging}
-
-    \vgap
-
-    Repeat the above steps until all of $R_1, ..., R_{M-1}$ have been exhausted.
-
-    \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-merge6}
-    \end{center}
-
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{(Disk-Based) Merging}
-
-    \vgap
-
-    I/O cost:
-    \myitems{
-        \item Number of Read I/Os $= \sum_{i=1}^{M-1} B_i$\\
-        (every input block read once)
-        \item Number of Write I/Os $\le \sum_{i=1}^{M-1} B_i$ \\
-        (the sorted file cannot have more blocks).
-    }
-
-    \cbox{green}{
-        Total I/O cost $\le 2 \sum_{i=1}^{M-1} B_i$.
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \cbox{yellow}{
-        \centering
-        We now return to the sorting problem.\\ The algorithm we will introduce is called \blue{external sort}.
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{(Disk-Based) Sorting}
-
-    Recall that the input is $\red{R}$, which occupies $\red{B}$ blocks.
-
-    \vgap
-
-
-    \mybox[green]{The Initial Step}
-
-    Chop $R$ into $\red{n_0} = \red{\lc {B/M} \rc}$ \blue{runs}, each consisting of $M$ consecutive blocks (except possibly the last run).
-
-    \vgap
-
-    \bred{For each run}: load its elements into memory, sort them, and write them back to the disk, replacing the original run --- this produces a \blue{sorted run}.
-
-    \begin{center}
-        \includegraphics[height=20mm]{./artwork/em-sort0}
-    \end{center}
-
-    I/O cost = $2 \cdot B$ (\blue{think:} why 2? \blue{hint:} apply our merging algorithm).
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{(Disk-Based) Sorting}
-
-    \mybox[green]{Merging Step 1}
-
-    \bred{For every $M - 1$ sorted runs}: merge them into one sorted run. \\
-
-    The number of new sorted runs is
-    \myeqn{
-        \red{n_1} = \lc n_0 / (M-1) \rc. \nn
-    }
-    A new sorted run has $M (M-1)$ blocks (except possibly for the last one).
-
+    \bred{If $x_1 = x_2$}, read into memory all tuples of $R_1$ with $X$-value equal to $x_1$. \\
+    By the no-skew assumption, they occupy at most $M-3$ memory blocks.
 
     %\vgap
 
     \begin{center}
-        \includegraphics[height=35mm]{./artwork/em-sort1}
+        \includegraphics[height=40mm]{./artwork/em-sj3}
     \end{center}
 
-    I/O cost $\le 2 \cdot B$ (\blue{think:} why?)
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{(Disk-Based) Sorting}
+    \xmybox{Sort Join: Step 2}
 
-    \mybox[green]{Merging Step $\red{i} \ge 1$}
+    %\bred{If $x_1 = x_2$}, read into memory all tuples of $R_1$ with $X$-value equal to $x_1$. \\
+    %By the no-skew assumption, they occupy at most $M-2$ memory blocks. \\
 
-    \bred{For every $M - 1$ sorted runs from the last step}: merge them into one sorted run.
-    The number of new sorted runs is
-    \myeqn{
-        \red{n_i} = \lc n_{i-1} / (M-1) \rc. \nn
-    }
-    A new sorted run has $M (M-1)^i$ blocks (except possibly for the last one).
+    Then use one memory block to read every block of $R_2$ containing tuples whose $X$-values equal $x_2$ (one block at a time). For each block read, produce all the result tuples whose $X$-values equal $x_2$.
+
+    %\vgap
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-sj4}
+    \end{center}
 
 
-    \vgap
-
-    I/O cost $\le 2 \cdot B$.
-
-    \vgap
-
-    \cbox{blue}{
-        When $n_i = 1$, we are done.
-    }
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{(Disk-Based) Sorting}
+    \xmybox{Sort Join: Step 2}
 
-    \vgap
+    Move $x_1$ to the next element of $R_1$ (reading the next block of $R_1$ if necessary). Move $x_2$ to the next element of $R_2$ (reading the next block of $R_2$ if necessary).
 
-    $\red{h} =$ the total number of merging steps.
+    %\vgap
 
-    \cbox{blue}{
-        The total I/O cost of sorting is at most $
-            2 B \cdot (h + 1)
-        $, which is $O(B \log_M B)$.
-    }
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-sj5}
+    \end{center}
 
-    \vgap
-
-    \cbox{green}{
-        \blue{Remark:} In practice, we typically have $B \le M(M-1)$, in which case there is only one merging step and the I/O cost is $4 B$.
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    The following questions are left to you.
-
-    \cbox{green}{
-        We have assumed that $R$ has no duplicate elements. How to adapt the algorithm to sort without this assumption? \\[1mm]
-        \blue{Hint:} no need to change the algorithm --- what would be a clever ``total order'' here?
-    }
-
-    \cbox{green}{
-        If $R$ has duplicate elements, how do we remove duplicates with the cost of sorting?
-    }
-
-    \cbox{green}{
-        Suppose that we have a relation $R(A, B)$. How to use sorting to answer the query below? \\
-
-        \ttt{SELECT} $A$, \ttt{COUNT}($B$) \ttt{FROM} $R$ \ttt{GROUP BY} $A$
-    }
+    The algorithm continues in the same fashion until $R_1$ or $R_2$ is exhausted.
 }
 %-------------------------------------------------------------
 \end{document} 
