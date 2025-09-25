@@ -1,0 +1,233 @@
+\documentclass{beamer}
+
+\usetheme{Warsaw}
+%\usetheme{CambridgeUS}
+
+\input{./def/yf-beamer.tex}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[skins,breakable]{tcolorbox}
+
+\def\done{\hfill$\square$}
+\def\ttt{\texttt}
+\def\vgap{\vspace{5mm}}
+
+\def\sort{\mit{sort}}
+
+\title[DATABASE SYSTEM PRINCIPLES]{Query Processing 3:\\ Sort Join}
+
+\author[Yufei Tao @ NTU]{Yufei Tao}
+\institute[]{\url{https://www.cse.cuhk.edu.hk/~taoyf}}
+\date{}
+
+% \def\dtm{\mathit{d\mbox{-}tm}}
+% \def\ftm{\mathit{f\mbox{-}tm}}
+\def\bestext{\mathit{best\mbox{-}ext}}
+
+\begin{document}
+%-------------------------------------------------------------
+\begin{frame}
+    \titlepage
+%     \begin{tcolorbox}[arc=0mm, colframe=green!50!black, colback=green!10!white] 
+%     \end{tcolorbox}
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    This lecture will introduce the \blue{sort join} algorithm for computing a natural join involving two relations.
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{The Binary Join Problem}
+
+    \vgap
+
+    $\red{R_1(X, Y)}$: A relation with attributes $X$ and $Y$. \\
+    $\red{R_2(X, Z)}$: A relation with attributes $X$ and $Z$. \\
+    $\red{B_1} =$ the number of disk blocks that $R_1$ occupies. \\
+    $\red{B_2} =$ the number of disk blocks that $R_2$ occupies. \\
+    $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks). \\
+    \myitems{
+        \item We assume $M \ge 3$.
+    }
+
+    \vgap
+
+    \blue{Goal:} Compute the join result $R_1 \bowtie R_2$.
+
+    \vgap
+
+    We will carry out our discussion under another assumption: \\
+    \cbox{red}{
+        \blue{No skew assumption:} \\
+        For any $X$-value, the tuples of $R_1$ having that $X$-value fit in at most $M-2$ blocks.
+    }
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Sort Join}
+
+    \vgap
+
+    \blue{Step 1:} Sort $R_1(X, Y)$ on $X$, and sort $R_2(X, Z)$ on $X$ \\
+    \myitems{
+        \item Using the external sort algorithm.
+    }
+    \blue{Step 2:} Scan the sorted $R_1$ and $R_2$ synchronously to output the result.
+
+    \vgap
+
+    Next, we will explain how to do Step 2 in $B_1 + B_2$ I/Os.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Sort Join: Step 2}
+
+    %\vgap
+
+    We will maintain a value $\red{x_1}$ for $R_1$ and a value $\red{x_2}$ for $R_2$ to enforce the following invariant:
+
+    \cbox{blue}{
+        \blue{Invariant:} All the result tuples of $R_1$ (resp., $R_2$) with $X$-values less than $x_1$ (resp., $x_2$) have been output.
+    }
+
+    %\vgap
+
+    In the beginning, load the first blocks of $R_1$ and $R_2$ into memory. \\
+    Set $x_1$ (resp., $x_2$) to the $X$-value of the first tuple of $R_1$ (resp., $R_2$).
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-sj1}
+    \end{center}
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Sort Join: Step 2}
+
+    \bred{If $x_1 < x_2$}, move $x_1$ to the next element of $R_1$ (loading the next block of $R_1$ into memory if necessary).
+    \bred{If $x_2 < x_1$}, move $x_2$ to the next element of $R_2$ (loading the next block of $R_2$ into memory if necessary).
+
+    \vgap
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-sj2}
+    \end{center}
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Sort Join: Step 2}
+
+    \bred{If $x_1 = x_2$}, read into memory all tuples of $R_1$ with $X$-value equal to $x_1$. \\
+    By the no-skew assumption, they occupy at most $M-2$ memory blocks.
+
+    %\vgap
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-sj3}
+    \end{center}
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Sort Join: Step 2}
+
+    Then use one memory block to read every block of $R_2$ containing tuples whose $X$-values equal $x_2$ (one block at a time). For each block read, produce all the result tuples whose $X$-values equal $x_2$.
+
+    %\vgap
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-sj4}
+    \end{center}
+
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Sort Join: Step 2}
+
+    Move $x_1$ to the next element of $R_1$ (reading the next block of $R_1$ if necessary). Move $x_2$ to the next element of $R_2$ (reading the next block of $R_2$ if necessary).
+
+    %\vgap
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/em-sj5}
+    \end{center}
+
+    The algorithm continues in the same fashion until $R_1$ or $R_2$ is exhausted.
+}
+%-------------------------------------------------------------
+\myfrm{
+    Every block of $R_1$ and $R_2$ is read exactly once. Hence, Step 2 performs $B_1 + B_2$ I/Os.
+
+    \cbox{blue}{
+        The total I/O cost of the sort join algorithm is bounded by $\sort(B_1) + \sort(B_2) + B_1 + B_2$ where $\red{\sort(x)}$ is the I/O cost of sorting $x$ blocks of tuples.
+    }
+
+    \cbox{green}{
+        In practice, we typically have $B_1 \le M(M-1)$ and $B_2 \le M(M-1)$, in which case the total I/O cost is bounded by $5 (B_1 + B_2)$.
+    }
+
+    \cbox{blue}{
+        \blue{Remark:} The above analysis has not considered the cost of writing the join result to the disk. If that is necessary, you should add $\red{B_\mit{out}}$ to the I/O cost, where $B_\mit{out}$ is the number of blocks needed to store the join result, provided that you have an additional memory block to serve as the output buffer.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    Here is a question for you:
+
+    \cbox{red}{
+        \blue{The 3-Star Join Problem} \\
+
+        $\red{R_1(X, A_1)}$: A relation with attributes $X$ and $A_1$. \\
+        $\red{R_2(X, A_2)}$: A relation with attributes $X$ and $A_2$. \\
+        $\red{R_3(X, A_3)}$: A relation with attributes $X$ and $A_3$. \\
+        $\red{B_i} =$ the number of disk blocks that $R_i$ occupies ($1 \le i \le 3$). \\
+        $\red{M} =$ the number of memory blocks.
+
+        \vgap
+
+        If you are to modify the sort-join algorithm to compute $$R_1 \bowtie R_2 \bowtie R_3$$ in $5 (B_1 + B_2 + B_3)$ I/Os, what assumptions would you need?
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        Returning to the binary join problem $\red{R_1(X, Y) \bowtie R_2(X, Z)}$, next we outline a refinement of the sort join algorithm that can reduce the I/O cost to $\red{3 (B_1 + B_2)}$ when the memory size (i.e., $M$) is reasonably large.
+
+        \vgap
+
+        \blue{Remark:} This content will not be tested.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Refined Sort Join}
+
+    %\vgap
+
+    Perform the \bred{initial step} of external sort on $R_1$ (sorting attribute = $X$). \\
+    Perform the \bred{initial step} of external sort on $R_2$ (sorting attribute = $X$). \\
+    The above needs $2(B_1 + B_2)$ I/Os and yields
+    \myitems{
+        \item $\red{n_1} = \lc B_1 / M \rc$ \blue{sorted runs} of $R_1$, each having $M$ blocks;
+        \item $\red{n_2} = \lc B_2 / M \rc$ \blue{sorted runs} of $R_2$, each having $M$ blocks.
+    }
+
+    We assume
+    \myitems{
+        \item $n_1 + n_2 \le M$;
+        \item (\blue{skew condition modified}) for any $X$-value, the tuples of $R_1$ having that $X$-value fit in at most $M - n_2 - n_1$ blocks.
+    }
+
+    Under these assumptions, it is possible to scan all the sorted runs synchronously to output $R_1 \bowtie R_2$ directly in $B_1 + B_2$ I/Os \\
+    (\blue{hint}: how did you solve the 3-star join problem?).
+
+}
+\end{document} 
+
