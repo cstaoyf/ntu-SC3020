@@ -35,8 +35,7 @@
 \begin{frame}
 \begin{small}
     %Sorting is a fundamental operation in database systems.
-    This lecture will introduce an algorithm for sorting \bred{disk-resident} data
-    with a small \bred{I/O cost}.
+    This lecture will introduce an algorithm for sorting \bred{disk-resident} data.
 
     %\vgap
 \end{small}    
@@ -47,7 +46,7 @@
 
     \vgap
 
-    $\red{R} =$ a set of elements drawn from a total order, each represented with the same number of words. \\
+    $\red{R} =$ a set of elements drawn from a total order. \\
     $\red{B} =$ the number of disk blocks that $R$ occupies. \\
     $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks). \\
 
@@ -74,9 +73,9 @@
     \vgap
 
     $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks). \\
-    We have $\red{R_1}, \red{R_2}, ..., \red{R_{M-1}}$ where
+    We have sets $\red{R_1}, \red{R_2}, ..., \red{R_{M-1}}$ where
     \myitems{
-        \item all the elements in $R_1, ..., R_{M-1}$ are drawn from a total order, each represented with the same number of words;
+        \item all the elements in $R_1, ..., R_{M-1}$ are drawn from a total order;
         \item $R_1, ..., R_{M-1}$ are mutually disjoint;
         \item each $R_i$ ($1 \le i \le M-1$) is \bred{sorted}.
     }
@@ -206,10 +205,10 @@
 
     I/O cost:
     \myitems{
-        \item Number of Read I/Os $= \sum_{i=1}^{M-1} B_i$\\
+        \item Number of read I/Os $= \sum_{i=1}^{M-1} B_i$\\
         (every input block read once)
-        \item Number of Write I/Os $\le \sum_{i=1}^{M-1} B_i$ \\
-        (the sorted file cannot have more blocks).
+        \item Number of write I/Os $\le \sum_{i=1}^{M-1} B_i$ \\
+        (the sorted file cannot have more blocks than the input).
     }
 
     \cbox{green}{
