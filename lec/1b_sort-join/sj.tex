@@ -123,7 +123,7 @@
 \myfrm{
     \xmybox{Sort Join: Step 2}
 
-    \bred{If $x_1 = x_2$}, read into memory all tuples of $R_1$ with $X$-value equal to $x_1$. \\
+    \bred{If $x_1 = x_2$}, read into memory all tuples of $R_1$ with $X$-values equal to $x_1$. \\
     By the no-skew assumption, they occupy at most $M-2$ memory blocks.
 
     %\vgap
@@ -137,7 +137,7 @@
 \myfrm{
     \xmybox{Sort Join: Step 2}
 
-    Then use one memory block to read every block of $R_2$ containing tuples whose $X$-values equal $x_2$ (one block at a time). For each block read, produce all the result tuples whose $X$-values equal $x_2$.
+    Then use one memory block to read every block of $R_2$ containing tuples whose $X$-values equal $x_2$ (one block at a time). For each block read, produce all the join result tuples whose $X$-values equal $x_2$.
 
     %\vgap
 
@@ -222,7 +222,7 @@
     We assume
     \myitems{
         \item $n_1 + n_2 \le M$;
-        \item (\blue{skew condition modified}) for any $X$-value, the tuples of $R_1$ having that $X$-value fit in at most $M - n_2 - n_1$ blocks.
+        \item (\blue{skew condition modified}) for any $X$-value, the tuples of $R_1$ having that $X$-value fit in at most $\red{M - n_1 - n_2}$ blocks.
     }
 
     Under these assumptions, it is possible to scan all the sorted runs synchronously to output $R_1 \bowtie R_2$ directly in $B_1 + B_2$ I/Os \\
