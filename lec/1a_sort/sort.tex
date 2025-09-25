@@ -309,8 +309,8 @@
 
     \cbox{blue}{
         The total I/O cost of sorting is at most $
-            2 \cdot B \cdot (h + 1).
-        $
+            2 B \cdot (h + 1)
+        $, which is $O(B \log_M B)$.
     }
 
     \vgap
@@ -325,11 +325,11 @@
 
     \cbox{blue}{
         We have assumed that $R$ has no duplicate elements. How to adapt the algorithm to sort without this assumption? \\[1mm]
-        \blue{Hint:} you don't need to change the algorithm at all --- what should be the ``total order'' now?
+        \blue{Hint:} no need to change the algorithm --- what would be a clever ``total order'' here?
     }
 
     \cbox{blue}{
-        If $R$ has duplicate elements, how do we remove duplicates with a small I/O cost?
+        If $R$ has duplicate elements, how do we remove duplicates with the cost of sorting?
     }
 
     \cbox{blue}{
