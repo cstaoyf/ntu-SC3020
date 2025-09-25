@@ -16,7 +16,7 @@
 
 \def\sort{\mit{sort}}
 
-\title[DATABASE SYSTEM PRINCIPLES]{Query Processing 3:\\ Sort Join}
+\title[DATABASE SYSTEM PRINCIPLES]{Query Processing 4:\\ Hash Join}
 
 \author[Yufei Tao @ NTU]{Yufei Tao}
 \institute[]{\url{https://www.cse.cuhk.edu.hk/~taoyf}}
@@ -36,7 +36,7 @@
 %-------------------------------------------------------------
 \begin{frame}
 \begin{small}
-    This lecture will introduce the \blue{sort join} algorithm for computing a natural join involving two relations.
+    This lecture will introduce the \blue{hash join} algorithm for computing a natural join involving two relations.
     %\vgap
 \end{small}    
 \end{frame}
@@ -52,7 +52,7 @@
     $\red{B_2} =$ the number of disk blocks that $R_2$ occupies. \\
     $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks). \\
     \myitems{
-        \item We assume $M \ge 3$.
+        \item We assume that $M - 1$ is a multiple of 3 at least 6 (hence, $M \ge 7$).
     }
 
     \vgap
@@ -61,173 +61,185 @@
 
     \vgap
 
-    We will carry out our discussion under another assumption: \\
-    \cbox{red}{
-        \blue{No skew assumption:} \\
-        For any $X$-value, the tuples of $R_1$ having that $X$-value fit in at most $M-2$ blocks.
+    \cbox{blue}{
+        Recall that the \blue{block-based nested loop} (BNL) algorithm can compute the join result in $\red{B_1 + \lc \fr{B_1}{M-1} \rc B_2}$ I/Os. In particular, if $R_1$ can be loaded into memory entirely, then the I/O cost of BNL is $B_1 + B_2$.
     }
 
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Sort Join}
+    \xmybox{Hashing}
 
     \vgap
 
-    \blue{Step 1:} Sort $R_1(X, Y)$ on $X$, and sort $R_2(X, Z)$ on $X$ \\
-    \myitems{
-        \item Using the external sort algorithm.
+    Let $\red{\mathbb{D}}$ be the domain of the attribute $X$. Set
+    \myeqn{
+        \red{U} = (M-1)/3 \nn
     }
-    \blue{Step 2:} Scan the sorted $R_1$ and $R_2$ synchronously to output the result.
+    We are given a \blue{hash function} $\red{H}$, which is a function mapping $\mathbb{D}$ to the set of integers $\set{1, 2, ..., U}$.
+
 
     \vgap
 
-    Next, we will explain how to do Step 2 in $B_1 + B_2$ I/Os.
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{Sort Join: Step 2}
+    Given a tuple $\red{t_1}$ of $R_1$, we refer to $H(t_1.X)$ as the \blue{hash value} of $t_1$. \\
+    Given a tuple $\red{t_2}$ of $R_2$, we refer to $H(t_2.X)$ as the \blue{hash value} of $t_2$.
 
-    %\vgap
 
-    We will maintain a value $\red{x_1}$ for $R_1$ and a value $\red{x_2}$ for $R_2$ to enforce the following invariant:
+    \vgap
+
+    We will carry out our discussion under the following assumption:
 
     \cbox{blue}{
-        \blue{Invariant:} All the result tuples of $R_1$ (resp., $R_2$) with $X$-values less than $x_1$ (resp., $x_2$) have been output.
+        \blue{Good hashing assumption:} For any $\red{h} \in [1, U]$, the tuples of $R_1$ with hash value $h$ can fit in $\red{U}$ blocks.
     }
 
-    %\vgap
-
-    In the beginning, load the first blocks of $R_1$ and $R_2$ into memory. \\
-    Set $x_1$ (resp., $x_2$) to the $X$-value of the first tuple of $R_1$ (resp., $R_2$).
-
-    \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-sj1}
-    \end{center}
-
+    No such requirements are placed on $R_2$.
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Sort Join: Step 2}
+    \xmybox{Buckets}
 
-    \bred{If $x_1 < x_2$}, move $x_1$ to the next element of $R_1$ (loading the next block of $R_1$ into memory if necessary).
-    \bred{If $x_2 < x_1$}, move $x_2$ to the next element of $R_2$ (loading the next block of $R_2$ into memory if necessary).
+    %\vgap
+
+    Given a value $\red{h} \in [1, U]$, define
+    \myeqn{
+        \red{R_1(h)} &=& \set{ \text{tuple $t \in R_1$} \mid H(t_1.X) = h} \nn \\
+        \red{R_2(h)} &=& \set{ \text{tuple $t \in R_2$} \mid H(t_2.X) = h} \nn
+    }
+    We will refer to $R_1(h)$ and $R_2(h)$ as \blue{buckets}. Clearly, each relation has $U$ buckets.
 
     \vgap
 
-    \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-sj2}
-    \end{center}
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{Sort Join: Step 2}
-
-    \bred{If $x_1 = x_2$}, read into memory all tuples of $R_1$ with $X$-value equal to $x_1$. \\
-    By the no-skew assumption, they occupy at most $M-2$ memory blocks.
-
-    %\vgap
-
-    \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-sj3}
-    \end{center}
-
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{Sort Join: Step 2}
-
-    Then use one memory block to read every block of $R_2$ containing tuples whose $X$-values equal $x_2$ (one block at a time). For each block read, produce all the result tuples whose $X$-values equal $x_2$.
-
-    %\vgap
-
-    \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-sj4}
-    \end{center}
-
-
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{Sort Join: Step 2}
-
-    Move $x_1$ to the next element of $R_1$ (reading the next block of $R_1$ if necessary). Move $x_2$ to the next element of $R_2$ (reading the next block of $R_2$ if necessary).
-
-    %\vgap
-
-    \begin{center}
-        \includegraphics[height=40mm]{./artwork/em-sj5}
-    \end{center}
-
-    The algorithm continues in the same fashion until $R_1$ or $R_2$ is exhausted.
-}
-%-------------------------------------------------------------
-\myfrm{
-    Every block of $R_1$ and $R_2$ is read exactly once. Hence, Step 2 performs $B_1 + B_2$ I/Os.
-
     \cbox{blue}{
-        The total I/O cost of the sort join algorithm is bounded by $\sort(B_1) + \sort(B_2) + B_1 + B_2$ where $\red{\sort(x)}$ is the I/O cost of sorting $x$ blocks of tuples.
+        \blue{Fact:} $R_1 \bowtie R_2 = \bigcup_{h=1}^U R_1(h) \bowtie R_2(h)$.
     }
+
+    In other words, once we have obtained all buckets, we can focus on joining each $R_1(h)$ with the \bred{corresponding} $R_2(h)$.
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Hash Join}
+
+    \vgap
+
+    \blue{Step 1:} Create the $U$ buckets of $R_1$ and $R_2$, respectively. \\
+    \blue{Step 2:} For each $\red{h} \in [1, U]$, compute $R_1(h) \bowtie R_2(h)$.
+
+    \vgap
+
+    We will discuss each step in turn.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Hash Join: Step 1}
+
+    \vgap
+
+    We will explain how to create the $U$ buckets of $R_1$.
+    %A similar algorithm works for $R_2$.
+
+    \vgap
+
+    Use one memory block as the \blue{output buffer} for each bucket $\red{R_1(h)}$, where $h \in [1, U]$. \\ %This needs $U \le M-1$ blocks. \\
+    Use one memory block as the \blue{input buffer} for reading $R_1$.
+
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Hash Join: Step 1}
+
+    For each tuple $\red{t}$ read from $R_1$, add it to the output buffer of $R_1(H(t.X))$.
+
+    \vgap
+
+    When an output buffer --- say for bucket $\red{R_1(h)}$ of some $h \in [1, U]$ --- is \bred{full}, append it to the file of $R_1(h)$ on disk.
 
     \cbox{green}{
-        In practice, we typically have $B_1 \le M(M-1)$ and $B_2 \le M(M-1)$, in which case the total I/O cost is bounded by $5 (B_1 + B_2)$.
+    \blue{Example:} $U = 2$ and $H(x) = 1 + (x \text{ mod } 2)$.
+
+    \begin{center}
+        \includegraphics[height=40mm]{./artwork/hj1}
+    \end{center}
     }
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Hash Join: Step 1}
+
+    The I/O cost is bounded by $\red{2B_1}$ because
+    \myitems{
+        \item every block of $R_1$ is read once;
+        \item the number of full blocks flushed to the disk is at most $B_1$.
+    }
+
+    \begin{center}
+        \includegraphics[height=35mm]{./artwork/hj1}
+    \end{center}
 
     \cbox{blue}{
-        \blue{Remark:} The above analysis has not considered the cost of writing the join result to the disk. If that is necessary, you should add $\red{B_\mit{out}}$ to the I/O cost, where $B_\mit{out}$ is the number of blocks needed to store the join result, provided that you have an additional memory block to serve as the output buffer.
+        \blue{Remark:} Each bucket can have \bred{at most one non-full block}, and this block \bred{must reside in memory}. We cannot afford to write those blocks to disk; otherwise, the I/O cost can increase to $2B_1 + U$ in the worst case (\blue{think:} why?).
     }
 }
 %-------------------------------------------------------------
 \myfrm{
-    Here is a question for you:
+    \xmybox{Hash Join: Step 1}
 
-    \cbox{red}{
-        \blue{The 3-Star Join Problem} \\
+    \vgap
 
-        $\red{R_1(X, A_1)}$: A relation with attributes $X$ and $A_1$. \\
-        $\red{R_2(X, A_2)}$: A relation with attributes $X$ and $A_2$. \\
-        $\red{R_3(X, A_3)}$: A relation with attributes $X$ and $A_3$. \\
-        $\red{B_i} =$ the number of disk blocks that $R_i$ occupies ($1 \le i \le 3$). \\
-        $\red{M} =$ the number of memory blocks.
+    Create the $U$ buckets of $R_2$ in the same way, while keeping the non-full bucket blocks of $R_1$ in memory.
 
-        \vgap
+    \vgap
 
-        If you are to modify the sort-join algorithm to compute $$R_1 \bowtie R_2 \bowtie R_3$$ in $5 (B_1 + B_2 + B_3)$ I/Os, what assumptions would you need?
+    The I/O cost is bounded by $\red{2B_2}$
+
+    \vgap
+
+    At this moment, we have used $2U$ memory blocks:
+    \myitems{
+        \item $U$ blocks for $R_1$ (each may be the non-full block of a bucket);
+        \item $U$ blocks for $R_2$ (each may be the non-full block of a bucket).
     }
 }
 %-------------------------------------------------------------
 \myfrm{
-    \cbox{yellow}{
-        Returning to the binary join problem $\red{R_1(X, Y) \bowtie R_2(X, Z)}$, next we outline a refinement of the sort join algorithm that can reduce the I/O cost to $\red{3 (B_1 + B_2)}$ when the memory size (i.e., $M$) is reasonably large.
+    \xmybox{Hash Join: Step 2}
 
-        \vgap
+    \vgap
 
-        \blue{Remark:} This content will not be tested.
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{Refined Sort Join}
+    \blue{Step 2:} For each $\red{h} \in [1, U]$, compute $R_1(h) \bowtie R_2(h)$.
+
+    \vgap
+
+
 
     %\vgap
 
-    Perform the \bred{initial step} of external sort on $R_1$ (sorting attribute = $X$). \\
-    Perform the \bred{initial step} of external sort on $R_2$ (sorting attribute = $X$). \\
-    The above needs $2(B_1 + B_2)$ I/Os and yields
+    For each $\red{h} \in [1, U]$, apply BNL to compute $R_1(h) \bowtie R_2(h)$. By the good hashing assumption, $R_1(h)$ can be loaded into $U$ memory blocks. Then, use one memory block to scan $R_2(h)$.
     \myitems{
-        \item $\red{n_1} = \lc B_1 / M \rc$ \blue{sorted runs} of $R_1$, each having $M$ blocks;
-        \item $\red{n_2} = \lc B_2 / M \rc$ \blue{sorted runs} of $R_2$, each having $M$ blocks.
+        \item In total, we use at most $3U + 1 = M$ memory blocks.
     }
 
-    We assume
-    \myitems{
-        \item $n_1 + n_2 \le M$;
-        \item (\blue{skew condition modified}) for any $X$-value, the tuples of $R_1$ having that $X$-value fit in at most $M - n_2 - n_1$ blocks.
-    }
+    \vgap
 
-    Under these assumptions, it is possible to scan all the sorted runs synchronously to output $R_1 \bowtie R_2$ directly in $B_1 + B_2$ I/Os \\
-    (\blue{hint}: how did you solve the 3-star join problem?).
-
+    The I/O cost is bounded by $\red{B_1 + B_2}$ because every disk-resident block of the $2U$ buckets is read exactly once.
 }
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        Overall, the hash join algorithm performs $3(B_1 + B_2)$ I/Os.
+    }
+
+    \vgap
+
+    \cbox{red}{
+        \blue{Remark.} Recall that our analysis requires the good hash uniform assumption. \bred{This assumption may not hold when data are ``skewed''.} For example, if all the tuples of $R_1(X, Y)$ share the same $X$-value, no hash function can satisfy the assumption as long as $B_1 > U$. In the presence of data skew, hash join can be prohibitively expensive.
+    }
+}
+%-------------------------------------------------------------
+
 \end{document} 
+
 
