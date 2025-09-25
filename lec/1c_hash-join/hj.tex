@@ -52,7 +52,7 @@
     $\red{B_2} =$ the number of disk blocks that $R_2$ occupies. \\
     $\red{M} =$ the number of memory blocks (a.k.a., the buffer blocks). \\
     \myitems{
-        \item We assume that $M - 1$ is a multiple of 3 at least 6 (hence, $M \ge 7$).
+        \item We assume that $M \ge 7$ and $M - 1$ is a multiple of 3.
     }
 
     \vgap
@@ -72,7 +72,7 @@
 
     \vgap
 
-    Let $\red{\mathbb{D}}$ be the domain of the attribute $X$. Set
+    Let $\red{\mathbb{D}}$ be the domain of the ``join attribute'' $X$. Set
     \myeqn{
         \red{U} = (M-1)/3 \nn
     }
@@ -180,7 +180,7 @@
     \end{center}
 
     \cbox{blue}{
-        \blue{Remark:} Each bucket can have \bred{at most one non-full block}, and this block \bred{must reside in memory}. We cannot afford to write those blocks to disk; otherwise, the I/O cost can increase to $2B_1 + U$ in the worst case (\blue{think:} why?).
+        \blue{Remark:} Each bucket can have \bred{at most one non-full block}, and this block \bred{must reside in memory}. We do not write those blocks to disk; otherwise, the I/O cost can increase to $2B_1 + U$ in the worst case (\blue{think:} why?).
     }
 }
 %-------------------------------------------------------------
@@ -217,7 +217,7 @@
 
     %\vgap
 
-    For each $\red{h} \in [1, U]$, apply BNL to compute $R_1(h) \bowtie R_2(h)$. By the good hashing assumption, $R_1(h)$ can be loaded into $U$ memory blocks. Then, use one memory block to scan $R_2(h)$.
+    Apply BNL to compute $R_1(h) \bowtie R_2(h)$. By the good hashing assumption, $R_1(h)$ can be loaded into $U$ memory blocks. Then, use one memory block to scan $R_2(h)$.
     \myitems{
         \item In total, we use at most $3U + 1 = M$ memory blocks.
     }
