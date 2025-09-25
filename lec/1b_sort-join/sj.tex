@@ -174,12 +174,12 @@
     }
 
     \cbox{blue}{
-        \blue{Remark:} The above analysis has not considered the cost of writing the join result to the disk. If that is necessary, you should add $\red{B_\mit{out}}$ to the I/O cost where $B_\mit{out}$ is the number of blocks needed to store the join result.
+        \blue{Remark:} The above analysis has not considered the cost of writing the join result to the disk. If that is necessary, you should add $\red{B_\mit{out}}$ to the I/O cost, where $B_\mit{out}$ is the number of blocks needed to store the join result, provided that you have an additional memory block to serve as the output buffer.
     }
 }
 %-------------------------------------------------------------
 \myfrm{
-    Here is an interesting question for you:
+    Here is a question for you:
 
     \cbox{red}{
         \blue{The 3-Star Join Problem} \\
@@ -198,7 +198,7 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{yellow}{
-        Returning to the binary join problem $R_1(X, Y) \bowtie R_2(X, Z)$, next we outline a refinement of the sort join algorithm that can reduce the I/O cost to $3 (B_1 + B_2)$ when the memory size (i.e., $M$) is reasonably large.
+        Returning to the binary join problem $\red{R_1(X, Y) \bowtie R_2(X, Z)}$, next we outline a refinement of the sort join algorithm that can reduce the I/O cost to $\red{3 (B_1 + B_2)}$ when the memory size (i.e., $M$) is reasonably large.
 
         \vgap
 
@@ -226,7 +226,7 @@
     }
 
     Under these assumptions, it is possible to scan all the sorted runs synchronously to output $R_1 \bowtie R_2$ directly in $B_1 + B_2$ I/Os \\
-    (\blue{think}: how? \blue{hint}: how did you solve the 3-star join problem?).
+    (\blue{hint}: how did you solve the 3-star join problem?).
 
 }
 \end{document} 

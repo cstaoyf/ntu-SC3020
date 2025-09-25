@@ -151,11 +151,7 @@
 
     \vgap
 
-    Move the smallest integer in the input buffers to the output buffer \bred{until}
-    \myitems{
-        \item \bred{either} the output buffer is full
-        \item \bred{or} an input buffer becomes empty.
-    }
+    Move the smallest integer in the input buffers to the output buffer.
 
     \begin{center}
         \includegraphics[height=40mm]{./artwork/em-merge4}
@@ -168,12 +164,13 @@
 
     \vgap
 
-    If the output buffer is full, output it to the sorted file on disk.
+    Here, the output buffer is full again and is flushed to the disk.
 
     \begin{center}
         \includegraphics[height=40mm]{./artwork/em-merge5}
     \end{center}
 
+    An input buffer is now empty.
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -181,12 +178,7 @@
 
     \vgap
 
-    Move the smallest integer in the input buffers to the output buffer \bred{until}
-    \myitems{
-        \item \bred{either} the output buffer is full
-        \item \bred{or} an input buffer becomes empty.
-    }
-    If an input buffer is empty --- say the buffer is for $\red{R_i}$ --- fill it with the next block of $R_i$ (if it exists).
+    Whenever an input buffer is empty --- say the buffer is for $\red{R_i}$ --- fill it with the next block of $R_i$ (if it exists).
 
     \begin{center}
         \includegraphics[height=40mm]{./artwork/em-merge6}
