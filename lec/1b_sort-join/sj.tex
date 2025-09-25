@@ -70,14 +70,6 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    %\xmybox{Binary Join}
-
-    \vgap
-
-    \blue{Example}
-}
-%-------------------------------------------------------------
-\myfrm{
     \xmybox{Sort Join}
 
     \vgap
@@ -189,7 +181,9 @@
 \myfrm{
     Here is an interesting question for you:
 
-    \cbox{yellow}{
+    \cbox{red}{
+        \blue{The 3-Star Join Problem} \\
+
         $\red{R_1(X, A_1)}$: A relation with attributes $X$ and $A_1$. \\
         $\red{R_2(X, A_2)}$: A relation with attributes $X$ and $A_2$. \\
         $\red{R_3(X, A_3)}$: A relation with attributes $X$ and $A_3$. \\
@@ -202,5 +196,38 @@
     }
 }
 %-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        Returning to the binary join problem $R_1(X, Y) \bowtie R_2(X, Z)$, next we outline a refinement of the sort join algorithm that can reduce the I/O cost to $3 (B_1 + B_2)$ when the memory size (i.e., $M$) is reasonably large.
+
+        \vgap
+
+        \blue{Remark:} This content will not be tested.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Refined Sort Join}
+
+    %\vgap
+
+    Perform the \bred{initial step} of external sort on $R_1$ (sorting attribute = $X$). \\
+    Perform the \bred{initial step} of external sort on $R_2$ (sorting attribute = $X$). \\
+    The above needs $2(B_1 + B_2)$ I/Os and yields
+    \myitems{
+        \item $\red{n_1} = \lc B_1 / M \rc$ \blue{sorted runs} of $R_1$, each having $M$ blocks;
+        \item $\red{n_2} = \lc B_2 / M \rc$ \blue{sorted runs} of $R_2$, each having $M$ blocks.
+    }
+
+    We assume
+    \myitems{
+        \item $n_1 + n_2 \le M$;
+        \item (\blue{skew condition modified}) for any $X$-value, the tuples of $R_1$ having that $X$-value fit in at most $M - n_2 - n_1$ blocks.
+    }
+
+    Under these assumptions, it is possible to scan all the sorted runs synchronously to output $R_1 \bowtie R_2$ directly in $B_1 + B_2$ I/Os \\
+    (\blue{think}: how? \blue{hint}: how did you solve the 3-star join problem?).
+
+}
 \end{document} 
 
