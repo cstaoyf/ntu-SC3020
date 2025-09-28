@@ -42,13 +42,7 @@
 \end{frame}
 %-------------------------------------------------------------
 \myfrm{
-    \cbox{blue}{
-        Before running a query plan, the database always estimates its cost.
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{Example 1}
+    \xmybox{Example}
 
     \vgap
 
@@ -59,14 +53,21 @@
         \> \ttt{WHERE} $R_1.B = R_2.B$ \ttt{AND} $S.B = 1$ \ttt{AND} $S.C$ \ttt{BETWEEN} 100 \ttt{AND} 200
     }
 
+    \cbox{green}{
     A query plan:
     \begin{center}
         \includegraphics[height=30mm]{./artwork/plan1}
     \end{center}
+    }
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Running Example}
+    \cbox{blue}{
+        Before running a query plan, the database always estimates its cost.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
 
     \begin{tabular}{cc}
         %\minipg{0.5\linewidth}{
@@ -315,7 +316,7 @@
             Assume:
             \myitems{
                 \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
-                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. There is a hash index on $R_1.B$. \\[-1mm]
+                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. $R_1$ is clustered on $B$ and there is a hash index on $R_1.B$. \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $\red{T}$ tuples occupying $800$ blocks  \\[-1mm]
                 %\item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
                 \item $\red{M} = 100$.
@@ -345,7 +346,7 @@
             Assume:
             \myitems{
                 \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
-                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. There is a hash index on $R_1.B$. \\[-1mm]
+                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. $R_1$ is clustered on $B$ and there is a hash index on $R_1.B$. \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $800$ blocks  \\[-1mm]
                 %\item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
                 \item $\red{M} = 100$.
@@ -370,11 +371,11 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        Query optimization is an art and is an active research area.
+        Query optimization is an art. It is an active research area.
 
         \vgap
 
-        The methods we have discussed are by no means the only methods implemented in existing database systems. In fact, the query optimization module of a database system is a highly sophisticated and often kept as a commercial secret.
+        The methods we have discussed are by no means the only methods implemented in existing database systems. The query optimization module of a database system is a highly sophisticated and often kept as a commercial secret.
     }
 }
 %-------------------------------------------------------------
