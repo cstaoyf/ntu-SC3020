@@ -1,0 +1,384 @@
+\documentclass{beamer}
+
+\usetheme{Warsaw}
+%\usetheme{CambridgeUS}
+
+\input{./def/yf-beamer.tex}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[skins,breakable]{tcolorbox}
+
+\def\done{\hfill$\square$}
+\def\ttt{\texttt}
+\def\vgap{\vspace{5mm}}
+
+\def\sort{\mit{sort}}
+
+\title[DATABASE SYSTEM PRINCIPLES]{Query Processing 5:\\ Query Optimization}
+
+\author[Yufei Tao @ NTU]{Yufei Tao}
+\institute[]{\url{https://www.cse.cuhk.edu.hk/~taoyf}}
+\date{}
+
+% \def\dtm{\mathit{d\mbox{-}tm}}
+% \def\ftm{\mathit{f\mbox{-}tm}}
+\def\bestext{\mathit{best\mbox{-}ext}}
+
+\begin{document}
+%-------------------------------------------------------------
+\begin{frame}
+    \titlepage
+%     \begin{tcolorbox}[arc=0mm, colframe=green!50!black, colback=green!10!white] 
+%     \end{tcolorbox}
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    This lecture will provide an overview of \bred{query optimization}, which is a process carried out by a database to select a query execution strategy.
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Example}
+
+    \vgap
+
+    Relations $\red{R_1(A, B)}$ and $\red{R_2(B, C)}$. \\
+    SQL query:
+    \mytab{
+        \> \ttt{SELECT} $A, C$ \ttt{FROM} $R, S$ \\
+        \> \ttt{WHERE} $R_1.B = R_2.B$ \ttt{AND} $S.B = 1$ \ttt{AND} $S.C$ \ttt{BETWEEN} 100 \ttt{AND} 200
+    }
+
+    \cbox{green}{
+    A query plan:
+    \begin{center}
+        \includegraphics[height=30mm]{./artwork/plan1}
+    \end{center}
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        Before running a query plan, the database always estimates its cost.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+
+    \begin{tabular}{cc}
+        %\minipg{0.5\linewidth}{
+        \begin{minipage}{0.7\linewidth}
+            Assume:
+            \myitems{
+                \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\
+                (i.e., each relation has 10000 blocks). \\[-1mm]
+                \item $R_1 \bowtie R_2$ has $\red{B_1}$ blocks. \\[-1mm]
+                \item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
+                \item $\red{M} = 100$ (the memory has 100 blocks).
+            }
+        \end{minipage}
+        &
+        \begin{minipage}{0.2\linewidth}
+            \includegraphics[height=30mm]{./artwork/plan1}
+        \end{minipage}
+    \end{tabular}
+
+    \vgap
+
+    \mybox[green]{Strategy 1:}
+    \begin{itemize}
+        \item Compute $\red{R_3} = R_1 \bowtie R_2$ with BNL and \blue{materialize} $R_3$ (i.e., write $R_3$ to the disk)
+                $\Rightarrow$ $10^4 + 10^6$ I/Os (BNL) + $B_1$ (mat.).
+        \item Compute $\red{R_4} = \sigma_{B = 1 \wedge C \in [100,200](R_3)}$ by reading $R_3$ and materialize $R_4$ \\
+                $\Rightarrow$ $B_1$ (reading) + $B_2$ (materialization) I/Os.
+        \item Compute $\Pi_{A,C}(R_4)$ by reading $R_4$ $\Rightarrow$ $B_2$ I/Os.
+    \end{itemize}
+    In total: $1010000 + 2(B_1 + B_2)$ I/Os.
+}
+%-------------------------------------------------------------
+\myfrm{
+    Next, we will see several generic methods for improving the strategy.
+
+    \vgap
+
+    \cbox{yellow}{
+        \centering
+        \blue{Method 1:} Algorithm Selection
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+
+    \begin{tabular}{cc}
+        %\minipg{0.5\linewidth}{
+        \begin{minipage}{0.7\linewidth}
+            Assume:
+            \myitems{
+                \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
+                \item $R_1 \bowtie R_2$ has $\red{B_1}$ blocks. \\[-1mm]
+                \item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
+                \item $\red{M} = 100$.
+            }
+        \end{minipage}
+        &
+        \begin{minipage}{0.2\linewidth}
+            \includegraphics[height=30mm]{./artwork/plan1}
+        \end{minipage}
+    \end{tabular}
+
+    \vgap
+
+    \mybox[green]{Strategy 2:}
+    \begin{itemize}
+        \item Compute $\red{R_3} = R_1 \bowtie R_2$ with \bred{sort join} and materialize $R_3$
+                $\Rightarrow$ $5(10^4 + 10^4)$ I/Os (\bred{under no-skew assumption}) + $B_1$ (mat.).
+        \item Compute $\red{R_4} = \sigma_{B = 1 \wedge C \in [100,200](R_3)}$ by reading $R_3$ and materialize $R_4$ \\
+                $\Rightarrow$ $B_1$ (reading) + $B_2$ (materialization) I/Os.
+        \item Compute $\Pi_{A,C}(R_4)$ by reading $R_4$ $\Rightarrow$ $B_2$ I/Os.
+    \end{itemize}
+    In total: $100000 + 2(B_1 + B_2)$ I/Os.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        \centering
+        \blue{Method 2:} Query Rewriting
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    Observe:
+    \myeqn{
+        && \Pi_{A,C}(\sigma_{B=1 \wedge C \in [100, 200]} (R_1 \bowtie R_2) \nn \\
+        &=&
+        \Pi_{A,C}(\sigma_{B=1}(R_1) \bowtie \sigma_{B=1 \wedge C \in [100, 200]} (R_2)) \nn
+    }
+
+    %\vgap
+
+    \cbox{blue}{
+        \blue{Query rewriting} converts the original query to an equivalent query using laws of relational algebra.
+    }
+
+    \begin{center}
+        \includegraphics[height=30mm]{./artwork/plan1.5}
+    \end{center}
+
+    \cbox{green}{
+        \bred{Rule of thumb:} In practice, selections are almost always pushed down as much as possible.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+
+    \begin{tabular}{cc}
+        %\minipg{0.5\linewidth}{
+        \begin{minipage}{0.7\linewidth}
+            Assume:
+            \myitems{
+                \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
+                %\item $R_1 \bowtie R_2$ has $\red{B_1}$ blocks. \\[-1mm]
+                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks  \\[-1mm]
+                \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $800$ blocks  \\[-1mm]
+                \item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
+                \item $\red{M} = 100$.
+            }
+        \end{minipage}
+        &
+        \begin{minipage}{0.2\linewidth}
+            \includegraphics[height=30mm]{./artwork/plan2}
+        \end{minipage}
+    \end{tabular}
+
+    \vgap
+
+    \mybox[green]{Strategy 3:}
+    \begin{itemize}
+        \item Compute $\red{R_3} = \sigma_{B=1} R_1$ by reading $R_1$ and materialize $R_3$ \\
+        $\Rightarrow$ 10000 (reading) + 1000 (mat.) I/Os \\[-1mm]
+        \item Compute $\red{R_4} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ and materialize $R_4$ $\Rightarrow$ 10000 (reading) + 800 (mat.) I/Os \\[-1mm]
+        \item Compute $\red{R_5} = R_3 \bowtie R_4$ with sort join and materialize $R_5$
+                $\Rightarrow$ $5(1000 + 800)$ I/Os (under no-skew assumption) + $B_2$ (mat.). \\[-1mm]
+        \item Compute $\Pi_{A,C}(R_5)$ by reading $R_5$ $\Rightarrow$ $B_2$ I/Os.
+    \end{itemize}
+    In total: $30800 + 2 B_2$ I/Os.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        \centering
+        \blue{Method 3:} Applying Indexes
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \begin{tabular}{cc}
+        %\minipg{0.5\linewidth}{
+        \hspace{-5mm}
+        \begin{minipage}{0.75\linewidth}
+            Assume:
+            \myitems{
+                \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
+                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks  \\[-1mm]
+                \item $\sigma_{C \in [100, 200]} R_2$ has 3000 blocks \\[-1mm]
+                \item $R_2$ is \bred{clustered} on $C$. \\
+                There is a \bred{B-tree} on $R_2.C$ with 3 levels. \\ [-1mm]
+                \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $800$ blocks  \\[-1mm]
+                \item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
+                \item $\red{M} = 100$.
+            }
+        \end{minipage}
+        &
+        \begin{minipage}{0.2\linewidth}
+            \includegraphics[height=30mm]{./artwork/plan2}
+        \end{minipage}
+    \end{tabular}
+
+    \vgap
+
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \mybox[green]{Strategy 4:}
+    \begin{itemize}
+        \item Compute $\red{R_3} = \sigma_{B=1} R_1$ by reading $R_1$ and materialize $R_3$ \\
+        $\Rightarrow$ 10000 (reading) + 1000 (mat.) I/Os \\[-1mm]
+        \item Compute $\red{R_4} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by using the B-tree on $R_2.C$ and materialize $R_4$ $\Rightarrow$ 3 (B-tree) + 3000 (retrieving $\sigma_{C \in [100, 200]} R_2$) + 800 (mat.) I/Os \\[-1mm]
+        \item Compute $\red{R_5} = R_3 \bowtie R_4$ with sort join and materialize $R_5$
+                $\Rightarrow$ $5(1000 + 800)$ I/Os (under no-skew assumption) + $B_2$ (mat.). \\[-1mm]
+        \item Compute $\Pi_{A,C}(R_5)$ by reading $R_5$ $\Rightarrow$ $B_2$ I/Os.
+    \end{itemize}
+    In total: $23803 + 2 B_2$ I/Os.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        \centering
+        \blue{Method 4:} Pipelining
+    }
+
+    \vgap
+
+    \cbox{blue}{
+        \blue{Pipelining} processes multiple operations in a query plan \bred{together}.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \begin{tabular}{cc}
+        %\minipg{0.5\linewidth}{
+        \begin{minipage}{0.7\linewidth}
+            Assume:
+            \myitems{
+                \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
+                %\item $R_1 \bowtie R_2$ has $\red{B_1}$ blocks. \\[-1mm]
+                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks  \\[-1mm]
+                \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $800$ blocks  \\[-1mm]
+                %\item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
+                \item $\red{M} = 100$.
+            }
+        \end{minipage}
+        &
+        \begin{minipage}{0.2\linewidth}
+            \includegraphics[height=30mm]{./artwork/plan2}
+        \end{minipage}
+    \end{tabular}
+
+    \vgap
+
+    \mybox[green]{Strategy 5:}
+    \begin{itemize}
+        \item Compute $\red{R_3} = \sigma_{B=1} R_1$ by reading $R_1$ and materialize $R_3$ \\
+        $\Rightarrow$ 10000 (reading) + 1000 (mat.) I/Os \\[-1mm]
+        \item Compute $\red{R_4} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ and materialize $R_4$ $\Rightarrow$ 10000 (reading) + 800 (mat.) I/Os \\[-1mm]
+        \item Compute $\red{R_5} = R_3 \bowtie R_4$ with sort join. \\
+              \bred{For each tuple $\red{t} \in R_5$ found in memory, output directly $t.A$}. \\
+                $\Rightarrow$ $5(1000 + 800)$ I/Os (under no-skew assumption).
+    \end{itemize}
+    In total: $30800$ I/Os.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        Pipelining may avoid materializing intermediate results altogether, but doing so may \bred{not} necessarily reduce the cost.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \begin{tabular}{cc}
+        %\minipg{0.5\linewidth}{
+        \begin{minipage}{0.7\linewidth}
+            Assume:
+            \myitems{
+                \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
+                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. $R_1$ is \bred{clustered} on $B$ and there is a \bred{hash index} on $R_1.B$. \\[-1mm]
+                \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $\red{T}$ tuples occupying $800$ blocks  \\[-1mm]
+                %\item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
+                \item $\red{M} = 100$.
+            }
+        \end{minipage}
+        &
+        \begin{minipage}{0.2\linewidth}
+            \includegraphics[height=30mm]{./artwork/plan2}
+        \end{minipage}
+    \end{tabular}
+
+    \vgap
+
+    \mybox[green]{Strategy 6:}
+    \begin{itemize}
+        \item Compute $\red{R_3} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ $\Rightarrow$ 10000 I/Os. \\[-1mm]
+        \item \bred{As soon as getting a tuple} $\red{t} \in R_3$ \bred{in memory}: probe the hash index on $R_1.B$ to find all tuples $\red{s} \in \sigma_{B=1} R_1$; output $(s.A, t.C)$. \\
+        $\Rightarrow$ $|R_3| \cdot 1000$ I/Os.
+    \end{itemize}
+    In total: $10000 + 10000 |R_3|$ I/Os.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \begin{tabular}{cc}
+        %\minipg{0.5\linewidth}{
+        \begin{minipage}{0.7\linewidth}
+            Assume:
+            \myitems{
+                \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
+                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. $R_1$ is \bred{clustered} on $B$ and there is a \bred{hash index} on $R_1.B$. \\[-1mm]
+                \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $800$ blocks  \\[-1mm]
+                %\item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
+                \item $\red{M} = 100$.
+            }
+        \end{minipage}
+        &
+        \begin{minipage}{0.2\linewidth}
+            \includegraphics[height=30mm]{./artwork/plan2}
+        \end{minipage}
+    \end{tabular}
+
+    \vgap
+
+    \mybox[green]{Strategy 7:}
+    \begin{itemize}
+        \item Compute $\red{R_3} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ $\Rightarrow$ 10000 I/Os. \\[-1mm]
+        \item \bred{Every time we have accumulated 99 blocks of new tuples of $R_3$ in memory}, probe the hash index on $R_1.B$ to find $\red{R_4} = \sigma_{B=1} R_1$; output $(s.A, t.C)$ for each $\red{t} \in R_3$ in memory and every $\red{s} \in R_4$ \\
+        $\Rightarrow$ $\lc 800/99 \rc \cdot 1000 = 9000$ I/Os.
+    \end{itemize}
+    In total: $19000$ I/Os.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        Query optimization is an art. It is an active research area.
+
+        \vgap
+
+        The methods we discussed are representative but far from being comprehensive. The query optimization module of a database system is a highly sophisticated and often kept as a commercial secret.
+    }
+}
+%-------------------------------------------------------------
+\end{document} 
+
+
