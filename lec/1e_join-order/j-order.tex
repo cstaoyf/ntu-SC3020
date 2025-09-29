@@ -179,12 +179,12 @@
 
     \vgap
 
-    Recall that the input to the problem has $\red{k}$ relations $\red{R_1}, \red{R_2}, ..., \red{R_k}$. The problem can be solved naively with $\red{O(k \cdot k!)}$ calls to the size oracle (\blue{think}: how?).
+    Recall that the input to the problem has $\red{k}$ relations $\red{R_1}, \red{R_2}, ..., \red{R_k}$. The problem can be solved naively with $\red{k \cdot k!}$ calls to the size oracle (\blue{think}: how?).
 
     \vgap
 
     \cbox{blue}{
-        We will show that the problem can be solved with $\red{O(k \cdot 2^k)}$ oracle calls by dynamic programming.
+        We will show that the problem can be solved with less than $\red{k \cdot 2^k}$ oracle calls by dynamic programming.
     }
 }
 %-------------------------------------------------------------
@@ -346,7 +346,7 @@
 
     \vgap
 
-    $\set{R_1, R_2, ..., R_k}$ has less than $2^k$ subsets $S$ of size $|S| \ge 2$. The value $\best(S)$ is computed in one of the $k-1$ steps, and the computation requires at most $k$ oracle calls. The total number of oracle calls is therefore $O(k \cdot 2^k)$.
+    $\set{R_1, R_2, ..., R_k}$ has less than $2^k$ subsets $S$ of size $|S| \ge 2$. The value $\best(S)$ is computed in one of the $k-1$ steps, and the computation requires at most $k$ oracle calls. The total number of oracle calls is therefore less than $k \cdot 2^k$.
 
     \vgap
 
