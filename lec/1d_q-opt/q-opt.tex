@@ -140,7 +140,7 @@
                 $\Rightarrow$ $B_1$ (reading) + $B_2$ (materialization) I/Os.
         \item Compute $\Pi_{A,C}(R_4)$ by reading $R_4$ $\Rightarrow$ $B_2$ I/Os.
     \end{itemize}
-    In total: $50000 + 2(B_1 + B_2)$ I/Os.
+    In total: $100000 + 2(B_1 + B_2)$ I/Os.
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -225,8 +225,8 @@
                 \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
                 \item $\sigma_{B = 1} R_1 $ has $1000$ blocks  \\[-1mm]
                 \item $\sigma_{C \in [100, 200]} R_2$ has 3000 blocks \\[-1mm]
-                \item $R_2$ is sorted and clustered on $C$. \\
-                There is a sparse B-tree on $R_2.C$ with 3 levels. \\ [-1mm]
+                \item $R_2$ is \bred{clustered} on $C$. \\
+                There is a \bred{B-tree} on $R_2.C$ with 3 levels. \\ [-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $800$ blocks  \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
                 \item $\red{M} = 100$.
@@ -261,9 +261,9 @@
         \centering
         \blue{Method 4:} Pipelining
     }
-}
-%-------------------------------------------------------------
-\myfrm{
+
+    \vgap
+
     \cbox{blue}{
         \blue{Pipelining} processes multiple operations in a query plan \bred{together}.
     }
@@ -316,7 +316,7 @@
             Assume:
             \myitems{
                 \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
-                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. $R_1$ is clustered on $B$ and there is a hash index on $R_1.B$. \\[-1mm]
+                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. $R_1$ is \bred{clustered} on $B$ and there is a \bred{hash index} on $R_1.B$. \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $\red{T}$ tuples occupying $800$ blocks  \\[-1mm]
                 %\item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
                 \item $\red{M} = 100$.
@@ -333,7 +333,7 @@
     \mybox[green]{Strategy 6:}
     \begin{itemize}
         \item Compute $\red{R_3} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ $\Rightarrow$ 10000 I/Os. \\[-1mm]
-        \item \bred{As soon as getting a tuple} $\red{t} \in R_3$: probe the hash index on $R_1.B$ to find all tuples $\red{s} \in \sigma_{B=1} R_1$; output $(s.A, t.C)$. \\
+        \item \bred{As soon as getting a tuple} $\red{t} \in R_3$ \bred{in memory}: probe the hash index on $R_1.B$ to find all tuples $\red{s} \in \sigma_{B=1} R_1$; output $(s.A, t.C)$. \\
         $\Rightarrow$ $|R_3| \cdot 1000$ I/Os.
     \end{itemize}
     In total: $10000 + 10000 |R_3|$ I/Os.
@@ -346,7 +346,7 @@
             Assume:
             \myitems{
                 \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
-                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. $R_1$ is clustered on $B$ and there is a hash index on $R_1.B$. \\[-1mm]
+                \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. $R_1$ is \bred{clustered} on $B$ and there is a \bred{hash index} on $R_1.B$. \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $800$ blocks  \\[-1mm]
                 %\item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
                 \item $\red{M} = 100$.
@@ -363,7 +363,7 @@
     \mybox[green]{Strategy 7:}
     \begin{itemize}
         \item Compute $\red{R_3} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ $\Rightarrow$ 10000 I/Os. \\[-1mm]
-        \item \bred{Every time we have accumulated 99 blocks of new tuples of $R_3$ in memory}, probe the hash index on $R_1.B$ to find $\red{R_4} = \sigma_{B=1} R_1$; output $(s.A, t.C)$ for each $t \in R_3$ in memory and every $s \in R_4$. \\
+        \item \bred{Every time we have accumulated 99 blocks of new tuples of $R_3$ in memory}, probe the hash index on $R_1.B$ to find $\red{R_4} = \sigma_{B=1} R_1$; output $(s.A, t.C)$ for each $\red{t} \in R_3$ in memory and every $\red{s} \in R_4$ \\
         $\Rightarrow$ $\lc 800/99 \rc \cdot 1000 = 9000$ I/Os.
     \end{itemize}
     In total: $19000$ I/Os.
@@ -375,7 +375,7 @@
 
         \vgap
 
-        The methods we have discussed are by no means the only methods implemented in existing database systems. The query optimization module of a database system is a highly sophisticated and often kept as a commercial secret.
+        The methods we discussed are representative but far from being comprehensive. The query optimization module of a database system is a highly sophisticated and often kept as a commercial secret.
     }
 }
 %-------------------------------------------------------------
