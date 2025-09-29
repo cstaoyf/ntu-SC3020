@@ -114,12 +114,12 @@
         \myitems{
             \item For each $\red{i} \in [2, t]$, $\red{R_1 \bowtie R_2 \bowtie ... \bowtie R_i}$ is a \blue{prefix} of $\pi$. The \blue{join size} \bred{of the prefix} is $|R_1 \bowtie R_2 \bowtie ... \bowtie R_i|$, i.e., the number of tuples output by the join defined by the prefix.
 
-            \item The \blue{capacity} \bred{of $\pi$} is the sum of the join sizes of its $t-1$ prefixes.
+            \item The \blue{penalty} \bred{of $\pi$} is the sum of the join sizes of its $t-1$ prefixes.
         }
     }
 
     \cbox{blue}{
-        \blue{The Join Order Problem:} Given $\red{k}$ relations $\red{R_1}, \red{R_2}, ..., \red{R_k}$, find an ordering of $\set{R_1, .., R_k}$ with the smallest capacity.
+        \blue{The Join Order Problem:} Given $\red{k}$ relations $\red{R_1}, \red{R_2}, ..., \red{R_k}$, find an ordering of $\set{R_1, .., R_k}$ with the smallest penalty.
     }
 }
 %-------------------------------------------------------------
@@ -145,7 +145,7 @@
 %             \end{minipage}
 %             &
 %             \begin{minipage}{0.45\linewidth}
-%                 The capacity of the ordering $(R_2, R_1, R_3)$ equals the sum of $|R_2 \bowtie R_1|$ and $|R_2 \bowtie R_1 \bowtie R_3|$.
+%                 The penalty of the ordering $(R_2, R_1, R_3)$ equals the sum of $|R_2 \bowtie R_1|$ and $|R_2 \bowtie R_1 \bowtie R_3|$.
 %             \end{minipage}
 %         \end{tabular}
 %     }
@@ -153,7 +153,7 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{blue}{
-        Each ordering corresponds to a ``left-deep'' query plan. The \bred{join size of a prefix} is the output size of a join operation in the plan. The  \bred{capacity of the ordering} is the total output size of all the joins in the query plan. The join order problem essentially aims to minimize the total output size of the \bred{intermediate} joins (i.e., ``non-root'' joins in the plan). (\blue{Think}: why?).
+        Each ordering corresponds to a ``left-deep'' query plan. The \bred{join size of a prefix} is the output size of a join operation in the plan. The  \bred{penalty of the ordering} is the total output size of all the joins in the query plan. The join order problem essentially aims to minimize the total output size of the \bred{intermediate} joins (i.e., ``non-root'' joins in the plan). (\blue{Think}: why?).
     }
     \cbox{green}{
         \blue{Example}
@@ -174,7 +174,7 @@
     \vgap
 
     \cbox{red}{
-        Size oracles do not exist in reality. In reality, given any prefix, a database system can compute an \bred{estimate} of its capacity. These estimates serve the purpose of size oracle. We will discuss such estimates in a tutorial.
+        Size oracles do not exist in reality. In reality, given any join, a database system can compute an \bred{estimate} of its output size. These estimates serve the purpose of size oracle. We will discuss such estimates in a tutorial.
     }
 
     \vgap
@@ -189,13 +189,17 @@
 }
 %-------------------------------------------------------------
 \myfrm{
+    Recall that $R_1, R_2, ..., R_k$ are the input to the join order problem.
+
+    \vgap
+
     Let $\red{S}$ be a subset of $\set{R_1, R_2, ..., R_k}$ with size $|S| \ge 2$.
 
     \cbox{blue}{
         Define
         \myitems{
-            \item $\red{\size(S)}$ as the size of the join defined by the relations in $S$;
-            \item $\red{\best(S)}$ as the smallest total capacity of all orderings of $S$.
+            \item $\red{\size(S)}$ as the size of the join involving all the relations in $S$;
+            \item $\red{\best(S)}$ as the smallest penalty of all orderings of $S$.
         }
     }
 
@@ -231,12 +235,118 @@
                 For $S = \set{R_1, R_3, R_4}$, we have
                 \myitems{
                     \item $\size(S) = 800$
-                    \item $\best(S) = 830$, which is the total capacity of
+                    \item $\best(S) = 830$, which is the penalty of the ordering $(R_3, R_4, R_1)$.
                 }
+
+                \vgap
+
+                For $S = \set{R_1, R_2}$, we have $\size(S)$ $= \best(S) = 1000$.
             \end{minipage}
         \end{tabular}
 
     }
+}
+%-------------------------------------------------------------
+\myfrm{ \label{slide:thm}
+    \cbox{blue}{
+        \blue{Theorem 1:} Let $\red{S}$ be a subset of $\set{R_1, ..., R_k}$ with $|S| \ge 2$. \\ If $|S| = 2$, then
+        \myeqn{
+            \best(S) = \size(S). \label{thm:1}
+        }
+        If $|S| > 2$, then
+        \myeqn{
+            \best(S) = \size(S) + \min_{\substack{\text{subset $\red{S'} \in S$}\\ \text{with $\red{|S'| = |S| - 1}$}}} \best(S'). \label{thm:2}
+        }
+    }
+
+    \cbox{green}{
+        \blue{Example:} Continuing on the example of the previous slide, we know that $\best(\set{R_1, R_3, R_4})$ equals $\size(\set{R_1, R_3, R_4}) = 800$ plus the minimum of
+        \myitems{
+            \item $\best(\set{R_1, R_3}) = \size(\set{R_1, R_3}) = 100$
+            \item $\best(\set{R_1, R_4}) = \size(\set{R_1, R_4}) = 50$
+            \item $\best(\set{R_3, R_4}) = \size(\set{R_1, R_4}) = 30$.
+        }
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        \blue{Corollary 2:} Let $\red{S}$ be a subset of $\set{R_1, ..., R_k}$ with $|S| \ge 3$. If $\best(S')$ is available for every subset $S' \subseteq S$ with $|S'| = |S| - 1$, we can compute $\best(S)$ with $|S| \le k$ oracle calls.
+    }
+
+    The corollary naturally implies the following algorithm for solving the join order problem.
+
+    \vgap
+
+    \blue{Step 1:} Find $\best(S)$ for every $S \subseteq \set{R_1, ..., R_k}$ with $|S| = 2$ \\ (one oracle call for each $S$).
+
+    \vgap
+
+    \blue{Step $\red{t \ge 2}$:} Find $\best(S)$ for every $S \subseteq \set{R_1, ..., R_k}$ with $|S| = t+1$ \\
+    (at most $k$ oracle calls for each $S$).
+
+    \vgap
+
+    We obtain $\best(\set{R_1, ..., R_k})$ after Step $k - 1$.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example:} Consider $k = 4$, i.e., the input is $R_1, R_2, ..., R_4$. Assume that the size oracle returns the values in the left table. The right table illustrates the computation of the $\best$ values.
+
+        \vgap
+
+        \begin{tabular}{cc}
+            \hspace{-5mm}
+            \begin{minipage}{0.47\linewidth}
+                \begin{tabular}{c|c}
+                    $S$ & join size \\
+                    \hline
+                    $R_1,R_2$ & 1000 \\
+                    $R_1,R_3$ & 100 \\
+                    $R_1,R_4$ & 50 \\
+                    $R_2,R_3$ & 20 \\
+                    $R_2,R_4$ & 100 \\
+                    $R_3,R_4$ & 30 \\
+                    $R_1, R_2, R_3$ & 1000 \\
+                    $R_1, R_2, R_4$ & 1500 \\
+                    $R_1, R_3, R_4$ & 800 \\
+                    $R_2, R_3, R_4$ & 70 \\
+                    $R_1, R_2, R_3, R_4$ & 20
+                \end{tabular}
+            \end{minipage}
+            &
+            \hspace{-8mm}
+            \begin{minipage}{0.47\linewidth}
+                \begin{tabular}{c|c|c}
+                    $S$ & $\best$ & \# oracle calls\\
+                    \hline
+                    $R_1,R_2$ & 1000 & 1\\
+                    $R_1,R_3$ & 100 & 1 \\
+                    $R_1,R_4$ & 50 & 1 \\
+                    $R_2,R_3$ & 20 & 1\\
+                    $R_2,R_4$ & 100 & 1\\
+                    $R_3,R_4$ & 30 & 1\\
+                    $R_1, R_2, R_3$ & 1020 & 2 \\
+                    $R_1, R_2, R_4$ & 1550 & 2\\
+                    $R_1, R_3, R_4$ & 830 & 2 \\
+                    $R_2, R_3, R_4$ & 90 & 2\\
+                    $R_1, R_2, R_3, R_4$ & 110 & 3
+                \end{tabular}
+            \end{minipage}
+        \end{tabular}
+
+        \vspace{2mm}
+        \blue{Optimal join order:} $R_2 \bowtie R_3 \bowtie R_4 \bowtie R_1$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Analysis}
+
+    \vgap
+
+    $\set{R_1, R_2, ..., R_k}$ has less than $2^k$ subsets $S$ of size $|S| \ge 2$. The value $\best(S)$ is computed in one of the $k-1$ steps, and the computation requires at most $k$ oracle calls. The total number of oracle calls is therefore $O(k \cdot 2^k)$.
 }
 %-------------------------------------------------------------
 \end{document} 
