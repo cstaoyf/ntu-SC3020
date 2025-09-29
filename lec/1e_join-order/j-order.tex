@@ -278,11 +278,11 @@
 
     \vgap
 
-    \blue{Step 1:} Find $\best(S)$ for every $S \subseteq \set{R_1, ..., R_k}$ with $|S| = 2$ \\ (one oracle call for each $S$).
+    \blue{Step 1:} Find $\best(S)$ for every $S \subseteq \set{R_1, ..., R_k}$ with $\red{|S| = 2}$ \\ (one oracle call for each $S$).
 
     \vgap
 
-    \blue{Step $\red{t \ge 2}$:} Find $\best(S)$ for every $S \subseteq \set{R_1, ..., R_k}$ with $|S| = t+1$ \\
+    \blue{Step $\red{t \ge 2}$:} Find $\best(S)$ for every $S \subseteq \set{R_1, ..., R_k}$ with $\red{|S| = t+1}$ \\
     (at most $k$ oracle calls for each $S$).
 
     \vgap
@@ -346,7 +346,7 @@
 
     \vgap
 
-    $\set{R_1, R_2, ..., R_k}$ has less than $2^k$ subsets $S$ of size $|S| \ge 2$. The value $\best(S)$ is computed in one of the $k-1$ steps, and the computation requires at most $k$ oracle calls. The total number of oracle calls is therefore less than $k \cdot 2^k$.
+    $\set{R_1, R_2, ..., R_k}$ has less than $\red{2^k}$ subsets of size at least 2. For every such subset $\red{S}$, the value $\best(S)$ is computed in one of the $k-1$ steps, and the computation requires at most $k$ oracle calls. The total number of oracle calls is therefore less than $k \cdot 2^k$.
 
     \vgap
 
