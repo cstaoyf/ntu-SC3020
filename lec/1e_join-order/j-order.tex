@@ -1,0 +1,245 @@
+\documentclass{beamer}
+
+\usetheme{Warsaw}
+%\usetheme{CambridgeUS}
+
+\input{./def/yf-beamer.tex}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[skins,breakable]{tcolorbox}
+
+\def\done{\hfill$\square$}
+\def\ttt{\texttt}
+\def\vgap{\vspace{5mm}}
+
+\def\best{\mit{best}}
+\def\size{\mit{size}}
+\def\sort{\mit{sort}}
+
+\title[DATABASE SYSTEM PRINCIPLES]{Query Processing 6:\\ Join Order Optimization}
+
+\author[Yufei Tao @ NTU]{Yufei Tao}
+\institute[]{\url{https://www.cse.cuhk.edu.hk/~taoyf}}
+\date{}
+
+% \def\dtm{\mathit{d\mbox{-}tm}}
+% \def\ftm{\mathit{f\mbox{-}tm}}
+\def\bestext{\mathit{best\mbox{-}ext}}
+
+\begin{document}
+%-------------------------------------------------------------
+\begin{frame}
+    \titlepage
+%     \begin{tcolorbox}[arc=0mm, colframe=green!50!black, colback=green!10!white] 
+%     \end{tcolorbox}
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    In this lecture, we will discuss the \blue{join order} problem, which is the most important query rewriting optimization in database systems.
+
+    \vgap
+
+    Recall:
+    \cbox{blue}{
+        \blue{Query rewriting} converts the original query to an equivalent query using laws of relational algebra.
+    }
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Laws of natural joins}
+
+    \vgap
+
+    Let $\red{R_1}, \red{R_2}$, and $\red{R_3}$ be relations.
+
+    \vgap
+
+    \blue{Commutativity:} $R_1 \bowtie R_2 = R_2 \bowtie R_1$ \\
+    \blue{Associativity:} $R_1 \bowtie (R_2 \bowtie R_3) = (R_1 \bowtie R_2) \bowtie R_3$ \\
+
+    \vgap
+
+    Therefore: $(R_1 \bowtie R_2) \bowtie R_3 = (R_1 \bowtie R_3) \bowtie R_2 = (R_2 \bowtie R_3) \bowtie R_1$.
+
+    \vgap
+
+    \cbox{blue}{
+        In general, we can compute the natural join of several relations by ordering the relations arbitrarily.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        Various join orderings can have extremely different I/O costs.
+    }
+
+    \cbox{green}{
+        \blue{Example:}\\
+        Relations $\red{R_1(A,B)}$, $\red{R_2(C,D)}$, $\red{R_3(A,D)}$, each having 1000 tuples, where $A$ is the primary key of $R_1$.
+
+        \vgap
+
+        \blue{Join order 1:} $R_1 \bowtie R_2 \bowtie R_3$ \\
+        The intermediate relation $\red{R_4} = R_1 \bowtie R_2$ has $1000^2 = 10^6$ tuples!
+
+        \vgap
+
+        \blue{Join order 2:} $R_1 \bowtie R_3 \bowtie R_2$ \\
+        The intermediate relation $\red{R_5} = R_1 \bowtie R_3$ has at most $1000$ tuples.
+
+        %\vgap
+
+        \cbox{blue}{
+        Join order 1 is expected to be significantly more expensive.}
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    %In general, let $\red{R_1}, \red{R_2}, ..., \red{R_k}$ be $\red{k}$ relations.
+
+    \cbox{blue}{
+        Let $\red{S}$ be a set of relations. An \blue{ordering} of $S$ is a permutation of the relations in $S$.
+    }
+    %Number of orderings $= k!$.
+
+%    \vgap
+
+    \cbox{blue}{
+        Fix an arbitrary ordering $\red{\pi} = (R_1, R_2, ..., R_t)$ where $t \ge 2$.
+        \myitems{
+            \item For each $\red{i} \in [2, t]$, $\red{R_1 \bowtie R_2 \bowtie ... \bowtie R_i}$ is a \blue{prefix} of $\pi$. The \blue{join size} \bred{of the prefix} is $|R_1 \bowtie R_2 \bowtie ... \bowtie R_i|$, i.e., the number of tuples output by the join defined by the prefix.
+
+            \item The \blue{capacity} \bred{of $\pi$} is the sum of the join sizes of its $t-1$ prefixes.
+        }
+    }
+
+    \cbox{blue}{
+        \blue{The Join Order Problem:} Given $\red{k}$ relations $\red{R_1}, \red{R_2}, ..., \red{R_k}$, find an ordering of $\set{R_1, .., R_k}$ with the smallest capacity.
+    }
+}
+%-------------------------------------------------------------
+% \myfrm{
+%     \cbox{green}{
+%         \blue{Example:}
+%         Relations $\red{R_1(A,B)}$, $\red{R_2(C,D)}$, $\red{R_3(A,D)}$. \\
+%
+%         %\vgap
+%
+%         \begin{tabular}{cc}
+%             \begin{minipage}{0.45\linewidth}
+%                 There are 6 join orders:
+%                 \myenums{
+%                     \item $R_1 \bowtie R_2 \bowtie R_3$ \\[-1mm]
+%                     \item $R_1 \bowtie R_3 \bowtie R_2$ \\[-1mm]
+%                     \item $R_2 \bowtie R_1 \bowtie R_3$ \\[-1mm]
+%                     \item $R_2 \bowtie R_3 \bowtie R_1$ \\[-1mm]
+%                     \item $R_3 \bowtie R_1 \bowtie R_2$ \\[-1mm]
+%                     \item $R_3 \bowtie R_2 \bowtie R_1$
+%                 }
+%                 Each join order corresponding to an ordering of $\set{R_1, R_2, R_3}$.
+%             \end{minipage}
+%             &
+%             \begin{minipage}{0.45\linewidth}
+%                 The capacity of the ordering $(R_2, R_1, R_3)$ equals the sum of $|R_2 \bowtie R_1|$ and $|R_2 \bowtie R_1 \bowtie R_3|$.
+%             \end{minipage}
+%         \end{tabular}
+%     }
+% }
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        Each ordering corresponds to a ``left-deep'' query plan. The \bred{join size of a prefix} is the output size of a join operation in the plan. The  \bred{capacity of the ordering} is the total output size of all the joins in the query plan. The join order problem essentially aims to minimize the total output size of the \bred{intermediate} joins (i.e., ``non-root'' joins in the plan). (\blue{Think}: why?).
+    }
+    \cbox{green}{
+        \blue{Example}
+
+        \vspace{-5mm}
+        \begin{center}
+            \includegraphics[height=30mm]{./artwork/ld1}
+        \end{center}
+        \vspace{-2mm}
+
+        Consider the ordering $(R_1, R_2, R_3, R_4)$. The join size of the prefix $R_1 \bowtie R_2$ is $|R_5|$ (see $R_5$ in the figure), and that of the prefix $R_1 \bowtie R_2 \bowtie R_3$ is $|R_6|$. Note that $R_5$ and $R_6$ are the outputs of the intermediate joins in the query plan on the left.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    Next, we will discuss how to solve the join order problem by assuming a \blue{size oracle}, which returns the output size of any join.
+
+    \vgap
+
+    \cbox{red}{
+        Size oracles do not exist in reality. In reality, given any prefix, a database system can compute an \bred{estimate} of its capacity. These estimates serve the purpose of size oracle. We will discuss such estimates in a tutorial.
+    }
+
+    \vgap
+
+    Recall that the input to the problem has $\red{k}$ relations $\red{R_1}, \red{R_2}, ..., \red{R_k}$. The problem can be solved naively with $\red{O(k \cdot k!)}$ calls to the size oracle (\blue{think}: how?).
+
+    \vgap
+
+    \cbox{blue}{
+        We will show that the problem can be solved with $\red{O(k \cdot 2^k)}$ oracle calls by dynamic programming.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    Let $\red{S}$ be a subset of $\set{R_1, R_2, ..., R_k}$ with size $|S| \ge 2$.
+
+    \cbox{blue}{
+        Define
+        \myitems{
+            \item $\red{\size(S)}$ as the size of the join defined by the relations in $S$;
+            \item $\red{\best(S)}$ as the smallest total capacity of all orderings of $S$.
+        }
+    }
+
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example:} Consider $k = 4$, i.e., the input is $R_1, R_2, ..., R_4$. Assume that the size oracle returns the values in the left table.
+
+        \vgap
+
+        \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{tabular}{c|c}
+                    $S$ & join size \\
+                    \hline
+                    $R_1,R_2$ & 1000 \\
+                    $R_1,R_3$ & 100 \\
+                    $R_1,R_4$ & 50 \\
+                    $R_2,R_3$ & 20 \\
+                    $R_2,R_4$ & 100 \\
+                    $R_3,R_4$ & 30 \\
+                    $R_1, R_2, R_3$ & 1000 \\
+                    $R_1, R_2, R_4$ & 1500 \\
+                    $R_1, R_3, R_4$ & 800 \\
+                    $R_2, R_3, R_4$ & 70 \\
+                    $R_1, R_2, R_3, R_4$ & 20
+                \end{tabular}
+            \end{minipage}
+            &
+            \begin{minipage}{0.5\linewidth}
+                For $S = \set{R_1, R_3, R_4}$, we have
+                \myitems{
+                    \item $\size(S) = 800$
+                    \item $\best(S) = 830$, which is the total capacity of
+                }
+            \end{minipage}
+        \end{tabular}
+
+    }
+}
+%-------------------------------------------------------------
+\end{document} 
+
+
+
