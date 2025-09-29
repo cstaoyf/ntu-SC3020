@@ -347,6 +347,12 @@
     \vgap
 
     $\set{R_1, R_2, ..., R_k}$ has less than $2^k$ subsets $S$ of size $|S| \ge 2$. The value $\best(S)$ is computed in one of the $k-1$ steps, and the computation requires at most $k$ oracle calls. The total number of oracle calls is therefore $O(k \cdot 2^k)$.
+
+    \vgap
+
+    \cbox{red}{
+        \blue{Remark:} Strictly speaking, the algorithm we have introduced only computes the capacity of the optimal ordering, rather than the optimal ordering itself. How do we (easily) fix this without increasing the number of oracle calls?
+    }
 }
 %-------------------------------------------------------------
 \end{document} 
