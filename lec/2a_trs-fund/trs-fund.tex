@@ -209,11 +209,11 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{blue}{
-        A schedule is \blue{serializable} if it results in the same database state as \bred{some} serial schedule.
+        A schedule is \blue{serializable} if it results in the same database state as \bred{some} serial schedule. Otherwise, it is \blue{non-serializable}.
     }
 
     \cbox{green}{
-        \blue{Example:} The following schedule is serial.
+        \blue{Example:} The following schedule is serializable.
         \begin{center}
         \begin{tabular}{c|c}
             $\red{T_1}$ & $\red{T_2}$\\
@@ -230,6 +230,31 @@
         \end{center}
 
         It is equivalent to the serial schedule $(T_2, T_1)$, but \bred{not} equivalent to the serial schedule $(T_1, T_2)$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example:} The following schedule is non-serialzable.
+
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            \rd($\red{A}$) & \\
+            $A = A + 1$ &\\
+            & \rd($\red{A}$) \\
+            & $A = A + 1$ \\
+            \wt($A$) & \\
+            & \wt($A$) \\
+            & \cmt \\
+            \cmt &
+        \end{tabular}
+        \end{center}
+
+        \vgap
+
+        If $A$ was 0 before running the schedule, what is its value afterwards?
     }
 }
 %-------------------------------------------------------------

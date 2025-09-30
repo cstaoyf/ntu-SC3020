@@ -42,10 +42,42 @@
 %-------------------------------------------------------------
 \begin{frame}
 \begin{small}
-    Today, we will start our discussion on \bred{transactions}, focusing on how database systems execute multiple data-access ``programs'' concurrently without violating data consistency.
+    This lecture focuses on \bred{concurrent schedules}. We will see that they can cause different types of ``strange'' phenomena --- called \blue{anomalies} --- that can never arise in serial schedules. A database system may choose to allow \bred{none or some} of those anomalies. Such a policy is formalized by specifying an appropriate \bred{isolation level}.
     %\vgap
 \end{small}    
 \end{frame}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+    \centering
+        Anomaly I: Non-Serializability
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example:} We saw the following non-serializable schedule earlier.
+
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            \rd($\red{A}$) & \\
+            $A = A + 1$ &\\
+            & \rd($\red{A}$) \\
+            & $A = A + 1$ \\
+            \wt($A$) & \\
+            & \wt($A$) \\
+            & \cmt \\
+            \cmt &
+        \end{tabular}
+        \end{center}
+
+        \vgap
+
+        If $A$ was 0 before running the schedule, what is its value afterwards?
+    }
+}
 %-------------------------------------------------------------
 \end{document} 
 
