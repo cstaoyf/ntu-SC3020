@@ -1,0 +1,238 @@
+\documentclass{beamer}
+
+\usetheme{Warsaw}
+%\usetheme{CambridgeUS}
+
+\input{./def/yf-beamer.tex}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[skins,breakable]{tcolorbox}
+
+\def\done{\hfill$\square$}
+\def\ttt{\texttt}
+\def\vgap{\vspace{5mm}}
+
+\def\abt{\ttt{ABORT}}
+\def\best{\mit{best}}
+\def\cmt{\ttt{COMMIT}}
+\def\ins{\ttt{INSERT}}
+\def\rd{\ttt{READ}}
+\def\size{\mit{size}}
+\def\sort{\mit{sort}}
+\def\wt{\ttt{WRITE}}
+
+\title[DATABASE SYSTEM PRINCIPLES]{Transactions 2:\\ Isolation Levels}
+
+\author[Yufei Tao @ NTU]{Yufei Tao}
+\institute[]{\url{https://www.cse.cuhk.edu.hk/~taoyf}}
+\date{}
+
+% \def\dtm{\mathit{d\mbox{-}tm}}
+% \def\ftm{\mathit{f\mbox{-}tm}}
+\def\bestext{\mathit{best\mbox{-}ext}}
+
+\begin{document}
+%-------------------------------------------------------------
+\begin{frame}
+    \titlepage
+%     \begin{tcolorbox}[arc=0mm, colframe=green!50!black, colback=green!10!white] 
+%     \end{tcolorbox}
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    This lecture focuses on \bred{concurrent schedules} (where the instructions of different transactions are interleaved). We will see that they can cause different types of ``strange'' phenomena --- called \blue{anomalies} --- that can never arise in serial schedules. A database system may choose to allow \bred{none or some} of those anomalies. Such a policy is formalized by specifying an appropriate \blue{isolation level}.
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+    \centering
+        Anomaly I: Non-Serializability
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example:} We saw the following non-serializable schedule earlier.
+
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            \rd($\red{A}$) & \\
+            $A = A + 1$ &\\
+            & \rd($\red{A}$) \\
+            & $A = A + 1$ \\
+            \wt($A$) & \\
+            & \wt($A$) \\
+            & \cmt \\
+            \cmt &
+        \end{tabular}
+        \end{center}
+
+        \vgap
+
+        If $A$ was 0 before running the schedule, what is its value afterwards?
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+    \centering
+        Anomaly II: Phantoms
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A \blue{phantom} refers to the situation where executing the same query twice returns different results even though the transaction performs no  modifications on the relevant data.
+    }
+
+    \cbox{green}{
+        \blue{Example:} Relation $R(X, Y)$.
+
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            find all $t \in R$ with $\red{t.X = 1}$ & \\
+            & $\ins$ tuple $(1, y)$ in $R$ \\
+            find all $t \in R$ with $\red{t.X = 1}$ & \\
+            & \cmt \\
+            \cmt &
+        \end{tabular}
+        \end{center}
+    }
+
+    \cbox{blue}{
+        Phantoms can be regarded as a form of non-serializability.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+    \centering
+        Anomaly III: Dirty Reads
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A read operation is \blue{dirty} if it reads a value that was written by another transaction that has not committed.
+    }
+
+    \cbox{green}{
+        \blue{Example:}
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            \rd($\red{A}$) & \\
+            $A = A + 1$ &\\
+            \wt($A$) & \\
+            & \rd($\red{A}$) \\
+            & $A = A + 1$ \\
+            & \wt($A$) \\
+            \cmt & \\
+            & \cmt
+        \end{tabular}
+        \end{center}
+
+        The read performed by $T_2$ is dirty.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+    \centering
+        Anomaly IV: Non-Repeatable Reads
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A \blue{non-repeatable read} situation occurs when two identical reads retrieve different information even though the transaction performs no modifications on the relevant data.
+    }
+
+    \cbox{green}{
+        \blue{Example:}
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            & \rd($\red{A}$) \\
+            \rd($\red{A}$) & \\
+            $A = A + 1$ &\\
+            \wt($A$) & \\
+            & \rd($\red{A}$) \\
+            & $A = A + 1$ \\
+            & \wt($A$) \\
+            \cmt & \\
+            & \cmt
+        \end{tabular}
+        \end{center}
+
+        The second $\rd(A)$ of $T_1$ fetches a value of $A$ different from the one fetched by the first $\rd(A)$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{red}{
+        All the above anomalies are bad.
+    }
+    \cbox{blue}{
+        However, preventing them all may severely reduce the concurrency level (forcing all schedules to be serial in the worst case). A database system often allows each transaction to specify a so-called \bred{isolation level}, which indicates what anomalies can be tolerated.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        \centering
+        ANSI Isolation Levels
+    }
+    Note: ANSI = American National Standards Institute
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Isolation Levels}
+
+    \vgap
+
+    \begin{tabular}{c||c|c|c}
+        \hspace{-5mm} \bred{isolation level} & dirty reads & unrepeatable reads & non-serializability
+        \\
+        \hline\hline
+        \hspace{-5mm} \blue{read uncommited} & yes & yes & yes \\
+        \hline
+        \hspace{-5mm} \blue{read commited} & no & yes & yes \\
+        \hline
+        \hspace{-5mm} \blue{repeatable reads} & no & no & yes \\
+        \hline
+        \hspace{-5mm} \blue{serializable} & no & no & no
+    \end{tabular}
+
+
+    %\vgap
+
+    \cbox{red}{
+        Phantoms may occur at the read-uncommited, read-commited, and repeatable-reads levels, but \bred{not} at the serializable level.
+    }
+    \cbox{blue}{
+        \blue{Rule of Thumb:}
+        \myitems{
+            \item The \bred{serializable level} should be enforced for critical transactions (i.e., money transfers).
+            \item The \bred{read-committed} level (which is the default level at ORACLE, a popular database system) may suffice for non-critical transactions.
+        }
+
+    }
+
+}
+%-------------------------------------------------------------
+\end{document} 
+
+
+
