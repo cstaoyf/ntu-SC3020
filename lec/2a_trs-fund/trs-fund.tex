@@ -1,0 +1,239 @@
+\documentclass{beamer}
+
+\usetheme{Warsaw}
+%\usetheme{CambridgeUS}
+
+\input{./def/yf-beamer.tex}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[skins,breakable]{tcolorbox}
+
+\def\done{\hfill$\square$}
+\def\ttt{\texttt}
+\def\vgap{\vspace{5mm}}
+
+\def\abt{\ttt{ABORT}}
+\def\best{\mit{best}}
+\def\cmt{\ttt{COMMIT}}
+\def\rd{\ttt{READ}}
+\def\size{\mit{size}}
+\def\sort{\mit{sort}}
+\def\wt{\ttt{WRITE}}
+
+\title[DATABASE SYSTEM PRINCIPLES]{Transactions 1:\\ Fundamentals}
+
+\author[Yufei Tao @ NTU]{Yufei Tao}
+\institute[]{\url{https://www.cse.cuhk.edu.hk/~taoyf}}
+\date{}
+
+% \def\dtm{\mathit{d\mbox{-}tm}}
+% \def\ftm{\mathit{f\mbox{-}tm}}
+\def\bestext{\mathit{best\mbox{-}ext}}
+
+\begin{document}
+%-------------------------------------------------------------
+\begin{frame}
+    \titlepage
+%     \begin{tcolorbox}[arc=0mm, colframe=green!50!black, colback=green!10!white] 
+%     \end{tcolorbox}
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    Today, we will start our discussion on \bred{transactions}, focusing on how database systems execute multiple data-access ``programs'' concurrently without violating data consistency.
+    %\vgap
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        We define the \blue{state} of a database as the content of all the tables in the database.
+    }
+
+    \vgap
+
+    \cbox{blue}{
+        A database state is \blue{consistent} if the state satisfies all the constraints imposed on the tables.
+    }
+    \bred{Constraint examples}: primary key constraints, foreign key constraints, ``not NULL'', user-defined constraints, and so on.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A \blue{transaction} is a sequence of instructions submitted to a database with the requirement that \bred{either} the entire sequence is executed \bred{or} nothing from the sequence should be executed.
+    }
+    This is the \blue{all-or-nothing} requirement.
+
+    \vgap
+
+    \cbox{green}{
+        \blue{Example:}
+
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T}$ & remark\\
+            \hline
+            \rd($\red{A}$) & read a tuple's value into a memory copy \\
+            $A = A + 1$ &\\
+            \wt($A$) & update the tuple \\
+            \cmt & inform the system ``ready to finish''
+        \end{tabular}
+        \end{center}
+
+        %\vgap
+
+        Either the tuple's value increases 1 or it remains unchanged.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A transaction is \blue{committed} if it is executed in full or \blue{aborted} if it is terminated during the execution. An abort may be caused by the transaction itself or by the system.
+    }
+    \cbox{green}{
+        \blue{Example:}
+
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T}$ & remark\\
+            \hline
+            \rd($\red{A}$) & \\
+            $A = A + 1$ &\\
+            \wt($A$) & \bred{suppose that an I/O error occurs here}
+        \end{tabular}
+        \end{center}
+
+        %\vgap
+
+        The transaction must be aborted. The tuple's value must be restored to its original value (before the transaction).
+    }
+
+    \cbox{blue}{
+        A \blue{rollback} process cancels all the modifications to the database performed by the transaction.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A transaction is \blue{legal} if it always leaves a \bred{consistent} database state upon completion.
+    }
+    All transactions in our discussion are assumed to be legal.
+
+    \vgap
+
+    \cbox{red}{
+        \bred{Note:} The database state is allowed to be inconsistent \bred{during} a transaction.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A \blue{schedule} is a sequence of instructions executed by the database to run one or more transactions.
+    }
+
+    \cbox{green}{
+        \blue{Example:}
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            \rd($\red{A}$) & \\
+            & \rd($\red{B}$) \\
+            $A = A + 1$ &\\
+            \wt($A$) & \\
+            & $B = B + 1$ \\
+            & \wt($B$) \\
+            \cmt & \\
+            & \cmt
+        \end{tabular}
+        \end{center}
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A schedule is \blue{serial} if there is no interleaving among the instructions of different transactions.
+    }
+
+    \cbox{green}{
+        \blue{Example:}
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            \rd($\red{A}$) & \\
+            $A = A + 1$ &\\
+            \wt($A$) & \\
+            \cmt & \\
+            & \rd($\red{B}$) \\
+            & $B = B + 1$ \\
+            & \wt($B$) \\
+            & \cmt
+        \end{tabular}
+        \end{center}
+    }
+
+    \cbox{blue}{
+        Serial schedules always leave a consistent database state.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A schedule is \blue{recoverable} if it guarantees the following: if transaction $\red{T}$ reads a value written by another transaction $\red{T'}$, then \bred{$T$ commits after $T'$}.
+    }
+    \cbox{green}{
+        \blue{Example:} The schedule below is \bred{not} recoverable.
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            \rd($\red{A}$) & \\
+            $A = A + 1$ &\\
+            \wt($A$) & \\
+            & \rd($\red{A}$) \\
+            & $A = A + 1$ \\
+            & \wt($A$) \\
+            & \cmt \\
+            \cmt &
+        \end{tabular}
+        \end{center}
+    }
+
+    \cbox{red}{
+        All schedules in DB systems need to be recoverable! (\blue{Think:} why?)
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A schedule is \blue{serializable} if it results in the same database state as \bred{some} serial schedule.
+    }
+
+    \cbox{green}{
+        \blue{Example:} The following schedule is serial.
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            & \rd($\red{A}$) \\
+            & $A = A + 1$ \\
+            & \wt($A$) \\
+            \rd($\red{A}$) & \\
+            $B = A$ & \\
+            \wt($B$) &\\
+            & \cmt \\
+            \cmt &
+        \end{tabular}
+        \end{center}
+
+        It is equivalent to the serial schedule $(T_2, T_1)$, but \bred{not} equivalent to the serial schedule $(T_1, T_2)$.
+    }
+}
+%-------------------------------------------------------------
+\end{document} 
+
+
+
