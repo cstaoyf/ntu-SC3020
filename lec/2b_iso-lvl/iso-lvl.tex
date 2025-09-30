@@ -43,7 +43,7 @@
 %-------------------------------------------------------------
 \begin{frame}
 \begin{small}
-    This lecture focuses on \bred{concurrent schedules}. We will see that they can cause different types of ``strange'' phenomena --- called \blue{anomalies} --- that can never arise in serial schedules. A database system may choose to allow \bred{none or some} of those anomalies. Such a policy is formalized by specifying an appropriate \bred{isolation level}.
+    This lecture focuses on \bred{concurrent schedules} (where the instructions of different transactions are interleaved). We will see that they can cause different types of ``strange'' phenomena --- called \blue{anomalies} --- that can never arise in serial schedules. A database system may choose to allow \bred{none or some} of those anomalies. Such a policy is formalized by specifying an appropriate \blue{isolation level}.
     %\vgap
 \end{small}    
 \end{frame}
@@ -178,6 +178,58 @@
 
         The second $\rd(A)$ of $T_1$ fetches a value of $A$ different from the one fetched by the first $\rd(A)$.
     }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{red}{
+        All the above anomalies are bad.
+    }
+    \cbox{blue}{
+        However, preventing them all may severely reduce the concurrency level (forcing all schedules to be serial in the worst case). A database system often allows each transaction to specify a so-called \bred{isolation level}, which indicates what anomalies can be tolerated.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        \centering
+        ANSI Isolation Levels
+    }
+    Note: ANSI = American National Standards Institute
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Isolation Levels}
+
+    \vgap
+
+    \begin{tabular}{c||c|c|c}
+        \hspace{-5mm} \bred{isolation level} & dirty reads & unrepeatable reads & non-serializability
+        \\
+        \hline\hline
+        \hspace{-5mm} \blue{read uncommited} & yes & yes & yes \\
+        \hline
+        \hspace{-5mm} \blue{read commited} & no & yes & yes \\
+        \hline
+        \hspace{-5mm} \blue{repeatable reads} & no & no & yes \\
+        \hline
+        \hspace{-5mm} \blue{serializable} & no & no & no
+    \end{tabular}
+
+
+    %\vgap
+
+    \cbox{red}{
+        Phantoms may occur at the read-uncommited, read-commited, and repeatable-reads levels, but \bred{not} at the serializable level.
+    }
+    \cbox{blue}{
+        \blue{Rule of Thumb:}
+        \myitems{
+            \item The \bred{serializable level} should be enforced for critical transactions (i.e., money transfers).
+            \item The \bred{read-committed} level (which is the default level at ORACLE, a popular database system) may suffice for non-critical transactions.
+        }
+
+    }
+
 }
 %-------------------------------------------------------------
 \end{document} 
