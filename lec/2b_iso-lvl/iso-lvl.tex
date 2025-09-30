@@ -17,6 +17,7 @@
 \def\abt{\ttt{ABORT}}
 \def\best{\mit{best}}
 \def\cmt{\ttt{COMMIT}}
+\def\ins{\ttt{INSERT}}
 \def\rd{\ttt{READ}}
 \def\size{\mit{size}}
 \def\sort{\mit{sort}}
@@ -76,6 +77,106 @@
         \vgap
 
         If $A$ was 0 before running the schedule, what is its value afterwards?
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+    \centering
+        Anomaly II: Phantoms
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A \blue{phantom} refers to the situation where executing the same query twice returns different results even though the transaction performs no  modifications on the relevant data.
+    }
+
+    \cbox{green}{
+        \blue{Example:} Relation $R(X, Y)$.
+
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            find all $t \in R$ with $\red{t.X = 1}$ & \\
+            & $\ins$ tuple $(1, y)$ in $R$ \\
+            find all $t \in R$ with $\red{t.X = 1}$ & \\
+            & \cmt \\
+            \cmt &
+        \end{tabular}
+        \end{center}
+    }
+
+    \cbox{blue}{
+        Phantoms can be regarded as a form of non-serializability.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+    \centering
+        Anomaly III: Dirty Reads
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A read operation is \blue{dirty} if it reads a value that was written by another transaction that has not committed.
+    }
+
+    \cbox{green}{
+        \blue{Example:}
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            \rd($\red{A}$) & \\
+            $A = A + 1$ &\\
+            \wt($A$) & \\
+            & \rd($\red{A}$) \\
+            & $A = A + 1$ \\
+            & \wt($A$) \\
+            \cmt & \\
+            & \cmt
+        \end{tabular}
+        \end{center}
+
+        The read performed by $T_2$ is dirty.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+    \centering
+        Anomaly IV: Non-Repeatable Reads
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A \blue{non-repeatable read} situation occurs when two identical reads retrieve different information even though the transaction performs no modifications on the relevant data.
+    }
+
+    \cbox{green}{
+        \blue{Example:}
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            & \rd($\red{A}$) \\
+            \rd($\red{A}$) & \\
+            $A = A + 1$ &\\
+            \wt($A$) & \\
+            & \rd($\red{A}$) \\
+            & $A = A + 1$ \\
+            & \wt($A$) \\
+            \cmt & \\
+            & \cmt
+        \end{tabular}
+        \end{center}
+
+        The second $\rd(A)$ of $T_1$ fetches a value of $A$ different from the one fetched by the first $\rd(A)$.
     }
 }
 %-------------------------------------------------------------
