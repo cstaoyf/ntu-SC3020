@@ -78,7 +78,7 @@
                 (i.e., each relation has 10000 blocks). \\[-1mm]
                 \item $R_1 \bowtie R_2$ has $\red{B_1}$ blocks. \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
-                \item $\red{M} = 100$ (the memory has 100 blocks).
+                \item $\red{M} = 101$ (the memory has 101 blocks).
             }
         \end{minipage}
         &
@@ -121,7 +121,7 @@
                 \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
                 \item $R_1 \bowtie R_2$ has $\red{B_1}$ blocks. \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
-                \item $\red{M} = 100$.
+                \item $\red{M} = 101$.
             }
         \end{minipage}
         &
@@ -185,7 +185,7 @@
                 \item $\sigma_{B = 1} R_1 $ has $1000$ blocks  \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $800$ blocks  \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
-                \item $\red{M} = 100$.
+                \item $\red{M} = 101$.
             }
         \end{minipage}
         &
@@ -229,7 +229,7 @@
                 There is a \bred{B-tree} on $R_2.C$ with 3 levels. \\ [-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $800$ blocks  \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
-                \item $\red{M} = 100$.
+                \item $\red{M} = 101$.
             }
         \end{minipage}
         &
@@ -280,7 +280,7 @@
                 \item $\sigma_{B = 1} R_1 $ has $1000$ blocks  \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $800$ blocks  \\[-1mm]
                 %\item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
-                \item $\red{M} = 100$.
+                \item $\red{M} = 101$.
             }
         \end{minipage}
         &
@@ -319,7 +319,7 @@
                 \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. $R_1$ is \bred{clustered} on $B$ and there is a \bred{hash index} on $R_1.B$. \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $\red{T}$ tuples occupying $800$ blocks  \\[-1mm]
                 %\item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
-                \item $\red{M} = 100$.
+                \item $\red{M} = 101$.
             }
         \end{minipage}
         &
@@ -349,7 +349,7 @@
                 \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. $R_1$ is \bred{clustered} on $B$ and there is a \bred{hash index} on $R_1.B$. \\[-1mm]
                 \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $800$ blocks  \\[-1mm]
                 %\item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
-                \item $\red{M} = 100$.
+                \item $\red{M} = 101$.
             }
         \end{minipage}
         &
@@ -363,10 +363,10 @@
     \mybox[green]{Strategy 7:}
     \begin{itemize}
         \item Compute $\red{R_3} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ $\Rightarrow$ 10000 I/Os. \\[-1mm]
-        \item \bred{Every time we have accumulated 99 blocks of new tuples of $R_3$ in memory}, probe the hash index on $R_1.B$ to find $\red{R_4} = \sigma_{B=1} R_1$; output $(s.A, t.C)$ for each $\red{t} \in R_3$ in memory and every $\red{s} \in R_4$ \\
-        $\Rightarrow$ $\lc 800/99 \rc \cdot 1000 = 9000$ I/Os.
+        \item \bred{Every time we have accumulated $M - 1 = 100$ blocks of new tuples of $R_3$ in memory}, probe the hash index on $R_1.B$ to find $\red{R_4} = \sigma_{B=1} R_1$; output $(s.A, t.C)$ for each $\red{t} \in R_3$ in memory and every $\red{s} \in R_4$ \\
+        $\Rightarrow$ $\lc 800/100 \rc \cdot 1000 = 8000$ I/Os.
     \end{itemize}
-    In total: $19000$ I/Os.
+    In total: $18000$ I/Os.
 }
 %-------------------------------------------------------------
 \myfrm{
