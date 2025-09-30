@@ -75,7 +75,7 @@
         \begin{tabular}{c|c}
             $\red{T}$ & remark\\
             \hline
-            \rd($\red{A}$) & read a tuple's value into a memory copy \\
+            \rd($A$) & read a tuple's value into a memory copy \\
             $A = A + 1$ &\\
             \wt($A$) & update the tuple \\
             \cmt & inform the system ``ready to finish''
@@ -84,7 +84,7 @@
 
         %\vgap
 
-        Either the tuple's value increases 1 or it remains unchanged.
+        If the transaction is executed, the tuple's value must increase by 1.
     }
 }
 %-------------------------------------------------------------
@@ -99,7 +99,7 @@
         \begin{tabular}{c|c}
             $\red{T}$ & remark\\
             \hline
-            \rd($\red{A}$) & \\
+            \rd($A$) & \\
             $A = A + 1$ &\\
             \wt($A$) & \bred{suppose that an I/O error occurs here}
         \end{tabular}
@@ -139,8 +139,8 @@
         \begin{tabular}{c|c}
             $\red{T_1}$ & $\red{T_2}$\\
             \hline
-            \rd($\red{A}$) & \\
-            & \rd($\red{B}$) \\
+            \rd($A$) & \\
+            & \rd($B$) \\
             $A = A + 1$ &\\
             \wt($A$) & \\
             & $B = B + 1$ \\
@@ -158,16 +158,16 @@
     }
 
     \cbox{green}{
-        \blue{Example:}
+        \blue{Example:} A serial schedule
         \begin{center}
         \begin{tabular}{c|c}
             $\red{T_1}$ & $\red{T_2}$\\
             \hline
-            \rd($\red{A}$) & \\
+            \rd($A$) & \\
             $A = A + 1$ &\\
             \wt($A$) & \\
             \cmt & \\
-            & \rd($\red{B}$) \\
+            & \rd($B$) \\
             & $B = B + 1$ \\
             & \wt($B$) \\
             & \cmt
@@ -190,10 +190,10 @@
         \begin{tabular}{c|c}
             $\red{T_1}$ & $\red{T_2}$\\
             \hline
-            \rd($\red{A}$) & \\
+            \rd($A$) & \\
             $A = A + 1$ &\\
             \wt($A$) & \\
-            & \rd($\red{A}$) \\
+            & \rd($A$) \\
             & $A = A + 1$ \\
             & \wt($A$) \\
             & \cmt \\
@@ -218,10 +218,10 @@
         \begin{tabular}{c|c}
             $\red{T_1}$ & $\red{T_2}$\\
             \hline
-            & \rd($\red{A}$) \\
+            & \rd($A$) \\
             & $A = A + 1$ \\
             & \wt($A$) \\
-            \rd($\red{A}$) & \\
+            \rd($A$) & \\
             $B = A$ & \\
             \wt($B$) &\\
             & \cmt \\
@@ -244,10 +244,10 @@
         \begin{tabular}{c|c}
             $\red{T_1}$ & $\red{T_2}$\\
             \hline
-            & \rd($\red{A}$) \\
+            & \rd($A$) \\
             & $A = A + 1$ \\
             & \wt($A$) \\
-            \rd($\red{A}$) & \\
+            \rd($A$) & \\
             $B = A$ & \\
             \wt($B$) &\\
             & \cmt \\
@@ -265,9 +265,9 @@
         \begin{tabular}{c|c}
             $\red{T_1}$ & $\red{T_2}$\\
             \hline
-            \rd($\red{A}$) & \\
+            \rd($A$) & \\
             $A = A + 1$ &\\
-            & \rd($\red{A}$) \\
+            & \rd($A$) \\
             & $A = A + 1$ \\
             \wt($A$) & \\
             & \wt($A$) \\
