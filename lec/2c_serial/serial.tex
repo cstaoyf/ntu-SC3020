@@ -23,7 +23,7 @@
 \def\sort{\mit{sort}}
 \def\wt{\ttt{WRITE}}
 
-\title[DATABASE SYSTEM PRINCIPLES]{Transactions 2:\\ Isolation Levels}
+\title[DATABASE SYSTEM PRINCIPLES]{Transactions 3:\\ Serializability}
 
 \author[Yufei Tao @ NTU]{Yufei Tao}
 \institute[]{\url{https://www.cse.cuhk.edu.hk/~taoyf}}
@@ -43,34 +43,55 @@
 %-------------------------------------------------------------
 \begin{frame}
 \begin{small}
-    This lecture focuses on \bred{concurrent schedules} (where the instructions of different transactions are interleaved). We will see that they can cause different types of ``strange'' phenomena --- called \blue{anomalies} --- that can never arise in serial schedules. A database system may choose to allow \bred{none or some} of those anomalies. Such a policy is formalized by specifying an appropriate \blue{isolation level}.
-    %\vgap
+    This lecture focuses on \bred{serializable schedules}. We will learn a conservative method to check whether a schedule is serializable.
+
+    \vgap
+
+    Recall:
+    \cbox{blue}{
+        A schedule is \blue{serializable} if it results in the same database state as \bred{some} serial schedule. Otherwise, it is \blue{non-serializable}.
+    }
 \end{small}    
 \end{frame}
 %-------------------------------------------------------------
 \myfrm{
-    \cbox{yellow}{
-    \centering
-        Anomaly I: Non-Serializability
+    \cbox{green}{
+        \blue{Example:} The following schedule is serializable.
+        \begin{center}
+        \begin{tabular}{c|c|c}
+            & $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            1&& \rd($\red{A}$) \\
+            2&& $A = A + 1$ \\
+            3&& \wt($A$) \\
+            4&\rd($\red{A}$) & \\
+            5&$B = A$ & \\
+            6&\wt($B$) &\\
+            7&& \cmt \\
+            8&\cmt &
+        \end{tabular}
+        \end{center}
+
+        It is equivalent to the serial schedule $(T_2, T_1)$, but \bred{not} equivalent to the serial schedule $(T_1, T_2)$.
     }
 }
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example:} We saw the following non-serializable schedule earlier.
+        \blue{Example:} The following schedule is non-serialzable.
 
         \begin{center}
-        \begin{tabular}{c|c}
-            $\red{T_1}$ & $\red{T_2}$\\
+        \begin{tabular}{c|c|c}
+            &$\red{T_1}$ & $\red{T_2}$\\
             \hline
-            \rd($\red{A}$) & \\
-            $A = A + 1$ &\\
-            & \rd($\red{A}$) \\
-            & $A = A + 1$ \\
-            \wt($A$) & \\
-            & \wt($A$) \\
-            & \cmt \\
-            \cmt &
+            1&\rd($\red{A}$) & \\
+            2&$A = A + 1$ &\\
+            3&& \rd($\red{A}$) \\
+            4&& $A = A + 1$ \\
+            5&\wt($A$) & \\
+            6&& \wt($A$) \\
+            7&& \cmt \\
+            8&\cmt &
         \end{tabular}
         \end{center}
 
@@ -81,155 +102,38 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \cbox{yellow}{
-    \centering
-        Anomaly II: Phantoms
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \cbox{blue}{
-        A \blue{phantom} refers to the situation where executing the same query twice returns different results even though the transaction performs no  modifications on the relevant data.
-    }
-
-    \cbox{green}{
-        \blue{Example:} Relation $R(X, Y)$.
-
-        \begin{center}
-        \begin{tabular}{c|c}
-            $\red{T_1}$ & $\red{T_2}$\\
-            \hline
-            find all $t \in R$ with $\red{t.X = 1}$ & \\
-            & $\ins$ tuple $(1, y)$ in $R$ \\
-            find all $t \in R$ with $\red{t.X = 1}$ & \\
-            & \cmt \\
-            \cmt &
-        \end{tabular}
-        \end{center}
-    }
-
-    \cbox{blue}{
-        Phantoms can be regarded as a form of non-serializability.
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \cbox{yellow}{
-    \centering
-        Anomaly III: Dirty Reads
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \cbox{blue}{
-        A read operation is \blue{dirty} if it reads a value that was written by another transaction that has not committed.
-    }
-
     \cbox{green}{
         \blue{Example:}
         \begin{center}
-        \begin{tabular}{c|c}
-            $\red{T_1}$ & $\red{T_2}$\\
+        \begin{tabular}{c|c|c}
+            &$\red{T_1}$ & $\red{T_2}$\\
             \hline
-            \rd($\red{A}$) & \\
-            $A = A + 1$ &\\
-            \wt($A$) & \\
-            & \rd($\red{A}$) \\
-            & $A = A + 1$ \\
-            & \wt($A$) \\
-            \cmt & \\
-            & \cmt
+            1&\rd($\red{A}$) & \\
+            2&$A = A + 1$ &\\
+            3&& \rd($\red{A}$) \\
+            4&& $A = A + 1$ \\
+            5&\wt($A$) & \\
+            6&& \wt($A$) \\
+            7&& \cmt \\
+            8&\cmt &
         \end{tabular}
         \end{center}
 
-        The read performed by $T_2$ is dirty.
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \cbox{yellow}{
-    \centering
-        Anomaly IV: Non-Repeatable Reads
+        Instructions 1 and 6 are in conflict.
+        Instructions 3 and 5 are in conflict.
+        Instructions 5 and 6 are in conflict.
     }
 }
 %-------------------------------------------------------------
 \myfrm{
     \cbox{blue}{
-        A \blue{non-repeatable read} situation occurs when two identical reads retrieve different information even though the transaction performs no modifications on the relevant data.
-    }
-
-    \cbox{green}{
-        \blue{Example:}
-        \begin{center}
-        \begin{tabular}{c|c}
-            $\red{T_1}$ & $\red{T_2}$\\
-            \hline
-            & \rd($\red{A}$) \\
-            \rd($\red{A}$) & \\
-            $A = A + 1$ &\\
-            \wt($A$) & \\
-            & \rd($\red{A}$) \\
-            & $A = A + 1$ \\
-            & \wt($A$) \\
-            \cmt & \\
-            & \cmt
-        \end{tabular}
-        \end{center}
-
-        The second $\rd(A)$ of $T_1$ fetches a value of $A$ different from the one fetched by the first $\rd(A)$.
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \cbox{red}{
-        All the above anomalies are bad.
-    }
-    \cbox{blue}{
-        However, preventing them all may severely reduce the concurrency level (forcing all schedules to be serial in the worst case). A database system often allows each transaction to specify a so-called \bred{isolation level}, which indicates what anomalies can be tolerated.
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \cbox{yellow}{
-        \centering
-        ANSI Isolation Levels
-    }
-    Note: ANSI = American National Standards Institute
-}
-%-------------------------------------------------------------
-\myfrm{
-    \xmybox{Isolation Levels}
-
-    \vgap
-
-    \begin{tabular}{c||c|c|c}
-        \hspace{-5mm} \bred{isolation level} & dirty reads & unrepeatable reads & non-serializability
-        \\
-        \hline\hline
-        \hspace{-5mm} \blue{read uncommited} & yes & yes & yes \\
-        \hline
-        \hspace{-5mm} \blue{read commited} & no & yes & yes \\
-        \hline
-        \hspace{-5mm} \blue{repeatable reads} & no & no & yes \\
-        \hline
-        \hspace{-5mm} \blue{serializable} & no & no & no
-    \end{tabular}
-
-
-    %\vgap
-
-    \cbox{red}{
-        Phantoms may occur at the read-uncommited, read-commited, and repeatable-reads levels, but \bred{not} at the serializable level.
-    }
-    \cbox{blue}{
-        \blue{Rule of Thumb:}
+        Let $\red{I_1}$ and $\red{I_2}$ be instructions in a schedule that belong to different transactions. They are in \blue{conflict} if \bred{one} of the following is true:
         \myitems{
-            \item The \bred{serializable level} should be enforced for critical transactions (i.e., money transfers).
-            \item The \bred{read-committed} level (which is the default level at ORACLE, a popular database system) may suffice for non-critical transactions.
+            \item $I_1 = \red{\rd(X)}$ and $I_2 = \red{\wt(X)}$ for some value $X$;
+            \item $I_1 = \red{\wt(X)}$ and $I_2 = \red{\rd(X)}$ for some value $X$;
+            \item $I_1 = \red{\wt(X)}$ and $I_2 = \red{\wt(X)}$ for some value $X$.
         }
-
     }
-
 }
 %-------------------------------------------------------------
 \end{document} 
