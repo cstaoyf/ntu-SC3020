@@ -20,8 +20,13 @@
 \def\ins{\ttt{INSERT}}
 \def\rd{\ttt{READ}}
 \def\size{\mit{size}}
+\def\slock{\ttt{S-LOCK}}
 \def\sort{\mit{sort}}
+\def\upg{\ttt{UPGRADE}}
+\def\ulock{\ttt{U-LOCK}}
+\def\unlock{\ttt{UNLOCK}}
 \def\wt{\ttt{WRITE}}
+\def\xlock{\ttt{X-LOCK}}
 
 \title[DATABASE SYSTEM PRINCIPLES]{Transactions 4:\\ Locking}
 
@@ -56,7 +61,7 @@
 
     \cbox{green}{
 
-    \blue{Example:} Suppose that we have two \blue{active} transactions (i.e., transactions in progress). \\[2mm]
+    \blue{Example 1:} Suppose that we have two \blue{active} transactions (i.e., transactions in progress). \\[2mm]
 
     \begin{tabular}{cc}
             \begin{minipage}{0.47\linewidth}
@@ -112,7 +117,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Rules of 3-Way Locking}
+    \xmybox{2-Phase Locking}
 
     \vgap
 
@@ -128,7 +133,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Rules of 3-Way Locking}
+    \xmybox{2-Phase Locking}
 
     %\vgap
 
@@ -143,7 +148,7 @@
     }
 
     \cbox{blue}{
-        \blue{Rule 4:} To obtain a lock on a value $\red{A}$, a transaction needs to make a request. The database grants the request only if the request is \bred{compatible with the existing locks on $A$}.
+        \blue{Rule 4:} To obtain a lock on a value $\red{A}$, a transaction needs to make a \blue{lock request}. The database grants the request only if the requested lock is \bred{compatible with the existing locks on $A$}.
 
         \vgap
 
@@ -152,24 +157,673 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Rules of 3-Way Locking}
+    \xmybox{2-Phase Locking}
 
     %\vgap
 
     \cbox{blue}{
-        \blue{Rule 5:} A transaction releases a lock by making an \blue{unlock} request, which is always granted by the database.
+        \blue{Rule 5:} A transaction releases a lock by making an \blue{unlock request}, which is always granted by the database.
     }
 
     \cbox{blue}{
-        \blue{Rule 6:} If a transaction is holding a U-lock on a value $\red{A}$, it can issue an \blue{upgrade} request to acquire an X-clock on $A$. The database grants the request only if \bred{no other S- or U-locks exist on $A$}.
+        \blue{Rule 6:} If a transaction is holding a U-lock on a value $\red{A}$, it can issue an \blue{upgrade request} to acquire an X-clock on $A$. The database grants the request only if \bred{no other S- or U-locks exist on $A$}.
 
         \vgap
 
         If granted, the transaction releases the U-lock on $A$ and proceeds. Otherwise (i.e., denied), the transaction is suspended while holding the U-lock, until its request is granted.
     }
+    \cbox{red}{
+        Note: If a transaction is holding an S-lock on a value $\red{A}$, it \bred{cannot} request to upgrade the S-lock to an X-clock on $A$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{2-Phase Locking}
+
+    \vgap
+
+    \cbox{blue}{
+        \blue{Rule 7:} Once a transaction issues an unlock request, it cannot issue any lock or upgrade request.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2:} \\
+    The transactions in Example 1 may be programmed as follows.
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    Both transactions obey Rules 1 and 7.
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):} Let us assume that the database executes $T_1$ and $T_2$ in a ``round-robin'' manner, i.e., each cycle runs one instruction of each transaction. The $\red{\bm{\rightarrow}}$ symbol indicates the current instruction. \\[1mm]
+
+    %The database does so by obeying Rules 3, 4, and 5.
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    $\red{\bm{\rightarrow}}$ \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    Granted: Rule 3, 4. $T_1$ now has the U-lock on $A$.
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    Denied: Rules 3, 4. \\
+    $T_2$ is now suspended, waiting for an X-lock on $A$.
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    $\red{\bm{\rightarrow}}$ \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    OK: Rule 2.
+
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    Denied: Rules 3, 4. \\
+    $T_2$ continues to wait for an X-lock on $A$.
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $\red{\bm{\rightarrow}}$ $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    OK: no locking issues.
+
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    Denied: Rules 3, 4. \\
+    $T_2$ continues to wait for an X-lock on $A$.
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    $\red{\bm{\rightarrow}}$ \upg$(A)$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    Granted: Rule 6! $T_2$ now holds an X-lock on $A$.
+
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    Denied: Rules 3, 4. \\
+    $T_2$ continues to wait for an X-lock on $A$.
+
+    }
 }
 %-------------------------------------------------------------
 
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    $\red{\bm{\rightarrow}}$ \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    OK: Rule 2.
+
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    Denied: Rules 3, 4. \\
+    $T_2$ continues to wait for an X-lock on $A$.
+
+    }
+}
+%-------------------------------------------------------------
+
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    $\red{\bm{\rightarrow}}$ \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    Granted: Rule 5. $T_1$ holds no more locks on $A$.
+
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    Granted: Rules 3, 4. $T_2$ now holds an S-lock on $A$.
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+    \blue{Example (cont.).} The schedule produced:
+    \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$ \\
+            \hline
+            \ulock$(A)$ &\\
+            \rd($A$) &\\
+            $A = A + 1$ & \\
+            \upg$(A)$ &\\
+            \wt($A$) &\\
+            \unlock$(A)$ & \\
+            &  \xlock$(A)$ \\
+            &        \rd($A$) \\
+            &        $A = A + 1$ \\
+            &        \wt($A$) \\
+            &        \unlock$(A)$ \\
+                    \cmt & \\
+            & \cmt
+        \end{tabular}
+    \end{center}
+    }
+}
+%-------------------------------------------------------------
 \end{document} 
 
 
