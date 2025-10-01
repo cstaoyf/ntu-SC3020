@@ -48,7 +48,7 @@
 %-------------------------------------------------------------
 \begin{frame}
 \begin{small}
-    Recall that the \bred{serializable} isolation level should be enforced for critical transactions (such as money transfers). This lecture will discuss how to guarantee this isolation level with \bred{locking}.
+    Recall that the \bred{serializable} isolation level should be enforced for critical transactions (such as money transfers). This lecture will discuss how to do so with \bred{locking}.
 \end{small}    
 \end{frame}
 %-------------------------------------------------------------
@@ -126,7 +126,7 @@
     }
 
     \cbox{blue}{
-        \blue{Rule 2:} Before a transaction can \bred{read} a database value $\red{A}$, it must be holding an \bred{S- or a U-lock} on $A$. Before a transaction can \bred{write} a database value $\red{A}$, it must be holding an \bred{X-lock} on $A$.
+        \blue{Rule 2:} Before a transaction can \bred{read} a database value $\red{A}$, it must be holding a lock (of any type) on $A$. Before a transaction can \bred{write} a database value $\red{A}$, it must be holding an \bred{X-lock} on $A$.
     }
 
 
@@ -138,22 +138,21 @@
     %\vgap
 
     \cbox{blue}{
-        \blue{Rule 3:} (Compatibility Rules)
+        \blue{Rule 3:} To obtain a lock on a value $\red{A}$, a transaction needs to make a \blue{lock request}. The database grants the request only in the following scenarios:
         \myitems{
-            \item An S-lock on a value $\red{A}$ is \blue{compatible} with another S- or a U-lock on $A$.
-            \item A U-lock on a value $\red{A}$ is \blue{compatible} with an S- or another U-lock on $A$.
+            \item the requested lock = S and \bred{all the locks on $A$ are S-locks};
+            \item the requested lock = U and \bred{all the locks on $A$ are S-locks};
+            \item the requested lock = X and \bred{there are no locks on $A$}.
         }
-
-        An X-lock on a value $\red{A}$ is \bred{not compatible} with any other lock on $A$, regardless of its type.
-    }
-
-    \cbox{blue}{
-        \blue{Rule 4:} To obtain a lock on a value $\red{A}$, a transaction needs to make a \blue{lock request}. The database grants the request only if the requested lock is \bred{compatible with the existing locks on $A$}.
-
-        \vgap
 
         If granted, the transaction proceeds; otherwise (i.e., denied), the transaction is suspended until its request is granted.
     }
+
+    %\vgap
+
+    \cbox{blue}{
+        \blue{Rule 4:} A transaction releases a lock by making an \blue{unlock request}, which is always granted by the database.
+    }
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -162,18 +161,14 @@
     %\vgap
 
     \cbox{blue}{
-        \blue{Rule 5:} A transaction releases a lock by making an \blue{unlock request}, which is always granted by the database.
-    }
-
-    \cbox{blue}{
-        \blue{Rule 6:} If a transaction is holding a U-lock on a value $\red{A}$, it can issue an \blue{upgrade request} to acquire an X-clock on $A$. The database grants the request only if \bred{no other S- or U-locks exist on $A$}.
+        \blue{Rule 5:} If a transaction is holding a U-lock on a value $\red{A}$, it can issue an \blue{upgrade request} to acquire an X-clock on $A$. The database grants the request only if \bred{no other locks exist on $A$}.
 
         \vgap
 
-        If granted, the transaction releases the U-lock on $A$ and proceeds. Otherwise (i.e., denied), the transaction is suspended while holding the U-lock, until its request is granted.
+        If granted, the transaction releases the U-lock on $A$ and proceeds with an X-lock. Otherwise (i.e., denied), the transaction is suspended while holding the U-lock, until its request is granted.
     }
     \cbox{red}{
-        Note: If a transaction is holding an S-lock on a value $\red{A}$, it \bred{cannot} request to upgrade the S-lock to an X-clock on $A$.
+        Note: If a transaction is holding an S-lock on a value $\red{A}$, it \bred{cannot} request an upgrade to an X-clock on $A$.
     }
 }
 %-------------------------------------------------------------
@@ -183,7 +178,7 @@
     \vgap
 
     \cbox{blue}{
-        \blue{Rule 7:} Once a transaction issues an unlock request, it cannot issue any lock or upgrade request.
+        \blue{Rule 6:} Once a transaction issues an unlock request, it cannot issue any lock or upgrade request.
     }
 }
 %-------------------------------------------------------------
@@ -228,7 +223,7 @@
 
     \vgap
 
-    Both transactions obey Rules 1 and 7.
+    Both transactions obey Rules 1 and 6.
 
     }
 }
@@ -276,7 +271,7 @@
 
     \vgap
 
-    Granted: Rule 3, 4. $T_1$ now has the U-lock on $A$.
+    Granted: Rule 3. $T_1$ now has the U-lock on $A$.
 
     }
 }
@@ -322,7 +317,7 @@
 
     \vgap
 
-    Denied: Rules 3, 4. \\
+    Denied: Rule 3. \\
     $T_2$ is now suspended, waiting for an X-lock on $A$.
 
     }
@@ -416,7 +411,7 @@
 
     \vgap
 
-    Denied: Rules 3, 4. \\
+    Denied: Rule 3.
     $T_2$ continues to wait for an X-lock on $A$.
 
     }
@@ -510,7 +505,7 @@
 
     \vgap
 
-    Denied: Rules 3, 4. \\
+    Denied: Rule 3.
     $T_2$ continues to wait for an X-lock on $A$.
 
     }
@@ -557,7 +552,7 @@
 
     \vgap
 
-    Granted: Rule 6! $T_2$ now holds an X-lock on $A$.
+    Granted: Rule 5. $T_2$ now holds an X-lock on $A$.
 
 
     }
@@ -604,7 +599,7 @@
 
     \vgap
 
-    Denied: Rules 3, 4. \\
+    Denied: Rule 3.
     $T_2$ continues to wait for an X-lock on $A$.
 
     }
@@ -699,7 +694,7 @@
 
     \vgap
 
-    Denied: Rules 3, 4. \\
+    Denied: Rule 3.
     $T_2$ continues to wait for an X-lock on $A$.
 
     }
@@ -747,7 +742,7 @@
 
     \vgap
 
-    Granted: Rule 5. $T_1$ holds no more locks on $A$.
+    Granted: Rule 4. $T_1$ holds no more locks on $A$.
 
 
     }
@@ -794,7 +789,7 @@
 
     \vgap
 
-    Granted: Rules 3, 4. $T_2$ now holds an S-lock on $A$.
+    Granted: Rule 3. $T_2$ now holds an S-lock on $A$.
 
     }
 }
@@ -813,12 +808,12 @@
             \wt($A$) &\\
             \unlock$(A)$ & \\
             &  \xlock$(A)$ \\
+            \cmt & \\
             &        \rd($A$) \\
             &        $A = A + 1$ \\
             &        \wt($A$) \\
             &        \unlock$(A)$ \\
-                    \cmt & \\
-            & \cmt
+            &        \cmt \\
         \end{tabular}
     \end{center}
     }
@@ -871,7 +866,7 @@
     \xmybox{Strict 2PL}
 
     \cbox{blue}{
-        \blue{Rule 8:} A transaction releases locks only after having committed or aborted.
+        \blue{Rule 7:} A transaction releases locks only after having committed or aborted.
     }
 
     \cbox{green}{
@@ -964,7 +959,7 @@
     }
 
     \cbox{red}{
-        \blue{Think:} How do you use 2PL to avoid phantoms? \\
+        \blue{Think:} How to use 2PL to avoid phantoms? \\
         \blue{Hint:} See the non-testable content of our previous lecture notes.
     }
 }
