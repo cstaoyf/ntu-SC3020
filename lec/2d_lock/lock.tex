@@ -1,0 +1,397 @@
+\documentclass{beamer}
+
+\usetheme{Warsaw}
+%\usetheme{CambridgeUS}
+
+\input{./def/yf-beamer.tex}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[skins,breakable]{tcolorbox}
+
+\def\done{\hfill$\square$}
+\def\ttt{\texttt}
+\def\vgap{\vspace{5mm}}
+
+\def\abt{\ttt{ABORT}}
+\def\best{\mit{best}}
+\def\cmt{\ttt{COMMIT}}
+\def\ins{\ttt{INSERT}}
+\def\rd{\ttt{READ}}
+\def\size{\mit{size}}
+\def\sort{\mit{sort}}
+\def\wt{\ttt{WRITE}}
+
+\title[DATABASE SYSTEM PRINCIPLES]{Transactions 3:\\ Serializability}
+
+\author[Yufei Tao @ NTU]{Yufei Tao}
+\institute[]{\url{https://www.cse.cuhk.edu.hk/~taoyf}}
+\date{}
+
+% \def\dtm{\mathit{d\mbox{-}tm}}
+% \def\ftm{\mathit{f\mbox{-}tm}}
+\def\bestext{\mathit{best\mbox{-}ext}}
+
+\begin{document}
+%-------------------------------------------------------------
+\begin{frame}
+    \titlepage
+%     \begin{tcolorbox}[arc=0mm, colframe=green!50!black, colback=green!10!white] 
+%     \end{tcolorbox}
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    This lecture focuses on \bred{serializable schedules}. We will learn a conservative method to check whether a schedule is serializable.
+
+    \vgap
+
+    Recall:
+    \cbox{blue}{
+        A schedule is \blue{serializable} if it is equivalent to \bred{some} serial schedule. Otherwise, it is \blue{non-serializable}.
+    }
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example:} The following schedule is serializable.
+        \begin{center}
+        \begin{tabular}{c|c|c}
+            & $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            1&& \rd($A$) \\
+            2&& $A = A + 1$ \\
+            3&& \wt($A$) \\
+            4&\rd($A$) & \\
+            5&$B = A$ & \\
+            6&\wt($B$) &\\
+            7&& \cmt \\
+            8&\cmt &
+        \end{tabular}
+        \end{center}
+
+        It is equivalent to the serial schedule $(T_2, T_1)$, but \bred{not} equivalent to the serial schedule $(T_1, T_2)$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example:} The following schedule is non-serializable.
+
+        \begin{center}
+        \begin{tabular}{c|c|c}
+            &$\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            1&\rd($A$) & \\
+            2&$A = A + 1$ &\\
+            3&& \rd($A$) \\
+            4&& $A = A + 1$ \\
+            5&\wt($A$) & \\
+            6&& \wt($A$) \\
+            7&& \cmt \\
+            8&\cmt &
+        \end{tabular}
+        \end{center}
+
+        \vgap
+
+        If $A$ was 0 before running the schedule, what is its value afterwards?
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        Let $\red{I_1}$ and $\red{I_2}$ be instructions in a schedule that belong to different transactions. They are in \blue{conflict} if \bred{one} of the following is true:
+        \myitems{
+            \item $I_1 = \red{\rd(X)}$ and $I_2 = \red{\wt(X)}$ for some value $X$;
+            \item $I_1 = \red{\wt(X)}$ and $I_2 = \red{\rd(X)}$ for some value $X$;
+            \item $I_1 = \red{\wt(X)}$ and $I_2 = \red{\wt(X)}$ for some value $X$.
+        }
+    }
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example:}
+        \begin{center}
+        \begin{tabular}{c|c|c}
+            &$\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            1&\rd($A$) & \\
+            2&$A = A + 1$ &\\
+            3&& \rd($A$) \\
+            4&& $A = A + 1$ \\
+            5&\wt($A$) & \\
+            6&& \wt($A$) \\
+            7&& \cmt \\
+            8&\cmt &
+        \end{tabular}
+        \end{center}
+
+        Instructions 1 and 6 are in conflict. \\
+        Instructions 3 and 5 are in conflict. \\
+        Instructions 5 and 6 are in conflict.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Precedence Graph}
+
+    \vgap
+
+    $\red{\Sigma:}$ a schedule involving $k \ge 2$ transactions $\red{T_1}, ..., \red{T_k}$.
+
+    \vgap
+
+    \cbox{blue}{
+        The \blue{precedence graph} of $\Sigma$ is a directed graph $\red{G = (V, E)}$ where
+        \myitems{
+            \item $V = \set{T_1, T_2, ..., T_k}$ (i.e., one vertex per transaction);
+            \item $E$ contains an edge from $\red{T_i}$ to $\red{T_j}$ if and only if $\Sigma$ has two \bred{conflicting} instructions $\red{I_1}$ and $\red{I_2}$ such that
+            \myitems{
+                \item $I_1$ precedes $I_2$ in $\Sigma$, and
+                \item $I_1$ belongs to $T_1$ and $I_2$ belongs to $T_2$.
+            }
+        }
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example:}
+
+        \vgap
+
+        \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{tabular}{c|c|c}
+                    &$\red{T_1}$ & $\red{T_2}$\\
+                    \hline
+                    1&\rd($A$) & \\
+                    2&$A = A + 1$ &\\
+                    3&& \rd($A$) \\
+                    4&& $A = A + 1$ \\
+                    5&\wt($A$) & \\
+                    6&& \wt($A$) \\
+                    7&& \cmt \\
+                    8&\cmt &
+                \end{tabular}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                    Precedence graph: \\[1mm]
+                    \includegraphics[height=15mm]{./artwork/pg1}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+        \vgap
+
+        Instructions 1 and 6 are in conflict. \\
+        Instructions 3 and 5 are in conflict. \\
+        Instructions 5 and 6 are in conflict.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example:}
+
+        \vgap
+
+        \begin{tabular}{cc}
+            \hspace{-5mm}
+            \begin{minipage}{0.57\linewidth}
+                \begin{tabular}{c|c|c|c}
+                    &$\red{T_1}$ & $\red{T_2}$ & $\red{T_3}$ \\
+                    \hline
+                    1&&\rd($A$) & \\
+                    2&$\rd(B)$ &\\
+                    3&&\wt($A$) & \\
+                    4&&& $\rd(A)$ \\
+                    5&\wt($B$) & & \\
+                    6&&& \wt($A$) \\
+                    7&&$\rd(B)$ & \\
+                    8&&$\wt(B)$ & \\
+                    9&\cmt&& \\
+                    10&& \cmt & \\
+                    11&&& \cmt
+                \end{tabular}
+            \end{minipage}
+            &
+            \hspace{5mm}
+            \begin{minipage}{0.37\linewidth}
+                \begin{center}
+                    Precedence graph: \\[3mm]
+                    \includegraphics[height=5mm]{./artwork/pg2}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Conflict Serializability}
+
+    %\vgap
+
+    \cbox{blue}{
+        A schedule is \blue{conflict serializable}\\ if its precedence graph contains no cycles.
+    }
+
+    \cbox{green}{
+        \blue{Example:}
+
+        %\vspace{-1mm}
+
+        \begin{tabular}{cc}
+            \hspace{-5mm}
+            \begin{minipage}{0.57\linewidth}
+                \begin{tabular}{c|c|c|c}
+                    &$\red{T_1}$ & $\red{T_2}$ & $\red{T_3}$ \\
+                    \hline
+                    1&&\rd($A$) & \\
+                    2&$\rd(B)$ &\\
+                    3&&\wt($A$) & \\
+                    4&&& $\rd(A)$ \\
+                    5&\wt($B$) & & \\
+                    6&&& \wt($A$) \\
+                    7&&$\rd(B)$ & \\
+                    8&&$\wt(B)$ & \\
+                    9&\cmt&& \\
+                    10&& \cmt & \\
+                    11&&& \cmt
+                \end{tabular}
+            \end{minipage}
+            &
+            \hspace{5mm}
+            \begin{minipage}{0.37\linewidth}
+                \begin{center}
+                    Precedence graph: \\[3mm]
+                    \includegraphics[height=5mm]{./artwork/pg2} \\
+                    \bred{Conflict serializable}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example:}
+
+        \vgap
+
+        \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{tabular}{c|c|c}
+                    &$\red{T_1}$ & $\red{T_2}$\\
+                    \hline
+                    1&\rd($A$) & \\
+                    2&$A = A + 1$ &\\
+                    3&& \rd($A$) \\
+                    4&& $A = A + 1$ \\
+                    5&\wt($A$) & \\
+                    6&& \wt($A$) \\
+                    7&& \cmt \\
+                    8&\cmt &
+                \end{tabular}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                    Precedence graph: \\[1mm]
+                    \includegraphics[height=15mm]{./artwork/pg1}\\
+                    \bred{Not} conflict serializable
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        \blue{Theorem:} A conflict-serializable schedule must be serializable.
+    }
+
+    \vgap
+
+    \cbox{green}{
+        \blue{Fact:} It is always possible to convert a conflict-serializable schedule to a serializable one by swapping non-conflicting instructions.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example:}
+
+        \begin{center}
+                \begin{tabular}{c|c|c|c}
+                    &$\red{T_1}$ & $\red{T_2}$ & $\red{T_3}$ \\
+                    \hline
+                    1&&\rd($A$) & \\
+                    2&$\rd(B)$ &\\
+                    3&&\wt($A$) & \\
+                    4&&& $\rd(A)$ \\
+                    5&\wt($B$) & & \\
+                    6&&& \wt($A$) \\
+                    7&&$\rd(B)$ & \\
+                    8&&$\wt(B)$ & \\
+                    9&\cmt&& \\
+                    10&& \cmt & \\
+                    11&&& \cmt
+                \end{tabular}
+        \end{center}
+
+        Try converting the above schedule to the serial schedule $(T_1,$ $T_2,$ $T_3)$ by swapping non-conflicting instructions.
+
+        \cbox{red}{
+            \blue{Think:} Is it possible to convert it to $(T_2, T_1, T_3)$?
+        }
+     }
+}
+%-------------------------------------------------------------
+\myfrm{
+    As mentioned, conflict-serializability implies serializability. \\
+    Is the opposite also true? The answer is: \bred{no}.
+
+    \vgap
+
+    \cbox{green}{
+        \blue{Example:}
+
+        \begin{center}
+        \begin{tabular}{c|c|c}
+            & $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            1& $A = 0$ & \\
+            2& \wt($A$) & \\
+            3& & $A = 1$ \\
+            4&& $\wt(A)$ \\
+            5& $A = 2$ & \\
+            6& $\wt(A)$ & \\
+            7&& \cmt \\
+            8&\cmt &
+        \end{tabular}
+        \end{center}
+
+        The schedule is serializable because it is equivalent to the serial schedule $(T_2, T_1)$, but it is \bred{not} conflict-serializable.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        To enforce the serializable isolation level, the existing database systems achieve the purpose by ensuring conflict serializability instead. As we will see later in the course, there are effective protocols to general conflict serializable schedules.
+    }
+}
+%-------------------------------------------------------------
+\end{document} 
+
+
+
