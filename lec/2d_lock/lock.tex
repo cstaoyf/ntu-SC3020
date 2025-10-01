@@ -117,7 +117,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{2-Phase Locking}
+    \xmybox{Two-Phase Locking (2PL)}
 
     \vgap
 
@@ -133,7 +133,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{2-Phase Locking}
+    \xmybox{Two-Phase Locking (2PL)}
 
     %\vgap
 
@@ -157,7 +157,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{2-Phase Locking}
+    \xmybox{Two-Phase Locking (2PL)}
 
     %\vgap
 
@@ -178,7 +178,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{2-Phase Locking}
+    \xmybox{Two-Phase Locking (2PL)}
 
     \vgap
 
@@ -821,6 +821,151 @@
             & \cmt
         \end{tabular}
     \end{center}
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        \blue{Theorem 1:} The 2PL protocol produces a conflict-serializable schedule.
+    }
+
+    \vgap
+
+    In our earlier example, $T_1$ and $T_2$ were run in a round-robin manner. The theorem holds \bred{regardless of the interleaving policy}. A cycle may run an arbitrary number of instructions of $T_1$ followed by an arbitrary number of instructions of $T_2$. The theorem will still hold.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{red}{
+        \bred{Serious:} 2PL does not guarantee a recoverable schedule!
+    }
+
+%    \vgap
+
+
+    \cbox{green}{
+    \blue{Example 3.} 2PL may produce:
+    \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$ \\
+            \hline
+            \ulock$(A)$ &\\
+            \rd($A$) &\\
+            $A = A + 1$ & \\
+            \upg$(A)$ &\\
+            \wt($A$) &\\
+            \unlock$(A)$ & \\
+            &  \xlock$(A)$ \\
+            &        \rd($A$) \\
+            &        $A = A + 1$ \\
+            &        \wt($A$) \\
+            &        \unlock$(A)$ \\
+            & \cmt \\
+            \cmt &
+        \end{tabular}
+    \end{center}
+    }
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Strict 2PL}
+
+    \cbox{blue}{
+        \blue{Rule 8:} A transaction releases locks only after having committed or aborted.
+    }
+
+    \cbox{green}{
+    \blue{Example 4:} \\
+    The transactions in Example 1 may be programmed as follows.
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \ulock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    \cmt \\
+                    \bred{(DB issues $\unlock(A)$)}
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    \cmt \\
+                    \bred{(DB issues $\unlock(A)$)}
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    No more explicit $\unlock$ statements in transactions.
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+     \cbox{blue}{
+        \blue{Theorem 2:} A schedule produced by the \bred{strict} 2PL protocol is always conflict-serializable and recoverable.
+    }
+
+    \vgap
+
+     The theorem holds \bred{regardless of the interleaving policy}.
+
+     \vgap
+
+     \cbox{green}{
+        \blue{Think:} Why is the schedule in Example 3 be impossible under strict 2PL?
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        \centering
+        The content of the rest slides will not be tested.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    Recall:
+    \cbox{blue}{
+        A \blue{phantom} refers to the situation where executing the same query twice returns different results even though the transaction performs no  modifications on the relevant data.
+    }
+
+    \cbox{green}{
+        \blue{Example:} Relation $R(X, Y)$.
+
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            find all $t \in R$ with $\red{t.X = 1}$ & \\
+            & $\ins$ tuple $(1, y)$ in $R$ \\
+            find all $t \in R$ with $\red{t.X = 1}$ & \\
+            & \cmt \\
+            \cmt &
+        \end{tabular}
+        \end{center}
+    }
+
+    \cbox{red}{
+        \blue{Think:} How do you use 2PL to avoid phantoms? \\
+        \blue{Hint:} See the non-testable content of our previous lecture notes.
     }
 }
 %-------------------------------------------------------------
