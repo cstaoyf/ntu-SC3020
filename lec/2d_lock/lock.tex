@@ -28,7 +28,7 @@
 \def\wt{\ttt{WRITE}}
 \def\xlock{\ttt{X-LOCK}}
 
-\title[DATABASE SYSTEM PRINCIPLES]{Transactions 4:\\ Locking}
+\title[DATABASE SYSTEM PRINCIPLES]{Transactions 4:\\ Two Phase Locking}
 
 \author[Yufei Tao @ NTU]{Yufei Tao}
 \institute[]{\url{https://www.cse.cuhk.edu.hk/~taoyf}}
@@ -46,12 +46,12 @@
 %     \end{tcolorbox}
 \end{frame}
 %-------------------------------------------------------------
-\begin{frame}
-\begin{small}
-    Recall that the \bred{serializable} isolation level should be enforced for critical transactions (such as money transfers). This lecture will discuss how to do so with \bred{locking}.
-\end{small}    
-\end{frame}
-%-------------------------------------------------------------
+% \begin{frame}
+% \begin{small}
+%     Recall that the \bred{serializable} isolation level should be enforced for critical transactions (such as money transfers). This lecture will discuss how to do so with protocols based on \blue{two phase locking}.
+% \end{small}
+% \end{frame}
+% %-------------------------------------------------------------
 \myfrm{
     \cbox{blue}{
         Transactions can only see themselves.
@@ -107,7 +107,7 @@
 
     \vgap
 
-    Today, we consider that \bred{serializable} is the target isolation level.
+    Today, we consider that \bred{serializable} is the target isolation level. Recall that this isolation level should be enforced for critical transactions (such as money transfers).
 
     \vgap
 
@@ -122,11 +122,11 @@
     \vgap
 
     \cbox{blue}{
-        \blue{Rule 1:} Three locks: \bred{S} (\blue{shared}), \bred{U} (\blue{update}), and \bred{X} (\blue{exclusive}). Each lock applies to a database value (i.e., the value of a tuple under an attribute).
+        \blue{Rule 1:} Three locks: \bred{S} (\blue{shared}), \bred{U} (\blue{update}), and \bred{X} (\blue{exclusive}). Each lock applies to the value of a tuple in the database.
     }
 
     \cbox{blue}{
-        \blue{Rule 2:} Before a transaction can \bred{read} a database value $\red{A}$, it must be holding a lock (of any type) on $A$. Before a transaction can \bred{write} a database value $\red{A}$, it must be holding an \bred{X-lock} on $A$.
+        \blue{Rule 2:} Before a transaction can \bred{read} a value $\red{A}$, it must be holding a lock (of any type) on $A$. Before a transaction can \bred{write} a value $\red{A}$, it must be holding an \bred{X-lock} on $A$.
     }
 
 
