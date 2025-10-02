@@ -96,7 +96,7 @@
     %\vgap
 
     \cbox{green}{
-        \blue{Example:} Let $\red{t}$ be a tuple in the relation $R(X, Y)$ with the history:
+        \blue{Example 1:} Let $\red{t}$ be a tuple in the relation $R(X, Y)$ with the history:
 
         \begin{center}
              (($x_1, y_1$), 100, 103) \\
@@ -144,7 +144,7 @@
     %\vgap
 
     \cbox{green}{
-        \blue{Example:} Let $\red{t}$ be a tuple in the relation $R(X, Y)$ with the history:
+        \blue{Example 1 (cont.):} Let $\red{t}$ be a tuple in the relation $R(X, Y)$ with the history:
 
         \begin{center}
              (($x_1, y_1$), 100, 103) \\
@@ -196,7 +196,7 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 1} Let $\red{t}$ be a tuple of relation $\red{R(A)}$ whose history has a single record $(10, 100, \ttt{NULL})$. Transaction 100 has committed. Transactions $\red{T_1}$, $\red{T_2}$, and $\red{T_2}$ have IDs 101, 102, and 103, respectively. Assume that the database attempts to execute the instructions of $T_1$ and $T_2$ in the order shown below.
+        \blue{Example 2} Let $\red{t}$ be a tuple of relation $\red{R(A)}$ whose history has a single record $(10, 100, \ttt{NULL})$. Transaction 100 has committed. Transactions $\red{T_1}$, $\red{T_2}$, and $\red{T_2}$ have IDs 101, 102, and 103, respectively. Assume that the database attempts to execute the instructions of $T_1$ and $T_2$ in the order shown below.
 
         \begin{center}
         \begin{tabular}{c|c|c|c}
@@ -222,7 +222,7 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 1 (cont.)}
+        \blue{Example 2 (cont.)}
         \begin{center}
         \begin{tabular}{c|c|c|c}
             &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
@@ -247,7 +247,7 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 1 (cont.)}
+        \blue{Example 2 (cont.)}
         \begin{center}
         \begin{tabular}{c|c|c|c}
             &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
@@ -296,7 +296,7 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 1 (cont.)}
+        \blue{Example 2 (cont.)}
 
         \begin{center}
 \begin{tabular}{c|c|c|c}
@@ -319,7 +319,7 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 1 (cont.)}
+        \blue{Example 2 (cont.)}
 
         \begin{center}
 \begin{tabular}{c|c|c|c}
@@ -346,7 +346,7 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 1 (cont.)}
+        \blue{Example 2 (cont.)}
          \begin{center}
 \begin{tabular}{c|c|c|c}
     &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
@@ -370,7 +370,7 @@ $\red{\bm{\rightarrow}}$    7& & \rd$(t)$ \\
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 1 (cont.)}
+        \blue{Example 2 (cont.)}
          \begin{center}
 \begin{tabular}{c|c|c|c}
     &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
@@ -393,7 +393,7 @@ $\red{\bm{\rightarrow}}$    8& & \cmt \\
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 1 (cont.)}
+        \blue{Example 2 (cont.)}
          \begin{center}
 \begin{tabular}{c|c|c|c}
     &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
@@ -415,7 +415,7 @@ $\red{\bm{\rightarrow}}$    4& & & $\xlock(t)$ \\
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 1 (cont.)}
+        \blue{Example 2 (cont.)}
          \begin{center}
 \begin{tabular}{c|c|c|c}
     &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
@@ -435,7 +435,7 @@ $\red{\bm{\rightarrow}}$
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 1 (cont.)}
+        \blue{Example 2 (cont.)}
          \begin{center}
 \begin{tabular}{c|c|c|c}
     &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
@@ -457,7 +457,7 @@ $\red{\bm{\rightarrow}}$
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 1 (cont.)}
+        \blue{Example 2 (cont.)}
          \begin{center}
 \begin{tabular}{c|c|c|c}
     &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
@@ -479,7 +479,7 @@ $\red{\bm{\rightarrow}}$
 %-------------------------------------------------------------
 \myfrm{
      \cbox{blue}{
-        \blue{Theorem:} The schedule produced by the protocol we described is  recoverable and enforces the read committed isolation levels.
+        \blue{Theorem:} The schedule produced by the protocol we described is  recoverable and enforces the read committed isolation level.
     }
 
     \vgap
@@ -487,6 +487,16 @@ $\red{\bm{\rightarrow}}$
      The theorem holds regardless of how the instructions of different transactions are interleaved.
 
      \vgap
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        \blue{Remark:} If the purpose is \bred{only} to enforce the read committed isolation level, it suffices to keep the last two entries of a history at all times.
+
+        \vgap
+
+        It should be noted that multi-versioning is useful not only for concurrency control, e.g., it allows us to ``travel back in time'' to obtain the database content at any past timestamp. Multi-versioning is implemented in many database systems nowadays.
+    }
 }
 %-------------------------------------------------------------
 \end{document} 
