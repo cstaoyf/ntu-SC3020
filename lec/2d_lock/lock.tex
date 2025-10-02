@@ -24,7 +24,7 @@
 \def\sort{\mit{sort}}
 \def\upg{\ttt{UPGRADE}}
 \def\ulock{\ttt{U-LOCK}}
-\def\unlock{\ttt{UNLOCK}}
+%\def\unlock{\ttt{UNLOCK}}
 \def\wt{\ttt{WRITE}}
 \def\xlock{\ttt{X-LOCK}}
 
@@ -82,8 +82,9 @@
                 \begin{tabular}{c}
                     $\red{T_2}$ \\
                     \hline
+                    \rd($B$) \\
                     \rd($A$) \\
-                    $A = A + 1$ \\
+                    $A = A + B$ \\
                     \wt($A$) \\
                     \cmt
                 \end{tabular}
@@ -112,12 +113,12 @@
     \vgap
 
     \cbox{yellow}{
-        We will discuss protocols based on a 3-way locking mechanism.
+        We will introduce a protocol called \blue{strict two-phase locking}.
     }
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Two-Phase Locking (2PL)}
+    \xmybox{Strict Two-Phase Locking (2PL)}
 
     \vgap
 
@@ -133,7 +134,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Two-Phase Locking (2PL)}
+    \xmybox{Strict Two-Phase Locking (2PL)}
 
     %\vgap
 
@@ -150,18 +151,18 @@
 
     %\vgap
 
-    \cbox{blue}{
-        \blue{Rule 4:} A transaction releases a lock by making an \blue{unlock request}, which is always granted by the database.
-    }
+    %\cbox{blue}{
+        %\blue{Rule 4:} A transaction releases a lock by making an \blue{unlock request}, which is always granted by the database.
+    %}
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Two-Phase Locking (2PL)}
+    \xmybox{Strict Two-Phase Locking (2PL)}
 
     %\vgap
 
     \cbox{blue}{
-        \blue{Rule 5:} If a transaction is holding a U-lock on a value $\red{A}$, it can issue an \blue{upgrade request} to acquire an X-clock on $A$. The database grants the request if \bred{no other locks exist on $A$}.
+        \blue{Rule 4:} If a transaction is holding a U-lock on a value $\red{A}$, it can issue an \blue{upgrade request} to acquire an X-clock on $A$. The database grants the request if \bred{no other locks exist on $A$}.
 
         \vgap
 
@@ -173,12 +174,16 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Two-Phase Locking (2PL)}
+    \xmybox{Strict Two-Phase Locking (2PL)}
 
     \vgap
 
+%     \cbox{blue}{
+%         \blue{Rule 6:} Once a transaction issues an unlock request, it cannot issue any lock or upgrade request.
+%     }
+
     \cbox{blue}{
-        \blue{Rule 6:} Once a transaction issues an unlock request, it cannot issue any lock or upgrade request.
+        \blue{Rule 5:} A transaction releases locks only after having committed or aborted.
     }
 }
 %-------------------------------------------------------------
@@ -199,7 +204,6 @@
                     $A = A + 1$ \\
                     \upg$(A)$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -210,11 +214,12 @@
                 \begin{tabular}{c}
                     $\red{T_2}$ \\
                     \hline
+                    \slock$(B)$ \\
+                    \rd($B$) \\
                     \xlock$(A)$ \\
                     \rd($A$) \\
                     $A = A + 1$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -223,7 +228,7 @@
 
     \vgap
 
-    Both transactions obey Rules 1 and 6.
+    %Both transactions obey Rules 1 and 6.
 
     }
 }
@@ -247,7 +252,7 @@
                     $A = A + 1$ \\
                     \upg$(A)$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -258,11 +263,13 @@
                 \begin{tabular}{c}
                     $\red{T_2}$ \\
                     \hline
+                    \slock$(B)$ \\
+                    \rd($B$) \\
                     \xlock$(A)$ \\
                     \rd($A$) \\
                     $A = A + 1$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -271,7 +278,7 @@
 
     \vgap
 
-    Granted: Rule 3. $T_1$ now has the U-lock on $A$.
+    Granted (Rule 3). $T_1$ now has the U-lock on $A$.
 
     }
 }
@@ -288,12 +295,11 @@
                 \begin{tabular}{c}
                     $\red{T_1}$ \\
                     \hline
-                    \ulock$(A)$ \\
                     \rd($A$) \\
                     $A = A + 1$ \\
                     \upg$(A)$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -304,11 +310,14 @@
                 \begin{tabular}{c}
                     $\red{T_2}$ \\
                     \hline
-                    $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
+                    $\red{\bm{\rightarrow}}$
+                    \slock$(B)$ \\
+                    \rd($B$) \\
+                    \xlock$(A)$ \\
                     \rd($A$) \\
                     $A = A + 1$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -317,7 +326,105 @@
 
     \vgap
 
-    Denied: Rule 3. \\
+    Granted (Rule 3).
+    $T_2$ now holds an S-lock on $B$.
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    %\unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    $\red{\bm{\rightarrow}}$
+                    \slock$(B)$ \\
+                    \rd($B$) \\
+                    \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    %\unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    Granted (Rule 3).
+    $T_2$ now holds an S-lock on $B$.
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+
+    \blue{Example 2 (cont.):}
+
+
+    \begin{tabular}{cc}
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_1}$ \\
+                    \hline
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \upg$(A)$ \\
+                    \wt($A$) \\
+                    %\unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+            &
+            \begin{minipage}{0.47\linewidth}
+                \begin{center}
+                \begin{tabular}{c}
+                    $\red{T_2}$ \\
+                    \hline
+                    $\red{\bm{\rightarrow}}$
+                    \slock$(B)$ \\
+                    \rd($B$) \\
+                    \xlock$(A)$ \\
+                    \rd($A$) \\
+                    $A = A + 1$ \\
+                    \wt($A$) \\
+                    %\unlock$(A)$ \\
+                    \cmt
+                \end{tabular}
+                \end{center}
+            \end{minipage}
+        \end{tabular}
+
+    \vgap
+
+    Denied (Rule 3). \\
     $T_2$ is now suspended, waiting for an X-lock on $A$.
 
     }
@@ -340,7 +447,7 @@
                     $A = A + 1$ \\
                     \upg$(A)$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -355,7 +462,7 @@
                     \rd($A$) \\
                     $A = A + 1$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -364,55 +471,8 @@
 
     \vgap
 
-    OK: Rule 2.
+    OK (Rule 2).
 
-
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \cbox{green}{
-
-    \blue{Example 2 (cont.):}
-
-
-    \begin{tabular}{cc}
-            \begin{minipage}{0.47\linewidth}
-                \begin{center}
-                \begin{tabular}{c}
-                    $\red{T_1}$ \\
-                    \hline
-                    \ulock$(A)$ \\
-                    \rd($A$) \\
-                    $A = A + 1$ \\
-                    \upg$(A)$ \\
-                    \wt($A$) \\
-                    \unlock$(A)$ \\
-                    \cmt
-                \end{tabular}
-                \end{center}
-            \end{minipage}
-            &
-            \begin{minipage}{0.47\linewidth}
-                \begin{center}
-                \begin{tabular}{c}
-                    $\red{T_2}$ \\
-                    \hline
-                    $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
-                    \rd($A$) \\
-                    $A = A + 1$ \\
-                    \wt($A$) \\
-                    \unlock$(A)$ \\
-                    \cmt
-                \end{tabular}
-                \end{center}
-            \end{minipage}
-        \end{tabular}
-
-    \vgap
-
-    Denied: Rule 3.
-    $T_2$ continues to wait for an X-lock on $A$.
 
     }
 }
@@ -434,7 +494,7 @@
                     $\red{\bm{\rightarrow}}$ $A = A + 1$ \\
                     \upg$(A)$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -449,7 +509,7 @@
                     \rd($A$) \\
                     $A = A + 1$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -464,52 +524,52 @@
     }
 }
 %-------------------------------------------------------------
-\myfrm{
-    \cbox{green}{
-
-    \blue{Example 2 (cont.):}
-
-
-    \begin{tabular}{cc}
-            \begin{minipage}{0.47\linewidth}
-                \begin{center}
-                \begin{tabular}{c}
-                    $\red{T_1}$ \\
-                    \hline
-                    \ulock$(A)$ \\
-                    \rd($A$) \\
-                    $A = A + 1$ \\
-                    \upg$(A)$ \\
-                    \wt($A$) \\
-                    \unlock$(A)$ \\
-                    \cmt
-                \end{tabular}
-                \end{center}
-            \end{minipage}
-            &
-            \begin{minipage}{0.47\linewidth}
-                \begin{center}
-                \begin{tabular}{c}
-                    $\red{T_2}$ \\
-                    \hline
-                    $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
-                    \rd($A$) \\
-                    $A = A + 1$ \\
-                    \wt($A$) \\
-                    \unlock$(A)$ \\
-                    \cmt
-                \end{tabular}
-                \end{center}
-            \end{minipage}
-        \end{tabular}
-
-    \vgap
-
-    Denied: Rule 3.
-    $T_2$ continues to wait for an X-lock on $A$.
-
-    }
-}
+% \myfrm{
+%     \cbox{green}{
+%
+%     \blue{Example 2 (cont.):}
+%
+%
+%     \begin{tabular}{cc}
+%             \begin{minipage}{0.47\linewidth}
+%                 \begin{center}
+%                 \begin{tabular}{c}
+%                     $\red{T_1}$ \\
+%                     \hline
+%                     \ulock$(A)$ \\
+%                     \rd($A$) \\
+%                     $A = A + 1$ \\
+%                     \upg$(A)$ \\
+%                     \wt($A$) \\
+%                     %\unlock$(A)$ \\
+%                     \cmt
+%                 \end{tabular}
+%                 \end{center}
+%             \end{minipage}
+%             &
+%             \begin{minipage}{0.47\linewidth}
+%                 \begin{center}
+%                 \begin{tabular}{c}
+%                     $\red{T_2}$ \\
+%                     \hline
+%                     $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
+%                     \rd($A$) \\
+%                     $A = A + 1$ \\
+%                     \wt($A$) \\
+%                     %\unlock$(A)$ \\
+%                     \cmt
+%                 \end{tabular}
+%                 \end{center}
+%             \end{minipage}
+%         \end{tabular}
+%
+%     \vgap
+%
+%     Denied: Rule 3.
+%     $T_2$ continues to wait for an X-lock on $A$.
+%
+%     }
+% }
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
@@ -528,7 +588,7 @@
                     $A = A + 1$ \\
                     $\red{\bm{\rightarrow}}$ \upg$(A)$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -543,7 +603,7 @@
                     \rd($A$) \\
                     $A = A + 1$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -552,58 +612,58 @@
 
     \vgap
 
-    Granted: Rule 5. $T_2$ now holds an X-lock on $A$.
+    Granted (Rule 4). $T_2$ now holds an X-lock on $A$.
 
 
     }
 }
 %-------------------------------------------------------------
-\myfrm{
-    \cbox{green}{
-
-    \blue{Example 2 (cont.):}
-
-
-    \begin{tabular}{cc}
-            \begin{minipage}{0.47\linewidth}
-                \begin{center}
-                \begin{tabular}{c}
-                    $\red{T_1}$ \\
-                    \hline
-                    \ulock$(A)$ \\
-                    \rd($A$) \\
-                    $A = A + 1$ \\
-                    \upg$(A)$ \\
-                    \wt($A$) \\
-                    \unlock$(A)$ \\
-                    \cmt
-                \end{tabular}
-                \end{center}
-            \end{minipage}
-            &
-            \begin{minipage}{0.47\linewidth}
-                \begin{center}
-                \begin{tabular}{c}
-                    $\red{T_2}$ \\
-                    \hline
-                    $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
-                    \rd($A$) \\
-                    $A = A + 1$ \\
-                    \wt($A$) \\
-                    \unlock$(A)$ \\
-                    \cmt
-                \end{tabular}
-                \end{center}
-            \end{minipage}
-        \end{tabular}
-
-    \vgap
-
-    Denied: Rule 3.
-    $T_2$ continues to wait for an X-lock on $A$.
-
-    }
-}
+% \myfrm{
+%     \cbox{green}{
+%
+%     \blue{Example 2 (cont.):}
+%
+%
+%     \begin{tabular}{cc}
+%             \begin{minipage}{0.47\linewidth}
+%                 \begin{center}
+%                 \begin{tabular}{c}
+%                     $\red{T_1}$ \\
+%                     \hline
+%                     \ulock$(A)$ \\
+%                     \rd($A$) \\
+%                     $A = A + 1$ \\
+%                     \upg$(A)$ \\
+%                     \wt($A$) \\
+%                     %\unlock$(A)$ \\
+%                     \cmt
+%                 \end{tabular}
+%                 \end{center}
+%             \end{minipage}
+%             &
+%             \begin{minipage}{0.47\linewidth}
+%                 \begin{center}
+%                 \begin{tabular}{c}
+%                     $\red{T_2}$ \\
+%                     \hline
+%                     $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
+%                     \rd($A$) \\
+%                     $A = A + 1$ \\
+%                     \wt($A$) \\
+%                     %\unlock$(A)$ \\
+%                     \cmt
+%                 \end{tabular}
+%                 \end{center}
+%             \end{minipage}
+%         \end{tabular}
+%
+%     \vgap
+%
+%     Denied: Rule 3.
+%     $T_2$ continues to wait for an X-lock on $A$.
+%
+%     }
+% }
 %-------------------------------------------------------------
 
 \myfrm{
@@ -623,7 +683,7 @@
                     $A = A + 1$ \\
                     \upg$(A)$ \\
                     $\red{\bm{\rightarrow}}$ \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -638,7 +698,7 @@
                     \rd($A$) \\
                     $A = A + 1$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -647,12 +707,60 @@
 
     \vgap
 
-    OK: Rule 2.
+    OK (Rule 2).
 
 
     }
 }
 %-------------------------------------------------------------
+% \myfrm{
+%     \cbox{green}{
+%
+%     \blue{Example 2 (cont.):}
+%
+%
+%     \begin{tabular}{cc}
+%             \begin{minipage}{0.47\linewidth}
+%                 \begin{center}
+%                 \begin{tabular}{c}
+%                     $\red{T_1}$ \\
+%                     \hline
+%                     \ulock$(A)$ \\
+%                     \rd($A$) \\
+%                     $A = A + 1$ \\
+%                     \upg$(A)$ \\
+%                     \wt($A$) \\
+%                     %\unlock$(A)$ \\
+%                     \cmt
+%                 \end{tabular}
+%                 \end{center}
+%             \end{minipage}
+%             &
+%             \begin{minipage}{0.47\linewidth}
+%                 \begin{center}
+%                 \begin{tabular}{c}
+%                     $\red{T_2}$ \\
+%                     \hline
+%                     $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
+%                     \rd($A$) \\
+%                     $A = A + 1$ \\
+%                     \wt($A$) \\
+%                     %\unlock$(A)$ \\
+%                     \cmt
+%                 \end{tabular}
+%                 \end{center}
+%             \end{minipage}
+%         \end{tabular}
+%
+%     \vgap
+%
+%     Denied: Rule 3.
+%     $T_2$ continues to wait for an X-lock on $A$.
+%
+%     }
+% }
+%-------------------------------------------------------------
+
 \myfrm{
     \cbox{green}{
 
@@ -670,55 +778,7 @@
                     $A = A + 1$ \\
                     \upg$(A)$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
-                    \cmt
-                \end{tabular}
-                \end{center}
-            \end{minipage}
-            &
-            \begin{minipage}{0.47\linewidth}
-                \begin{center}
-                \begin{tabular}{c}
-                    $\red{T_2}$ \\
-                    \hline
-                    $\red{\bm{\rightarrow}}$  \xlock$(A)$ \\
-                    \rd($A$) \\
-                    $A = A + 1$ \\
-                    \wt($A$) \\
-                    \unlock$(A)$ \\
-                    \cmt
-                \end{tabular}
-                \end{center}
-            \end{minipage}
-        \end{tabular}
-
-    \vgap
-
-    Denied: Rule 3.
-    $T_2$ continues to wait for an X-lock on $A$.
-
-    }
-}
-%-------------------------------------------------------------
-
-\myfrm{
-    \cbox{green}{
-
-    \blue{Example 2 (cont.):}
-
-
-    \begin{tabular}{cc}
-            \begin{minipage}{0.47\linewidth}
-                \begin{center}
-                \begin{tabular}{c}
-                    $\red{T_1}$ \\
-                    \hline
-                    \ulock$(A)$ \\
-                    \rd($A$) \\
-                    $A = A + 1$ \\
-                    \upg$(A)$ \\
-                    \wt($A$) \\
-                    $\red{\bm{\rightarrow}}$ \unlock$(A)$ \\
+                    $\red{\bm{\rightarrow}}$ %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -733,7 +793,7 @@
                     \rd($A$) \\
                     $A = A + 1$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -742,7 +802,7 @@
 
     \vgap
 
-    Granted: Rule 4. $T_1$ holds no more locks on $A$.
+    $T_1$ commits and releases the X-lock on $A$.
 
 
     }
@@ -765,7 +825,7 @@
                     $A = A + 1$ \\
                     \upg$(A)$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -780,7 +840,7 @@
                     \rd($A$) \\
                     $A = A + 1$ \\
                     \wt($A$) \\
-                    \unlock$(A)$ \\
+                    %\unlock$(A)$ \\
                     \cmt
                 \end{tabular}
                 \end{center}
@@ -789,7 +849,7 @@
 
     \vgap
 
-    Granted: Rule 3. $T_2$ now holds an S-lock on $A$.
+    Granted: Rule 3. $T_2$ now holds an X-lock on $A$.
 
     }
 }
@@ -801,18 +861,18 @@
         \begin{tabular}{c|c}
             $\red{T_1}$ & $\red{T_2}$ \\
             \hline
-            \ulock$(A)$ &\\
+            %\ulock$(A)$ &\\
             \rd($A$) &\\
             $A = A + 1$ & \\
             \upg$(A)$ &\\
             \wt($A$) &\\
-            \unlock$(A)$ & \\
-            &  \xlock$(A)$ \\
+            %%\unlock$(A)$ & \\
             \cmt & \\
+            &  \xlock$(A)$ \\
             &        \rd($A$) \\
             &        $A = A + 1$ \\
             &        \wt($A$) \\
-            &        \unlock$(A)$ \\
+            %&        %\unlock$(A)$ \\
             &        \cmt \\
         \end{tabular}
     \end{center}
@@ -843,17 +903,17 @@
         \begin{tabular}{c|c}
             $\red{T_1}$ & $\red{T_2}$ \\
             \hline
-            \ulock$(A)$ &\\
+            %\ulock$(A)$ &\\
             \rd($A$) &\\
             $A = A + 1$ & \\
             \upg$(A)$ &\\
             \wt($A$) &\\
-            \unlock$(A)$ & \\
+            %\unlock$(A)$ & \\
             &  \xlock$(A)$ \\
             &        \rd($A$) \\
             &        $A = A + 1$ \\
             &        \wt($A$) \\
-            &        \unlock$(A)$ \\
+            %&        %\unlock$(A)$ \\
             & \cmt \\
             \cmt &
         \end{tabular}
@@ -885,7 +945,7 @@
                     \upg$(A)$ \\
                     \wt($A$) \\
                     \cmt \\
-                    \bred{(DB issues $\unlock(A)$)}
+                    \bred{(releasing all locks)}
                 \end{tabular}
                 \end{center}
             \end{minipage}
@@ -900,7 +960,7 @@
                     $A = A + 1$ \\
                     \wt($A$) \\
                     \cmt \\
-                    \bred{(DB issues $\unlock(A)$)}
+                    \bred{(releasing all locks)}
                 \end{tabular}
                 \end{center}
             \end{minipage}
@@ -908,7 +968,7 @@
 
     \vgap
 
-    No more explicit $\unlock$ statements in transactions.
+    %No more explicit $\unlock$ statements in transactions.
 
     }
 }
