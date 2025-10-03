@@ -108,15 +108,54 @@
         \end{center}
     }
 
-    \cbox{blue}{
-        Phantoms can be regarded as a form of non-serializability.
-    }
+%     \cbox{blue}{
+%         Phantoms can be regarded as a form of non-serializability.
+%     }
 }
 %-------------------------------------------------------------
 \myfrm{
     \cbox{yellow}{
     \centering
-        Anomaly III: Dirty Reads
+        Anomaly III: Non-Repeatable Reads
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        A \blue{non-repeatable read} situation occurs when two identical reads retrieve different information even though the transaction performs no modifications on the relevant data.
+    }
+
+    \cbox{green}{
+        \blue{Example:}
+        \vspace{-5mm}
+
+        \begin{center}
+        \begin{tabular}{c|c}
+            $\red{T_1}$ & $\red{T_2}$\\
+            \hline
+            & \rd($A$) \\
+            \rd($A$) & \\
+            $A = A + 1$ &\\
+            \wt($A$) & \\
+            & \rd($A$) \\
+            & $A = A + 1$ \\
+            & \wt($A$) \\
+            \cmt & \\
+            & \cmt
+        \end{tabular}
+        \end{center}
+
+        The second $\rd(A)$ of $T_1$ fetches a value of $A$ different from the one fetched by the first $\rd(A)$.
+    }
+%     \cbox{blue}{
+%         Non-repeatable reads can be regarded as a form of non-serializability.
+%     }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+    \centering
+        Anomaly IV: Dirty Reads
     }
 }
 %-------------------------------------------------------------
@@ -146,40 +185,7 @@
     }
 }
 %-------------------------------------------------------------
-\myfrm{
-    \cbox{yellow}{
-    \centering
-        Anomaly IV: Non-Repeatable Reads
-    }
-}
-%-------------------------------------------------------------
-\myfrm{
-    \cbox{blue}{
-        A \blue{non-repeatable read} situation occurs when two identical reads retrieve different information even though the transaction performs no modifications on the relevant data.
-    }
 
-    \cbox{green}{
-        \blue{Example:}
-        \begin{center}
-        \begin{tabular}{c|c}
-            $\red{T_1}$ & $\red{T_2}$\\
-            \hline
-            & \rd($A$) \\
-            \rd($A$) & \\
-            $A = A + 1$ &\\
-            \wt($A$) & \\
-            & \rd($A$) \\
-            & $A = A + 1$ \\
-            & \wt($A$) \\
-            \cmt & \\
-            & \cmt
-        \end{tabular}
-        \end{center}
-
-        The second $\rd(A)$ of $T_1$ fetches a value of $A$ different from the one fetched by the first $\rd(A)$.
-    }
-}
-%-------------------------------------------------------------
 \myfrm{
     \cbox{red}{
         All the above anomalies are bad.

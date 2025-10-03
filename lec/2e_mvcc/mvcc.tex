@@ -57,6 +57,8 @@
     \cbox{blue}{
         Recall that the serializable isolation level should be enforced for critical transactions. For non-critical transactions (e.g., browsing books in a library), the read committed isolation level may suffice. In fact, this is the default isolation level in PostgreSQL and ORACLE (both are well-known database systems).
     }
+
+    The protocol we will learn is implemented in PostgreSQL.
 \end{small}    
 \end{frame}
 %-------------------------------------------------------------
@@ -76,9 +78,9 @@
         \myitems{
             \item each $\red{r_i}$ ($1 \le \red{i} \le \ell$) has the form $(\red{v}, \red{\idins}, \red{\iddel})$, where
             \myitems{
-                \item $v$ is version of $t$ that ever existed in history;
+                \item $v$ is version of $t$ that ever existed;
                 \item $\idins$ is the ID of the transaction that created $v$;
-                \item $\iddel$ is the ID of the transaction that deleted $v$ or \ttt{\red{NULL}} if $v$ has never been deleted;
+                \item $\iddel$ is the ID of the transaction that deleted $v$ or \ttt{\red{NULL}} if $v$ has not been deleted;
             }
 
             \item $r_{i+1}.\idins = r_i.\iddel$ for every $\red{i} \in [1, \ell - 1]$.
@@ -240,6 +242,8 @@
             11&\cmt&
         \end{tabular}
         \end{center}
+
+        History of $t$: $(10, 100, \ttt{NULL})$. \\
 
         $T_1$ reads $t = 10$ (Rules 1, 2).
     }
@@ -487,6 +491,20 @@ $\red{\bm{\rightarrow}}$
      The theorem holds regardless of how the instructions of different transactions are interleaved.
 
      \vgap
+
+     \cbox{red}{
+        \bred{Remark:} A schedule produced by the protocol may perform non-repeatable reads (see Example 2). Therefore, the protocol does \bred{not} enforce the ``repeatable reads'' isolation level.
+     }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        The MVCC protocol we discussed can create deadlocks (\blue{think}: why?).
+    }
+
+    \vgap
+
+    The system handles a deadlock by aborting a transaction in the waiting cycle (see the lecture notes ``Two Phase Locking'').
 }
 %-------------------------------------------------------------
 \myfrm{
