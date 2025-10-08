@@ -75,7 +75,7 @@
 \myfrm{
 
     \cbox{red}{
-        A transaction may fail at every statement.
+        A transaction may fail at every instruction.
     }
 
     \cbox{green}{
@@ -547,11 +547,17 @@
         \blue{Recovery algorithm:} \\
         Scan the log \bred{backward}.
         For each record \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ did \bred{not} commit before the crash, set the disk copy of $A$ to $a_{old}$.
+        \myitems{
+            \item This is the ``undo'' phase.
+        }
 
-        \vgap
+        %\vgap
 
         Scan the log \bred{forward}.
         For each record \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ had \bred{committed} before the crash, set the disk copy of $A$ to $a_{new}$.
+        \myitems{
+            \item This is the ``redo'' phase.
+        }
     }
 }
 %-------------------------------------------------------------
