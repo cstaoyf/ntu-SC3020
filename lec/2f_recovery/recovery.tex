@@ -1,0 +1,523 @@
+\documentclass{beamer}
+
+\usetheme{Warsaw}
+%\usetheme{CambridgeUS}
+
+\input{./def/yf-beamer.tex}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[skins,breakable]{tcolorbox}
+
+\def\done{\hfill$\square$}
+\def\ttt{\texttt}
+\def\vgap{\vspace{5mm}}
+
+\def\abt{\ttt{ABORT}}
+\def\best{\mit{best}}
+\def\cmt{\ttt{COMMIT}}
+\def\iddel{ID_\mit{del}}
+\def\idins{ID_\mit{ins}}
+\def\ins{\ttt{INSERT}}
+\def\rd{\ttt{READ}}
+\def\size{\mit{size}}
+\def\slock{\ttt{S-LOCK}}
+\def\sort{\mit{sort}}
+\def\upg{\ttt{UPGRADE}}
+\def\ulock{\ttt{U-LOCK}}
+\def\unlock{\ttt{UNLOCK}}
+\def\wt{\ttt{WRITE}}
+\def\xlock{\ttt{X-LOCK}}
+
+\title[DATABASE SYSTEM PRINCIPLES]{Transactions 5:\\ Multi-Version Concurrency Control}
+
+\author[Yufei Tao @ NTU]{Yufei Tao}
+\institute[]{\url{https://www.cse.cuhk.edu.hk/~taoyf}}
+\date{}
+
+% \def\dtm{\mathit{d\mbox{-}tm}}
+% \def\ftm{\mathit{f\mbox{-}tm}}
+\def\bestext{\mathit{best\mbox{-}ext}}
+
+\begin{document}
+%-------------------------------------------------------------
+\begin{frame}
+    \titlepage
+%     \begin{tcolorbox}[arc=0mm, colframe=green!50!black, colback=green!10!white] 
+%     \end{tcolorbox}
+\end{frame}
+%-------------------------------------------------------------
+\begin{frame}
+\begin{small}
+    Today, we will discuss how to enforce the \bred{read committed} isolation level with \blue{multi-version concurrency control} (MVCC).
+
+    \vgap
+
+    \cbox{blue}{
+        Recall that the serializable isolation level should be enforced for critical transactions. For non-critical transactions (e.g., browsing books in a library), the read committed isolation level may suffice. In fact, this is the default isolation level in PostgreSQL and ORACLE (both are well-known database systems).
+    }
+
+    The protocol we will learn is implemented in PostgreSQL.
+\end{small}    
+\end{frame}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        Each transaction is assigned a unique \blue{ID}, with the requirement that a transaction $\red{T_1}$ starts before another transaction $\red{T_2}$, the ID of $T_1$ is smaller than that of $T_2$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Multi-Versioning}
+
+    %\vgap
+
+    \cbox{blue}{
+        For each tuple $\red{t}$, the database stores a \blue{history}, which is a sequence of \blue{records} $\red{r_1}, \red{r_2}, ..., \red{r_\ell}$ for some $\red{\ell} \ge 1$ such that:
+        \myitems{
+            \item each $\red{r_i}$ ($1 \le \red{i} \le \ell$) has the form $(\red{v}, \red{\idins}, \red{\iddel})$, where
+            \myitems{
+                \item $v$ is version of $t$ that ever existed;
+                \item $\idins$ is the ID of the transaction that created $v$;
+                \item $\iddel$ is the ID of the transaction that deleted $v$ or \ttt{\red{NULL}} if $v$ has not been deleted;
+            }
+
+            \item $r_{i+1}.\idins = r_i.\iddel$ for every $\red{i} \in [1, \ell - 1]$.
+        }
+    }
+
+    \cbox{green}{
+        \blue{Invariant:} If $\ell \ge 2$, the transactions with IDs $r_1.\idins$, $r_2.\idins$, ..., $r_{\ell-1}.\idins$ must have committed.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Multi-Versioning}
+
+    %\vgap
+
+    \cbox{green}{
+        \blue{Example 1:} Let $\red{t}$ be a tuple in the relation $R(X, Y)$ with the history:
+
+        \begin{center}
+             (($x_1, y_1$), 100, 103) \\
+             (($x_2, y_2$), 103, 110) \\
+             (($x_3, y_3$), 110, \ttt{NULL}).
+        \end{center}
+
+        This indicates:
+        \myitems{
+            \item $t$ was first inserted as $(x_1, y_1)$ by transaction (with ID) 100.
+            \item $t$ was then modified to $(x_2, y_2)$ by transaction 103.
+            \item $t$ was then modified again to $(x_3, y_3)$ by transaction 110 and still exists till now.
+        }
+
+        By the invariant, transactions 100 and 103 must have committed.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Concurrency Control}
+
+    %\vgap
+
+   %\vgap
+
+    \cbox{blue}{
+        \blue{Rule 1:} Reads are always granted (no locks required).
+    }
+
+    \cbox{blue}{
+        \blue{Rule 2:} Let $\red{T}$ be a transaction with id $\red{ID_T}$ and $\red{t}$ be a tuple. Suppose that $T$ performs $\red{\rd(t)}$, and the \bred{current} history of $t$ is $\red{r_1}, \red{r_2}, ..., \red{r_\ell}$. The database acts as follows:
+        \myitems{
+            \item \blue{if} $\red{r_\ell.\idins = ID_T}$, then return $r_\ell.v$;
+            \item \blue{elseif} \bred{$r_\ell.\iddel \ne \ttt{NULL}$}, then return nothing;
+            \item \blue{elseif} \bred{the transaction with ID $r_\ell.\idins$ has committed}, then return $r_\ell.v$;
+            \item \blue{elseif} \bred{$\ell \ge 2$}, then return $r_{\red{\ell-1}}.v$;
+            \item \blue{else} return nothing.
+        }
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Concurrency Control}
+
+    %\vgap
+
+    \cbox{green}{
+        \blue{Example 1 (cont.):} Let $\red{t}$ be a tuple in the relation $R(X, Y)$ with the history:
+
+        \begin{center}
+             (($x_1, y_1$), 100, 103) \\
+             (($x_2, y_2$), 103, 110) \\
+             (($x_3, y_3$), 110, \ttt{NULL}).
+        \end{center}
+
+        \myitems{
+            \item If transaction 110 issues $\rd(t)$, it gets $(x_3, y_3)$.
+            \item If trans.\ 109 issues $\rd(t)$ with trans.\ 110 already committed, it gets $(x_3, y_3)$, i.e., the \bred{last committed version}.
+            \item If trans.\ 109 issues $\rd(t)$ with trans.\ 110 still running, it gets $(x_2, y_2)$, i.e., \bred{last committed version}.
+        }
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Concurrency Control}
+
+    %\vgap
+
+   %\vgap
+
+    \cbox{blue}{
+        \blue{Rule 3:} Before a transaction can write to a tuple $\red{t}$, it must be holding an \bred{X-lock} on $t$. To obtain such a lock, a transaction needs to make a \blue{lock request}. The database grants the request if currently there are no locks on $t$. Otherwise, the request is denied, and the transaction is suspended until its request is granted.
+    }
+
+    \cbox{blue}{
+        \blue{Rule 4:} Let $\red{T}$ be a transaction with id $\red{ID_T}$ that holds an X-lock on a tuple $\red{t}$. Suppose that $T$ performs $\red{\wt(t, v)}$. The database acts as follows:
+        \myitems{
+            \item If $t$ is new (i.e., no history), create a history of $t$ with only one record $\red{(v, ID_T, \ttt{NULL})}$.
+            \item Otherwise, let $\red{r_1}, \red{r_2}, ..., \red{r_\ell}$ be the \bred{current} history of $t$. Set $\red{r_\ell.\iddel = ID_T}$ and append a record $\red{(v, ID_T, \ttt{NULL})}$ to the history.
+        }
+        %, and
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Concurrency Control}
+
+    %\vgap
+
+   \vgap
+
+    \cbox{blue}{
+        \blue{Rule 5:} A transaction releases all locks after having committed or aborted.
+    }
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2} Let $\red{t}$ be a tuple of relation $\red{R(A)}$ whose history has a single record $(10, 100, \ttt{NULL})$. Transaction 100 has committed. Transactions $\red{T_1}$, $\red{T_2}$, and $\red{T_2}$ have IDs 101, 102, and 103, respectively. Assume that the database attempts to execute the instructions of $T_1$ and $T_2$ in the order shown below.
+
+        \begin{center}
+        \begin{tabular}{c|c|c|c}
+            &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
+            \hline
+            1& \rd($t$) & & \\
+            2& & $\xlock(t)$ & \\
+            3& & \wt($t$, \red{20}) & \\
+            4& & & $\xlock(t)$ \\
+            5& & & \wt($t$, \red{30}) \\
+            6& $\rd(t)$ & \\
+            7& & \rd$(t)$ \\
+            8& & \cmt \\
+            9&&&\cmt \\
+            10& $\rd(t)$ & \\
+            11&\cmt&
+        \end{tabular}
+        \end{center}
+
+        We will walk through the execution in the next few slides.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.)}
+        \begin{center}
+        \begin{tabular}{c|c|c|c}
+            &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
+            \hline
+            $\red{\bm{\rightarrow}}$ 1& \rd($t$) & & \\
+            2& & $\xlock(t)$ & \\
+            3& & \wt($t$, \red{20}) & \\
+            4& & & $\xlock(t)$ \\
+            5& & & \wt($t$, \red{30}) \\
+            6& $\rd(t)$ & \\
+            7& & \rd$(t)$ \\
+            8& & \cmt \\
+            9&&&\cmt \\
+            10& $\rd(t)$ & \\
+            11&\cmt&
+        \end{tabular}
+        \end{center}
+
+        History of $t$: $(10, 100, \ttt{NULL})$. \\
+
+        $T_1$ reads $t = 10$ (Rules 1, 2).
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.)}
+        \begin{center}
+        \begin{tabular}{c|c|c|c}
+            &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
+            \hline
+            $\red{\bm{\rightarrow}}$ 2& & $\xlock(t)$ & \\
+            3& & \wt($t$, \red{20}) & \\
+            4& & & $\xlock(t)$ \\
+            5& & & \wt($t$, \red{30}) \\
+            6& $\rd(t)$ & \\
+            7& & \rd$(t)$ \\
+            8& & \cmt \\
+            9&&&\cmt \\
+            10& $\rd(t)$ & \\
+            11&\cmt&
+        \end{tabular}
+        \end{center}
+
+        Granted (Rule 3).
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.)}
+
+\begin{center}
+\begin{tabular}{c|c|c|c}
+    &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
+    \hline
+    $\red{\bm{\rightarrow}}$ 3& & \wt($t$, \red{20}) & \\
+    4& & & $\xlock(t)$ \\
+    5& & & \wt($t$, \red{30}) \\
+    6& $\rd(t)$ & \\
+    7& & \rd$(t)$ \\
+    8& & \cmt \\
+    9&&&\cmt \\
+    10& $\rd(t)$ & \\
+    11&\cmt&
+\end{tabular}
+\end{center}
+
+        By Rule 4, the history of $t$ now has two records: \\
+        $(10, 100, 102)$, $(20,102, \ttt{NULL})$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.)}
+
+        \begin{center}
+\begin{tabular}{c|c|c|c}
+    &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
+    \hline
+    $\red{\bm{\rightarrow}}$ 4& & & $\xlock(t)$ \\
+    5& & & \wt($t$, \red{30}) \\
+    6& $\rd(t)$ & \\
+    7& & \rd$(t)$ \\
+    8& & \cmt \\
+    9&&&\cmt \\
+    10& $\rd(t)$ & \\
+    11&\cmt&
+\end{tabular}
+\end{center}
+
+        Denied (Rule 3) and $T_3$ is suspended.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.)}
+
+        \begin{center}
+\begin{tabular}{c|c|c|c}
+    &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
+    \hline
+    4& & & $\xlock(t)$ \\
+    5& & & \wt($t$, \red{30}) \\
+    $\red{\bm{\rightarrow}}$ 6& $\rd(t)$ & \\
+    7& & \rd$(t)$ \\
+    8& & \cmt \\
+    9&&&\cmt \\
+    10& $\rd(t)$ & \\
+    11&\cmt&
+\end{tabular}
+\end{center}
+
+
+        History of $t$:
+        $(10, 100, 102)$, $(20,102, \ttt{NULL})$. \\
+
+        $T_1$ reads $t = 10$ (Rules 1, 2), noticing that the trans.\ with ID 102 (i.e., $T_2$) is still running.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.)}
+         \begin{center}
+\begin{tabular}{c|c|c|c}
+    &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
+    \hline
+    4& & & $\xlock(t)$ \\
+    5& & & \wt($t$, \red{30}) \\
+$\red{\bm{\rightarrow}}$    7& & \rd$(t)$ \\
+    8& & \cmt \\
+    9&&&\cmt \\
+    10& $\rd(t)$ & \\
+    11&\cmt&
+\end{tabular}
+\end{center}
+
+        History of $t$:
+        $(10, 100, 102)$, $(20,102, \ttt{NULL})$. \\
+
+        $T_2$ reads $t = 20$ (Rules 1, 2).
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.)}
+         \begin{center}
+\begin{tabular}{c|c|c|c}
+    &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
+    \hline
+    4& & & $\xlock(t)$ \\
+    5& & & \wt($t$, \red{30}) \\
+$\red{\bm{\rightarrow}}$    8& & \cmt \\
+    9&&&\cmt \\
+    10& $\rd(t)$ & \\
+    11&\cmt&
+\end{tabular}
+\end{center}
+
+        History of $t$:
+        $(10, 100, 102)$, $(20,102, \ttt{NULL})$. \\
+
+        $T_2$ commits and releases the X-lock on $t$ (Rule 5).
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.)}
+         \begin{center}
+\begin{tabular}{c|c|c|c}
+    &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
+    \hline
+$\red{\bm{\rightarrow}}$    4& & & $\xlock(t)$ \\
+    5& & & \wt($t$, \red{30}) \\
+    9&&&\cmt \\
+    10& $\rd(t)$ & \\
+    11&\cmt&
+\end{tabular}
+\end{center}
+
+        History of $t$:
+        $(10, 100, 102)$, $(20,102, \ttt{NULL})$. \\
+
+        $T_3$ now resumes and holds the X-lock on $t$ (Rule 3).
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.)}
+         \begin{center}
+\begin{tabular}{c|c|c|c}
+    &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
+    \hline
+$\red{\bm{\rightarrow}}$
+    5& & & \wt($t$, \red{30}) \\
+    9&&&\cmt \\
+    10& $\rd(t)$ & \\
+    11&\cmt&
+\end{tabular}
+\end{center}
+
+        By Rule 4, the history of $t$ becomes \\
+        $(10, 100, 102)$, $(20,102, 103)$, $(30,103, \ttt{NULL})$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.)}
+         \begin{center}
+\begin{tabular}{c|c|c|c}
+    &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
+    \hline
+$\red{\bm{\rightarrow}}$
+    9&&&\cmt \\
+    10& $\rd(t)$ & \\
+    11&\cmt&
+\end{tabular}
+\end{center}
+
+        History of $t$:
+        $(10, 100, 102)$, $(20,102, 103)$, $(30,103, \ttt{NULL})$. \\
+
+                $T_3$ commits and releases the X-lock on $t$ (Rule 5).
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.)}
+         \begin{center}
+\begin{tabular}{c|c|c|c}
+    &$\red{T_1}$ ID 101 & $\red{T_2}$ ID 102 & $\red{T_3}$ ID 103\\
+    \hline
+$\red{\bm{\rightarrow}}$
+    10& $\rd(t)$ & \\
+    11&\cmt&
+\end{tabular}
+\end{center}
+
+        History of $t$:
+        $(10, 100, 102)$, $(20,102, 103)$, $(30,103, \ttt{NULL})$. \\
+
+        $T_1$ reads $t = 30$ (Rules 1, 2).
+
+
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+     \cbox{blue}{
+        \blue{Theorem:} The schedule produced by the protocol we described is  recoverable and enforces the read committed isolation level.
+    }
+
+    \vgap
+
+     The theorem holds regardless of how the instructions of different transactions are interleaved.
+
+     \vgap
+
+     \cbox{red}{
+        \bred{Remark:} A schedule produced by the protocol may perform non-repeatable reads (see Example 2). Therefore, the protocol does \bred{not} enforce the ``repeatable reads'' isolation level.
+     }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        The MVCC protocol we discussed can create deadlocks (\blue{think}: why?).
+    }
+
+    \vgap
+
+    The system handles a deadlock by aborting a transaction in the waiting cycle (see the lecture notes ``Two Phase Locking'').
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        \blue{Remark:} If the purpose is \bred{only} to enforce the read committed isolation level, it suffices to keep the last two entries of a history at all times.
+
+        \vgap
+
+        It should be noted that multi-versioning is useful not only for concurrency control, e.g., it allows us to ``travel back in time'' to obtain the database content at any past timestamp. Multi-versioning is implemented in many database systems nowadays.
+    }
+}
+%-------------------------------------------------------------
+\end{document} 
+
+
+
