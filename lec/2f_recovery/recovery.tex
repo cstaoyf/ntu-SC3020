@@ -66,10 +66,10 @@
     \vgap
 
     \cbox{red}{
-        \bred{Transactions may fail}. When they do, we must cancel their modifications to the database --- this is known as \blue{recovery}.
+        \bred{Transactions may fail}. When they do, the system's \blue{recovery module} must perform a \blue{rollback} to cancel their modifications to the database.
     }
-    This lecture will introduce several methods for performing recovery in database systems.
-\end{small}    
+
+\end{small}
 \end{frame}
 %-------------------------------------------------------------
 \myfrm{
@@ -85,7 +85,7 @@
         \begin{tabular}{c|c}
             schedule & remark\\
             \hline
-            $\red{T_1}: \rd(A)$ & trans.\ 1 reads a tuple's value (on some attribute) \\
+            $\red{T_1}: \rd(A)$ & trans.\ 1 reads a tuple's value on some attribute \\
             $T_1: A = A + 1$ &\\
             $T_1: \wt(A)$ & trans.\ 1 updates the tuple \\
             $T_1: \cmt$ & \\
@@ -105,14 +105,14 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Three Copies of the Same Value}
+    \xmybox{Multiple Copies of the Same Value}
 
     \cbox{blue}{
-    For every value in a database, there can three copies:
+    For every value in a database, there can be multiple copies:
     \myitems{
-        \item the disk copy;
-        \item the (\blue{global}) memory copy of the system;
-        \item the (\blue{local}) memory copy of a transaction.
+        \item one disk copy;
+        \item one (\blue{global}) memory copy of the system;
+        \item one (\blue{local}) memory copy \bred{per} transaction.
     }
     }
 
@@ -171,7 +171,7 @@
         \end{tabular}
 
         \cbox{red}{
-            What if a system crashes after step 5? How about after step 8? step 9?
+            What should we do if a system crashes after step 5? How about after step 8? step 9?
         }
         \end{center}
     }
@@ -187,7 +187,7 @@
     \vgap
 
     \cbox{blue}{
-    A \blue{log file} is a special file on the disk maintained by the system. It contains a sequence of \blue{log records} that capture transactions' behavior.
+    A \blue{log file} is a special file on the disk maintained by the system, containing a sequence of \blue{log records} that capture transactions' behavior.
     }
 
 
@@ -200,10 +200,10 @@
 
     \vgap
 
-    We will introduce three logging methods, which use different sets of log records. However, the following three records are \bred{common to all methods}.
+    We will introduce three logging methods --- all in the so-called \blue{write-ahead logging} category --- which use different sets of log records. However, three three records are \bred{common to all methods}.
 
     \myitems{
-        \item \red{\dblog{START $T$}}: Records the start of transaction $T$.
+        \item \red{\dblog{START $T$}}: Records the start of transaction $T$. This must be the first log record of $T$.
         \item \red{\dblog{COMMIT $T$}}: Records that transaction $T$ has committed.
         \item \red{\dblog{ABORT $T$}}: Records that transaction $T$ has aborted.
     }
@@ -225,7 +225,7 @@
 
     \myitems{
         \item \red{\dblog{$T$, $A$, $a_{old}$}} \\
-        Meaning: transaction $\red{T}$ will change a tuple's attribute $\red{A}$, and the attribute's value is $\red{a_{old}}$ currently.
+        \blue{Meaning:} transaction $\red{T}$ will change a tuple's attribute $\red{A}$, and the attribute's value is $\red{a_{old}}$ currently.
     }
 }
 %-------------------------------------------------------------
@@ -352,7 +352,7 @@
 
     \myitems{
         \item \red{\dblog{$T$, $A$, $a_{new}$}} \\
-        Meaning: transaction $\red{T}$ will change a tuple's attribute $\red{A}$ to $\red{a_{new}}$.
+        \blue{Meaning:} transaction $\red{T}$ will change a tuple's attribute $\red{A}$ to $\red{a_{new}}$.
     }
 }
 %-------------------------------------------------------------
@@ -475,7 +475,7 @@
 
     \myitems{
         \item \red{\dblog{$T$, $A$, $a_{old}$, $a_{new}$}} \\
-        Meaning: transaction $\red{T}$ will change a tuple's attribute $\red{A}$ to $\red{a_{new}}$, and the attribute's value is $\red{a_{old}}$ currently.
+        \blue{Meaning:} transaction $\red{T}$ will change a tuple's attribute $\red{A}$ to $\red{a_{new}}$, and the attribute's value is $\red{a_{old}}$ currently.
     }
 }
 %-------------------------------------------------------------
@@ -501,7 +501,7 @@
     Intuitively, the ``correct'' ordering is: \\
     \dblog{$T, A, a_{new}$} $\Rightarrow$ \dblog{COMMIT $T$} \\
     \dblog{$T, A, a_{new}$} $\Rightarrow$ disk copy of $A$ changes \\
-    The ordering between \dblog{COMMIT $T$} and disk-copy changes does not matter.
+    Arbitrary ordering between \dblog{COMMIT $T$} and disk-copy changes.
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -575,7 +575,7 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 3 (cont.):} Suppose that the system sees the  following log after a crash.
+        \blue{Example 4 (cont.):} Suppose that the system sees the  following log after a crash.
 
         \begin{center}
         \begin{tabular}{c}
