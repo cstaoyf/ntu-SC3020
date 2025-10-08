@@ -14,6 +14,8 @@
 \def\ttt{\texttt}
 \def\vgap{\vspace{5mm}}
 
+\newcommand{\dblog}[1]{$<$#1$>$}
+
 \def\abt{\ttt{ABORT}}
 \def\best{\mit{best}}
 \def\cmt{\ttt{COMMIT}}
@@ -77,19 +79,20 @@
     }
 
     \cbox{green}{
-        \blue{Example 1:}
+        \blue{Example 1:} \vspace{-5mm}
 
         \begin{center}
         \begin{tabular}{c|c}
-            $\red{T}$ & remark\\
+            schedule & remark\\
             \hline
-            \rd($A$) & read a tuple's value (on some attribute) \\
-            \rd($B$) & read a value from another tuple  \\
-            $A = A + 1$ &\\
-            $B = B - 1$ &\\
-            \wt($A$) & update the 1st tuple \\
-            \wt($B$) & update the 2nd tuple \\
-            \cmt &
+            $\red{T_1}: \rd(A)$ & trans.\ 1 reads a tuple's value (on some attribute) \\
+            $T_1: A = A + 1$ &\\
+            $T_1: \wt(A)$ & trans.\ 1 updates the tuple \\
+            $T_1: \cmt$ & \\
+            $\red{T_2}: \rd(A)$ & trans.\ 2 reads the same value \\
+            $T_2: A = A + 1$ &\\
+            $T_2: \wt(A)$ & trans.\ 2 updates the tuple \\
+            $T_2: \cmt$
         \end{tabular}
 
         %\vgap
@@ -143,6 +146,440 @@
         \includegraphics[height=25mm]{./artwork/val-copies2}
     \end{center}
 
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 1 (cont.):} The following shows the schedule \bred{at the system level} and its execution (assuming $\red{A = 10}$ on the disk initially): \vspace{-3mm}
+
+        \begin{center}
+        \begin{tabular}{c|c|c|c|c|c}
+            step & schedule & \multicolumn{4}{c}{value of $A$} \\
+            & & disk & global & $T_1$ local & $T_2$ local \\
+            \hline
+            0& & 10 & n/a & n/a & n/a \\
+            1& $\inp(A)$ & 10 & 10 & n/a & n/a \\
+            2& $T_1: \rd(A)$ & 10 & 10 & 10 & n/a \\
+            3& $T_1: A = A + 1$ & 10 & 10 & 11 & n/a \\
+            4& $T_1: \wt(A)$ & 10 & 11 & 11 & n/a \\
+            5& $T_1: \cmt$ & 10 & 11 & n/a & n/a \\
+            6& $T_2: \rd(A)$ & 10 & 11 & n/a & 11 \\
+            7& $T_2: A = A + 1$ & 10 & 11 & n/a & 12 \\
+            8& $T_2: \wt(A)$ & 10 & 12 & n/a & 12 \\
+            9& $T_2: \cmt$ & 10 & 12 & n/a & n/a \\
+            10& $\out(A)$ & 12 & 12 & n/a & n/a
+        \end{tabular}
+
+        \cbox{red}{
+            What if a system crashes after step 5? How about after step 8? step 9?
+        }
+        \end{center}
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Logging}
+
+    \vgap
+
+    Logging is a standard approach to implement the recovery mechanism in database systems.
+
+    \vgap
+
+    \cbox{blue}{
+    A \blue{log file} is a special file on the disk maintained by the system. It contains a sequence of \blue{log records} that capture transactions' behavior.
+    }
+
+
+
+
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Logging}
+
+    \vgap
+
+    We will introduce three logging methods, which use different sets of log records. However, the following three records are \bred{common to all methods}.
+
+    \myitems{
+        \item \red{\dblog{START $T$}}: Records the start of transaction $T$.
+        \item \red{\dblog{COMMIT $T$}}: Records that transaction $T$ has committed.
+        \item \red{\dblog{ABORT $T$}}: Records that transaction $T$ has aborted.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        \centering
+        Method 1: Undo Logging
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Unique Log Records}
+
+    \vgap
+
+    This method allows one more type of log records:
+
+    \myitems{
+        \item \red{\dblog{$T$, $A$, $a_{old}$}} \\
+        Meaning: transaction $\red{T}$ will change a tuple's attribute $\red{A}$, and the attribute's value is $\red{a_{old}}$ currently.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Rules}
+
+    %\vgap
+
+    \cbox{blue}{
+        \blue{Rule 1:} When a transaction $\red{T}$ performs $\wt(\red{A})$, create a log record \red{\dblog{$T, A, a_{old}$}}.
+    }
+
+    \cbox{blue}{
+        \blue{Rule 2:} A log record \red{\dblog{$T, A, a_{old}$}} must be written to the disk \bred{before} the disk copy of $A$ can change.
+    }
+
+    \cbox{blue}{
+        \blue{Rule 3:} The log record \red{\dblog{COMMIT, $T$}} is written to the disk \bred{after} all the changes of $T$ have been written to the disk.
+    }
+
+    \vgap
+
+    Intuitively, the ``correct'' ordering is: \\
+    \dblog{$T, A, a_{old}$} $\Rightarrow$ disk copy of $A$ changes $\Rightarrow$ \dblog{COMMIT, $T$}
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2:} \vspace{-5mm}
+
+        \begin{center}
+        \begin{tabular}{c|c|c|c|c|c}
+            step & schedule & disk & global & $T_1$ & log \\
+            \hline
+            0& & 10 & n/a & n/a & \dblog{START, $T_1$} \\
+            1& $\inp(A)$ & 10 & 10 & n/a &  \\
+            2& $T_1: \rd(A)$ & 10 & 10 & 10 &  \\
+            3& $T_1: A = A + 1$ & 10 & 10 & 11 &  \\
+            4& $T_1: \wt(A)$ & 10 & 11 & 11 & \dblog{$T_1,A, 10$} \\
+            5& $\out(A)$ & 11 & 11 & n/a & \\
+            6& $T_1: \cmt$ & 11 & 11 & n/a & \dblog{COMMIT, $T_1$}
+        \end{tabular}
+
+        \cbox{red}{
+            Note: In this schedule, $\out(A)$ appears before $T_1$ commits. This is possible: $\out(A)$ is performed by the system (not by $T_1$). The system may choose to perform the operation any time (as per its buffer management policy).
+        }
+
+
+        \end{center}
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Recovery from Failure}
+
+    \vgap
+
+    Suppose that the system reboots from a crash.
+
+    %\vgap
+
+    \cbox{blue}{
+        The recovery module starts by identifying the transactions that were committed, aborted, and running at the moment of crash.
+    }
+    \blue{Think:} How?
+
+    \vgap
+
+
+    \cbox{blue}{
+        \blue{Recovery algorithm:} Scan the log \bred{backward}. \\
+        For each record \red{\dblog{$T, A, a_{old}$}}, if $T$ did not commit before the crash, set the disk copy of $A$ to $a_{old}$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.):} Suppose that the system sees the  following log after a crash.
+
+        \begin{center}
+        \begin{tabular}{c}
+            log \\
+            \hline
+            \dblog{START, $T_1$} \\
+            \dblog{$T_1,A, 10$} \\
+            \dblog{COMMIT, $T_1$}
+        \end{tabular}
+        \end{center}
+
+        The recovery algorithm does not modify the disk.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.):} Suppose that the system sees the  following log after a crash.
+
+        \begin{center}
+        \begin{tabular}{c}
+            log \\
+            \hline
+            \dblog{START, $T_1$} \\
+            \dblog{$T_1,A, 10$}
+        \end{tabular}
+        \end{center}
+
+        The recovery algorithm sets the disk copy of $A$ to 10.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        \centering
+        Method 2: Redo Logging
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Unique Log Records}
+
+    \vgap
+
+    This method allows one more type of log records:
+
+    \myitems{
+        \item \red{\dblog{$T$, $A$, $a_{new}$}} \\
+        Meaning: transaction $\red{T}$ will change a tuple's attribute $\red{A}$ to $\red{a_{new}}$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Rules}
+
+    %\vgap
+
+    \cbox{blue}{
+        \blue{Rule 1:} When a transaction $\red{T}$ performs $\wt(\red{A})$, create a log record \red{\dblog{$T, A, a_{new}$}}.
+    }
+
+    \cbox{blue}{
+        \blue{Rule 2:} Every log record of the form \red{\dblog{$T, A, a_{new}$}} must be written to the disk \bred{before} \red{\dblog{COMMIT, $T$}} is written to the disk.
+    }
+
+    \cbox{blue}{
+        \blue{Rule 3:} The changes of $T$ can be written to the disk only \bred{after} \red{\dblog{COMMIT, $T$}} has been written to the disk.
+    }
+
+    \vgap
+
+    Intuitively, the ``correct'' ordering is: \\
+    \dblog{$T, A, a_{new}$} $\Rightarrow$ \dblog{COMMIT, $T$} $\Rightarrow$ disk copy of $A$ changes
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 3:} \vspace{-5mm}
+
+        \begin{center}
+        \begin{tabular}{c|c|c|c|c|c}
+            step & schedule & disk & global & $T_1$ & log \\
+            \hline
+            0& & 10 & n/a & n/a & \dblog{START, $T_1$} \\
+            1& $\inp(A)$ & 10 & 10 & n/a &  \\
+            2& $T_1: \rd(A)$ & 10 & 10 & 10 &  \\
+            3& $T_1: A = A + 1$ & 10 & 10 & 11 &  \\
+            4& $T_1: \wt(A)$ & 10 & 11 & 11 & \dblog{$T_1,A, 11$} \\
+            5& $\out(A)$ & 11 & 11 & n/a & \\
+            6& $T_1: \cmt$ & 11 & 11 & n/a & \dblog{COMMIT, $T_1$}
+        \end{tabular}
+
+
+        \end{center}
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Recovery from Failure}
+
+    \vgap
+
+    Suppose that the system reboots from a crash.
+
+    %\vgap
+
+    \cbox{blue}{
+        The recovery module starts by identifying the transactions that were committed, aborted, and running at the moment of crash.
+    }
+    %\blue{Think:} How?
+
+    \vgap
+
+
+    \cbox{blue}{
+        \blue{Recovery algorithm:} Scan the log \bred{forward}. \\
+        For each record \red{\dblog{$T, A, a_{new}$}}, if $T$ had committed before the crash, set the disk copy of $A$ to $a_{new}$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.):} Suppose that the system sees the  following log after a crash.
+
+        \begin{center}
+        \begin{tabular}{c}
+            log \\
+            \hline
+            \dblog{START, $T_1$} \\
+            \dblog{$T_1,A, 11$} \\
+            \dblog{COMMIT, $T_1$}
+        \end{tabular}
+        \end{center}
+
+        The recovery algorithm sets the disk copy of $A$ to 11.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 3 (cont.):} Suppose that the system sees the  following log after a crash.
+
+        \begin{center}
+        \begin{tabular}{c}
+            log \\
+            \hline
+            \dblog{START, $T_1$} \\
+            \dblog{$T_1,A, 10$}
+        \end{tabular}
+        \end{center}
+
+        The recovery algorithm does not modify the disk.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        \centering
+        Method 3: Undo/Redo Logging
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Unique Log Records}
+
+    \vgap
+
+    This method allows one more type of log records:
+
+    \myitems{
+        \item \red{\dblog{$T$, $A$, $a_{old}$, $a_{new}$}} \\
+        Meaning: transaction $\red{T}$ will change a tuple's attribute $\red{A}$ to $\red{a_{new}}$, and the attribute's value is $\red{a_{old}}$ currently.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Rules}
+
+    %\vgap
+
+    \cbox{blue}{
+        \blue{Rule 1:} When a transaction $\red{T}$ performs $\wt(\red{A})$, create a log record \red{\dblog{$T, A, a_{old}, a_{new}$}}.
+    }
+
+    \cbox{blue}{
+        \blue{Rule 2:} The disk copy of $A$ can change to $\red{a_{new}}$ only \bred{after} the corresponding log record \red{\dblog{$T, A, a_{old}, a_{new}$}} has be written to the disk.
+    }
+
+    \cbox{blue}{
+        \blue{Rule 3:} The log record \red{\dblog{COMMIT, $T$}} of $T$ can be written to the disk only \bred{after} the other log records of $T$ have been written to the disk.
+    }
+
+    \vgap
+
+    Intuitively, the ``correct'' ordering is: \\
+    \dblog{$T, A, a_{new}$} $\Rightarrow$ \dblog{COMMIT, $T$} $\Rightarrow$ disk copy of $A$ changes
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 3:} \vspace{-5mm}
+
+        \begin{center}
+        \begin{tabular}{c|c|c|c|c|c}
+            step & schedule & disk & global & $T_1$ & log \\
+            \hline
+            0& & 10 & n/a & n/a & \dblog{START, $T_1$} \\
+            1& $\inp(A)$ & 10 & 10 & n/a &  \\
+            2& $T_1: \rd(A)$ & 10 & 10 & 10 &  \\
+            3& $T_1: A = A + 1$ & 10 & 10 & 11 &  \\
+            4& $T_1: \wt(A)$ & 10 & 11 & 11 & \dblog{$T_1,A, 11$} \\
+            5& $\out(A)$ & 11 & 11 & n/a & \\
+            6& $T_1: \cmt$ & 11 & 11 & n/a & \dblog{COMMIT, $T_1$}
+        \end{tabular}
+
+
+        \end{center}
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Recovery from Failure}
+
+    \vgap
+
+    Suppose that the system reboots from a crash.
+
+    %\vgap
+
+    \cbox{blue}{
+        The recovery module starts by identifying the transactions that were committed, aborted, and running at the moment of crash.
+    }
+    %\blue{Think:} How?
+
+    \vgap
+
+
+    \cbox{blue}{
+        \blue{Recovery algorithm:} Scan the log \bred{forward}. \\
+        For each record \red{\dblog{$T, A, a_{new}$}}, if $T$ had committed before the crash, set the disk copy of $A$ to $a_{new}$.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2 (cont.):} Suppose that the system sees the  following log after a crash.
+
+        \begin{center}
+        \begin{tabular}{c}
+            log \\
+            \hline
+            \dblog{START, $T_1$} \\
+            \dblog{$T_1,A, 11$} \\
+            \dblog{COMMIT, $T_1$}
+        \end{tabular}
+        \end{center}
+
+        The recovery algorithm sets the disk copy of $A$ to 11.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 3 (cont.):} Suppose that the system sees the  following log after a crash.
+
+        \begin{center}
+        \begin{tabular}{c}
+            log \\
+            \hline
+            \dblog{START, $T_1$} \\
+            \dblog{$T_1,A, 10$}
+        \end{tabular}
+        \end{center}
+
+        The recovery algorithm does not modify the disk.
+    }
 }
 %-------------------------------------------------------------
 \end{document} 
