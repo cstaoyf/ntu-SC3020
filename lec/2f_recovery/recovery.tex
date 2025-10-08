@@ -200,12 +200,12 @@
 
     \vgap
 
-    We will introduce three logging methods --- all in the so-called \blue{write-ahead logging} category --- which use different sets of log records. However, three three records are \bred{common to all methods}.
+    We will introduce three logging methods --- all in the so-called \blue{write-ahead logging} category --- which use different sets of log records. However, two records are \bred{common to all methods}.
 
     \myitems{
-        \item \red{\dblog{START $T$}}: Records the start of transaction $T$. This must be the first log record of $T$.
-        \item \red{\dblog{COMMIT $T$}}: Records that transaction $T$ has committed.
-        \item \red{\dblog{ABORT $T$}}: Records that transaction $T$ has aborted.
+        \item \red{\dblog{START $T$}}: Indicating the start of transaction $T$. This must be the first log record of $T$.
+        \item \red{\dblog{COMMIT $T$}}: Indicating that transaction $T$ has committed.
+        %\item \red{\dblog{ABORT $T$}}: Records that transaction $T$ has aborted.
     }
 }
 %-------------------------------------------------------------
@@ -225,7 +225,7 @@
 
     \myitems{
         \item \red{\dblog{$T$, $A$, $a_{old}$}} \\
-        \blue{Meaning:} transaction $\red{T}$ will change a tuple's attribute $\red{A}$, and the attribute's value is $\red{a_{old}}$ currently.
+        \blue{Meaning:} transaction $\red{T}$ will change a tuple's attribute $\red{A}$, and the attribute's value on disk is $\red{a_{old}}$ currently.
     }
 }
 %-------------------------------------------------------------
@@ -287,7 +287,7 @@
     %\vgap
 
     \cbox{blue}{
-        The recovery module starts by identifying the transactions that were committed, aborted, and running at the moment of crash.
+        The recovery module starts by identifying the transactions that were committed and running at the moment of crash, respectively.
     }
     \blue{Think:} How?
 
@@ -410,7 +410,7 @@
     %\vgap
 
     \cbox{blue}{
-        The recovery module starts by identifying the transactions that were committed, aborted, and running at the moment of crash.
+        The recovery module starts by identifying the transactions that were committed and running at the moment of crash, respectively.
     }
     %\blue{Think:} How?
 
@@ -474,7 +474,7 @@
 
     \myitems{
         \item \red{\dblog{$T$, $A$, $a_{old}$, $a_{new}$}} \\
-        \blue{Meaning:} transaction $\red{T}$ will change a tuple's attribute $\red{A}$ to $\red{a_{new}}$, and the attribute's value is $\red{a_{old}}$ currently.
+        \blue{Meaning:} transaction $\red{T}$ will change a tuple's attribute $\red{A}$ to $\red{a_{new}}$, and the attribute's value on disk is $\red{a_{old}}$ currently.
     }
 }
 %-------------------------------------------------------------
@@ -535,7 +535,7 @@
     %\vgap
 
     \cbox{blue}{
-        The recovery module starts by identifying the transactions that were committed, aborted, and running at the moment of crash.
+        The recovery module starts by identifying the transactions that were committed and running at the moment of crash, respectively.
     }
     %\blue{Think:} How?
 
@@ -595,12 +595,12 @@
     }
 }
 %-------------------------------------------------------------
-\myfrm{
-    \cbox{blue}{
-        \blue{Think:} What are the drawbacks of each method?
-    }
-}
-%-------------------------------------------------------------
+% \myfrm{
+%     \cbox{blue}{
+%         \blue{Think:} What are the drawbacks of each method?
+%     }
+% }
+% %-------------------------------------------------------------
 \end{document} 
 
 
