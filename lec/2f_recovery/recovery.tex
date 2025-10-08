@@ -217,7 +217,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Unique Log Records}
+    \xmybox{New Log Records}
 
     \vgap
 
@@ -239,17 +239,17 @@
     }
 
     \cbox{blue}{
-        \blue{Rule 2:} A log record \red{\dblog{$T, A, a_{old}$}} must be written to the disk \bred{before} the disk copy of $A$ can change.
+        \blue{Rule 2:} The disk copy of $A$ can change only \bred{after} the corresponding log record \red{\dblog{$T, A, a_{old}$}} has been written to the disk.
     }
 
     \cbox{blue}{
-        \blue{Rule 3:} The log record \red{\dblog{COMMIT, $T$}} is written to the disk \bred{after} all the changes of $T$ have been written to the disk.
+        \blue{Rule 3:} The log record \red{\dblog{COMMIT $T$}} can be written to the disk only \bred{after} all the changes of $T$ have been written to the disk.
     }
 
     \vgap
 
     Intuitively, the ``correct'' ordering is: \\
-    \dblog{$T, A, a_{old}$} $\Rightarrow$ disk copy of $A$ changes $\Rightarrow$ \dblog{COMMIT, $T$}
+    \dblog{$T, A, a_{old}$} $\Rightarrow$ disk copy of $A$ changes $\Rightarrow$ \dblog{COMMIT $T$}
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -260,13 +260,13 @@
         \begin{tabular}{c|c|c|c|c|c}
             step & schedule & disk & global & $T_1$ & log \\
             \hline
-            0& & 10 & n/a & n/a & \dblog{START, $T_1$} \\
+            0& & 10 & n/a & n/a & \dblog{START $T_1$} \\
             1& $\inp(A)$ & 10 & 10 & n/a &  \\
             2& $T_1: \rd(A)$ & 10 & 10 & 10 &  \\
             3& $T_1: A = A + 1$ & 10 & 10 & 11 &  \\
             4& $T_1: \wt(A)$ & 10 & 11 & 11 & \dblog{$T_1,A, 10$} \\
             5& $\out(A)$ & 11 & 11 & n/a & \\
-            6& $T_1: \cmt$ & 11 & 11 & n/a & \dblog{COMMIT, $T_1$}
+            6& $T_1: \cmt$ & 11 & 11 & n/a & \dblog{COMMIT $T_1$}
         \end{tabular}
 
         \cbox{red}{
@@ -309,9 +309,9 @@
         \begin{tabular}{c}
             log \\
             \hline
-            \dblog{START, $T_1$} \\
+            \dblog{START $T_1$} \\
             \dblog{$T_1,A, 10$} \\
-            \dblog{COMMIT, $T_1$}
+            \dblog{COMMIT $T_1$}
         \end{tabular}
         \end{center}
 
@@ -327,7 +327,7 @@
         \begin{tabular}{c}
             log \\
             \hline
-            \dblog{START, $T_1$} \\
+            \dblog{START $T_1$} \\
             \dblog{$T_1,A, 10$}
         \end{tabular}
         \end{center}
@@ -344,7 +344,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Unique Log Records}
+    \xmybox{New Log Records}
 
     \vgap
 
@@ -366,17 +366,17 @@
     }
 
     \cbox{blue}{
-        \blue{Rule 2:} Every log record of the form \red{\dblog{$T, A, a_{new}$}} must be written to the disk \bred{before} \red{\dblog{COMMIT, $T$}} is written to the disk.
+        \blue{Rule 2:} The log record \red{\dblog{COMMIT $T$}} of $T$ can be written to the disk only \bred{after} the other log records of $T$ have been written to the disk.
     }
 
     \cbox{blue}{
-        \blue{Rule 3:} The changes of $T$ can be written to the disk only \bred{after} \red{\dblog{COMMIT, $T$}} has been written to the disk.
+        \blue{Rule 3:} The changes of $T$ can be written to the disk only \bred{after} \red{\dblog{COMMIT $T$}} has been written to the disk.
     }
 
     \vgap
 
     Intuitively, the ``correct'' ordering is: \\
-    \dblog{$T, A, a_{new}$} $\Rightarrow$ \dblog{COMMIT, $T$} $\Rightarrow$ disk copy of $A$ changes
+    \dblog{$T, A, a_{new}$} $\Rightarrow$ \dblog{COMMIT $T$} $\Rightarrow$ disk copy of $A$ changes
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -387,13 +387,13 @@
         \begin{tabular}{c|c|c|c|c|c}
             step & schedule & disk & global & $T_1$ & log \\
             \hline
-            0& & 10 & n/a & n/a & \dblog{START, $T_1$} \\
+            0& & 10 & n/a & n/a & \dblog{START $T_1$} \\
             1& $\inp(A)$ & 10 & 10 & n/a &  \\
             2& $T_1: \rd(A)$ & 10 & 10 & 10 &  \\
             3& $T_1: A = A + 1$ & 10 & 10 & 11 &  \\
             4& $T_1: \wt(A)$ & 10 & 11 & 11 & \dblog{$T_1,A, 11$} \\
             5& $\out(A)$ & 11 & 11 & n/a & \\
-            6& $T_1: \cmt$ & 11 & 11 & n/a & \dblog{COMMIT, $T_1$}
+            6& $T_1: \cmt$ & 11 & 11 & n/a & \dblog{COMMIT $T_1$}
         \end{tabular}
 
 
@@ -432,9 +432,9 @@
         \begin{tabular}{c}
             log \\
             \hline
-            \dblog{START, $T_1$} \\
+            \dblog{START $T_1$} \\
             \dblog{$T_1,A, 11$} \\
-            \dblog{COMMIT, $T_1$}
+            \dblog{COMMIT $T_1$}
         \end{tabular}
         \end{center}
 
@@ -450,7 +450,7 @@
         \begin{tabular}{c}
             log \\
             \hline
-            \dblog{START, $T_1$} \\
+            \dblog{START $T_1$} \\
             \dblog{$T_1,A, 10$}
         \end{tabular}
         \end{center}
@@ -467,7 +467,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Unique Log Records}
+    \xmybox{New Log Records}
 
     \vgap
 
@@ -493,13 +493,15 @@
     }
 
     \cbox{blue}{
-        \blue{Rule 3:} The log record \red{\dblog{COMMIT, $T$}} of $T$ can be written to the disk only \bred{after} the other log records of $T$ have been written to the disk.
+        \blue{Rule 3:} The log record \red{\dblog{COMMIT $T$}} of $T$ can be written to the disk only \bred{after} the other log records of $T$ have been written to the disk.
     }
 
-    \vgap
+    %\vgap
 
     Intuitively, the ``correct'' ordering is: \\
-    \dblog{$T, A, a_{new}$} $\Rightarrow$ \dblog{COMMIT, $T$} $\Rightarrow$ disk copy of $A$ changes
+    \dblog{$T, A, a_{new}$} $\Rightarrow$ \dblog{COMMIT $T$} \\
+    \dblog{$T, A, a_{new}$} $\Rightarrow$ disk copy of $A$ changes \\
+    The ordering between \dblog{COMMIT $T$} and disk-copy changes does not matter.
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -510,13 +512,13 @@
         \begin{tabular}{c|c|c|c|c|c}
             step & schedule & disk & global & $T_1$ & log \\
             \hline
-            0& & 10 & n/a & n/a & \dblog{START, $T_1$} \\
+            0& & 10 & n/a & n/a & \dblog{START $T_1$} \\
             1& $\inp(A)$ & 10 & 10 & n/a &  \\
             2& $T_1: \rd(A)$ & 10 & 10 & 10 &  \\
             3& $T_1: A = A + 1$ & 10 & 10 & 11 &  \\
             4& $T_1: \wt(A)$ & 10 & 11 & 11 & \dblog{$T_1,A, 11$} \\
             5& $\out(A)$ & 11 & 11 & n/a & \\
-            6& $T_1: \cmt$ & 11 & 11 & n/a & \dblog{COMMIT, $T_1$}
+            6& $T_1: \cmt$ & 11 & 11 & n/a & \dblog{COMMIT $T_1$}
         \end{tabular}
 
 
@@ -555,9 +557,9 @@
         \begin{tabular}{c}
             log \\
             \hline
-            \dblog{START, $T_1$} \\
+            \dblog{START $T_1$} \\
             \dblog{$T_1,A, 11$} \\
-            \dblog{COMMIT, $T_1$}
+            \dblog{COMMIT $T_1$}
         \end{tabular}
         \end{center}
 
@@ -573,7 +575,7 @@
         \begin{tabular}{c}
             log \\
             \hline
-            \dblog{START, $T_1$} \\
+            \dblog{START $T_1$} \\
             \dblog{$T_1,A, 10$}
         \end{tabular}
         \end{center}
