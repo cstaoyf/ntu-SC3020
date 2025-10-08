@@ -506,7 +506,7 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 3:} \vspace{-5mm}
+        \blue{Example 4:} \vspace{-5mm}
 
         \begin{center}
         \begin{tabular}{c|c|c|c|c|c}
@@ -516,7 +516,7 @@
             1& $\inp(A)$ & 10 & 10 & n/a &  \\
             2& $T_1: \rd(A)$ & 10 & 10 & 10 &  \\
             3& $T_1: A = A + 1$ & 10 & 10 & 11 &  \\
-            4& $T_1: \wt(A)$ & 10 & 11 & 11 & \dblog{$T_1,A, 11$} \\
+            4& $T_1: \wt(A)$ & 10 & 11 & 11 & \dblog{$T_1,A, 10, 11$} \\
             5& $\out(A)$ & 11 & 11 & n/a & \\
             6& $T_1: \cmt$ & 11 & 11 & n/a & \dblog{COMMIT $T_1$}
         \end{tabular}
@@ -544,21 +544,27 @@
 
 
     \cbox{blue}{
-        \blue{Recovery algorithm:} Scan the log \bred{forward}. \\
-        For each record \red{\dblog{$T, A, a_{new}$}}, if $T$ had committed before the crash, set the disk copy of $A$ to $a_{new}$.
+        \blue{Recovery algorithm:} \\
+        Scan the log \bred{backward}.
+        For each record \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ did \bred{not} commit before the crash, set the disk copy of $A$ to $a_{old}$.
+
+        \vgap
+
+        Scan the log \bred{forward}.
+        For each record \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ had \bred{committed} before the crash, set the disk copy of $A$ to $a_{new}$.
     }
 }
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 2 (cont.):} Suppose that the system sees the  following log after a crash.
+        \blue{Example 4 (cont.):} Suppose that the system sees the  following log after a crash.
 
         \begin{center}
         \begin{tabular}{c}
             log \\
             \hline
             \dblog{START $T_1$} \\
-            \dblog{$T_1,A, 11$} \\
+            \dblog{$T_1, A, 10, 11$} \\
             \dblog{COMMIT $T_1$}
         \end{tabular}
         \end{center}
@@ -576,11 +582,11 @@
             log \\
             \hline
             \dblog{START $T_1$} \\
-            \dblog{$T_1,A, 10$}
+            \dblog{$T_1,A, 10, 11$}
         \end{tabular}
         \end{center}
 
-        The recovery algorithm does not modify the disk.
+        The recovery algorithm sets the disk copy of $A$ to 10.
     }
 }
 %-------------------------------------------------------------
