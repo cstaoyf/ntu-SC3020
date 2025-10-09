@@ -1,0 +1,75 @@
+%modification history
+% 2012
+% may 3
+% aug 11
+
+%=== use the these packages if they are not already in use ===
+%\usepackage{amsfonts, amsmath, amssymb, amsthm}
+%=============================================================
+
+%===== fonts =====
+\def\ttt{\texttt}
+%===== spacing =====
+
+\def\extraspacing{\vspace{5mm} \noindent}
+\def\figcapup{\vspace{-1mm}}
+\def\figcapdown{\vspace{-0mm}}
+\def\hgap{\textrm{\hspace{1mm}}}
+\def\thmvgap{\vspace{0mm}}
+\def\vgap{\vspace{0mm}}
+
+
+%===== tabbing =====
+
+\def\tab{\hspace{3mm}}
+\def\tabpos{\hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \=
+\hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm}
+\kill}
+
+%===== blocks =====
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+
+%===== math macros =====
+
+\def\bm{\boldmath}
+%\def\defeq{\stackrel{\textrm{\tiny{def}}}{=}}
+\def\defeq{:=}
+\def\eps{\epsilon}
+\def\fr{\frac}
+\def\-{\mbox{-}}
+\def\inte{\mathbb{N}}
+\def\ovline{\overline}
+\def\real{\mathbb{R}}
+
+\def\lc{\lceil}
+\def\lf{\lfloor}
+\def\rc{\rceil}
+\def\rf{\rfloor}
+
+\def\nn{\nonumber}
+
+\def\Pr{\mathbf{Pr}}
+\def\expt{\mathbf{E}}
+\def\var{\mathbf{var}}
+
+\def\*{\star}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\polylg}{polylg}
+\DeclareMathOperator*{\polylog}{polylog}
+\DeclareMathOperator*{\intr}{\cap}
+
+%===== misc =====
+
+\def\done{\hspace*{\fill} $\framebox[2mm]{}$}	% end of proof
+%\def\done{\hspace*{\fill} $\Box$}	% end of proof
+
+%===== coloring =====
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
