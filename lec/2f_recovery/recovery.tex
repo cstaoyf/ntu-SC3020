@@ -171,7 +171,7 @@
         \end{tabular}
 
         \cbox{red}{
-            What should we do if a system crashes after step 5? How about after step 8? step 9?
+            What should we do if a crash happens after step 5? How about after step 8? Step 9?
         }
         \end{center}
     }
@@ -182,7 +182,7 @@
 
     \vgap
 
-    Logging is a standard approach to implement the recovery mechanism in database systems.
+    Logging is a wildly-adopted approach to implement the recovery mechanism in database systems.
 
     \vgap
 
@@ -206,6 +206,10 @@
         \item \red{\dblog{START $T$}}: Indicating the start of transaction $T$. This must be the first log record of $T$.
         \item \red{\dblog{COMMIT $T$}}: Indicating that transaction $T$ has committed.
         %\item \red{\dblog{ABORT $T$}}: Records that transaction $T$ has aborted.
+    }
+
+    \cbox{blue}{
+        \blue{Write-Ahead Logging:} Before modifying the disk content, write a necessary log about the modification to the disk.
     }
 }
 %-------------------------------------------------------------
@@ -269,9 +273,9 @@
             6& $T_1: \cmt$ & 11 & 11 & n/a & \dblog{COMMIT $T_1$}
         \end{tabular}
 
-        \cbox{red}{
-            Note: In this schedule, $\out(A)$ appears before $T_1$ commits. This is possible: $\out(A)$ is performed by the system (not by $T_1$). The system may choose to perform the operation any time (as per its buffer management policy).
-        }
+%         \cbox{red}{
+%             Note: In this schedule, $\out(A)$ appears before $T_1$ commits. This is possible: $\out(A)$ is performed by the system (not by $T_1$). The system may choose to perform the operation any time (as per its buffer management policy).
+%         }
 
 
         \end{center}
@@ -287,7 +291,7 @@
     %\vgap
 
     \cbox{blue}{
-        The recovery module starts by identifying the transactions that were committed and running at the moment of crash, respectively.
+        The recovery module starts by identifying the transactions that were committed and those that were running at the moment of crash, respectively.
     }
     \blue{Think:} How?
 
@@ -314,7 +318,7 @@
         \end{tabular}
         \end{center}
 
-        The recovery algorithm does not modify the disk.
+        The recovery algorithm processes the log bottom up and finds no disk modifications necessary.
     }
 }
 %-------------------------------------------------------------
@@ -331,7 +335,7 @@
         \end{tabular}
         \end{center}
 
-        The recovery algorithm sets the disk copy of $A$ to 10.
+        The recovery algorithm processes the log bottom up and sets the disk copy of $A$ to 10.
     }
 }
 %-------------------------------------------------------------
@@ -391,8 +395,8 @@
             2& $T_1: \rd(A)$ & 10 & 10 & 10 &  \\
             3& $T_1: A = A + 1$ & 10 & 10 & 11 &  \\
             4& $T_1: \wt(A)$ & 10 & 11 & 11 & \dblog{$T_1,A, 11$} \\
-            5& $\out(A)$ & 11 & 11 & n/a & \\
-            6& $T_1: \cmt$ & 11 & 11 & n/a & \dblog{COMMIT $T_1$}
+            5& $T_1: \cmt$ & 10 & 11 & n/a & \dblog{COMMIT $T_1$} \\
+            6& $\out(A)$ & 11 & 11 & n/a &
         \end{tabular}
 
 
@@ -410,7 +414,7 @@
     %\vgap
 
     \cbox{blue}{
-        The recovery module starts by identifying the transactions that were committed and running at the moment of crash, respectively.
+        The recovery module starts by identifying the transactions that were committed and those that were running at the moment of crash, respectively.
     }
     %\blue{Think:} How?
 
@@ -437,7 +441,8 @@
         \end{tabular}
         \end{center}
 
-        The recovery algorithm sets the disk copy of $A$ to 11.
+        The recovery algorithm processes the log top down and
+        sets the disk copy of $A$ to 11.
     }
 }
 %-------------------------------------------------------------
@@ -450,11 +455,11 @@
             log \\
             \hline
             \dblog{START $T_1$} \\
-            \dblog{$T_1,A, 10$}
+            \dblog{$T_1,A, 11$}
         \end{tabular}
         \end{center}
 
-        The recovery algorithm does not modify the disk.
+        The recovery algorithm processes the log top down and finds no disk modifications necessary.
     }
 }
 %-------------------------------------------------------------
@@ -530,12 +535,10 @@
 
     \vgap
 
-
-
     %\vgap
 
     \cbox{blue}{
-        The recovery module starts by identifying the transactions that were committed and running at the moment of crash, respectively.
+        The recovery module starts by identifying the transactions that were committed and those that were running at the moment of crash, respectively.
     }
     %\blue{Think:} How?
 
@@ -544,6 +547,12 @@
 
     \cbox{blue}{
         \blue{Recovery algorithm:} \\
+        Scan the log \bred{forward}.
+        For each record \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ had \bred{committed} before the crash, set the disk copy of $A$ to $a_{new}$.
+        \myitems{
+            \item This is the ``redo'' phase.
+        }
+
         Scan the log \bred{backward}.
         For each record \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ did \bred{not} commit before the crash, set the disk copy of $A$ to $a_{old}$.
         \myitems{
@@ -552,11 +561,7 @@
 
         %\vgap
 
-        Scan the log \bred{forward}.
-        For each record \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ had \bred{committed} before the crash, set the disk copy of $A$ to $a_{new}$.
-        \myitems{
-            \item This is the ``redo'' phase.
-        }
+
     }
 }
 %-------------------------------------------------------------
@@ -574,7 +579,7 @@
         \end{tabular}
         \end{center}
 
-        The recovery algorithm sets the disk copy of $A$ to 11.
+        In the redo phase, the recovery algorithm sets the disk copy of $A$ to 11. The undo phase finds no disk modifications necessary.
     }
 }
 %-------------------------------------------------------------
@@ -591,7 +596,38 @@
         \end{tabular}
         \end{center}
 
-        The recovery algorithm sets the disk copy of $A$ to 10.
+        The redo phase finds no disk modifications necessary. The undo phase
+        sets the disk copy of $A$ to 10.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        \blue{Remark:} Ensuring the correctness of recovery control may require applying an appropriate concurrency control protocol.
+    }
+    See the next slide for an example.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 5:} Suppose that \bred{undo logging} is used, and the system sees the following log after a crash.
+        \begin{center}
+        \begin{tabular}{c}
+            log \\
+            \hline
+            \dblog{START $T_1$} \\
+            \dblog{START $T_2$} \\
+            \dblog{$T_2, A, 10$} \\
+            \dblog{$T_1, A, 20$} \\
+            \dblog{COMMIT $T_1$}
+        \end{tabular}
+        \end{center}
+
+        What would be the value of $A$ after recovery? Does it make sense?
+
+        \cbox{red}{
+            Can this log be created if we use a concurrency control protocol you learned from this course?
+        }
     }
 }
 %-------------------------------------------------------------
