@@ -118,7 +118,7 @@
             9& \red{chkpt starts} & 10 & 12 & n/a & 12 & n/a & \dblog{START CKPT $(T_2)$} \\
             &  &&&& & & \dblog{START $T_3$}\\
             10& $\red{\out(A)}$ & \red{12} & 12 & n/a & n/a & n/a & \\
-            11& \red{chkpt done} & 12 & 13 & n/a & n/a & n/a & \dblog{END CKPT}\\
+            11& \red{chkpt done} & 12 & 12 & n/a & n/a & n/a & \dblog{END CKPT}\\
             12& $T_2: \cmt$ & 12 & 12 & n/a & n/a & n/a & \dblog{COMMIT $T_2$} \\
             13& $T_3: \rd(A)$ & 12 & 12 & n/a & n/a & 12 & \\
             14& $T_3: A = A + 1$ & 12 & 12 & n/a & n/a & 13 & \\
@@ -149,7 +149,7 @@
         \blue{Recovery algorithm:}
         \myenums{
             \item \blue{If} \dblog{END CKPT} is absent, apply the ``conventional'' recovery strategy.
-            \item \blue{Else} find the \dblog{Start CKPT $(\red{L})$} record --- referred to as the \blue{ST-CKPT} record --- where $\red{L}$ is a set of transactions.
+            \item \blue{Else} find the \dblog{Start CKPT $(\red{L})$} record --- referred to as the \blue{ST-CKPT record} --- where $\red{L}$ is a set of transaction IDs.
             \item Identify the transactions that committed after the ST-CKPT record, and those that were running at the moment of crash.
             \item Perform a \blue{redo-phase}: Scan the log \red{forward} from the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ had committed after the ST-CKPT record, set the disk copy of $A$ to $a_{new}$.
             \item Perform \blue{undo-phase 1}: Scan the log \red{backward} till the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ did not commit before the crash, set the disk copy of $A$ to $a_{old}$.
@@ -248,7 +248,7 @@
         \end{tabular}
             \end{center}
 
-            The re-do phase scans records 7-10, but no disk modifications are necessary. \\
+            The re-do phase scans records 7-9, but no disk modifications are necessary. \\
             Undo-phase 1 scans from record 10 back to record 7 and sets the disk copy of $A$ to 12. \\
             No undo-phase 2 (\blue{think:} why?).
 
