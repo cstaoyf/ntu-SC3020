@@ -8,115 +8,119 @@
 \usepackage{ifthen}
 \usepackage{latexsym}
 %\usepackage{times}
+\usepackage[normalem]{ulem}
 
 \input{./def/yf-def}
 
 \def\dom{\prec}
 \def\T{\mathcal{T}}
 
-%\newboolean{solver}\setboolean{solver}{true}
-\newboolean{solver}\setboolean{solver}{false}
+\newboolean{solver}\setboolean{solver}{true}
+%\newboolean{solver}\setboolean{solver}{false}
 \ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
 
 \begin{document}
 
-\section*{CSCI2100: Regular Exercise Set 1}
-Prepared by Yufei Tao \\
+\section*{SC3020-CZ4031: Tutorial 6}
+%Prepared by Yufei Tao \\
 
 
-\extraspacing {\bf Problem 1.} Let $x$ be a real value. Define $\lf x \rf$ to be the largest integer that does not exceed $x$. For example, $\lf 2.5 \rf = 2$, whereas $\lf 3 \rf = 3$. 
+\extraspacing {\bf Problem 1.} Suppose that we have three sets of integers, denoted as $S_1, S_2$, and $S_3$, respectively. Each set is sorted and given to you in a file. Assume that each disk block can hold 2 integers, and the memory has 4 blocks. The content of $S_1, S_2$, and $S_3$ is shown below.
 
 \vgap
 
-Suppose that you are given an integer $n \ge 2$ in (a register of) the CPU. Write an algorithm to compute the value of $\lf \log_2 n \rf$ in no more than $100 \log_2 n$ time. 
+\noindent $S_1:$ $\uline{[1, 10]}, \uline{[20, 30]}, \uline{[40, 50]}$ \\
+$S_2:$ $\uline{[5, 35]}, \uline{[37, 38]}$ \\
+$S_3:$ $\uline{[45, 60]}$
+
+\vgap
+
+\noindent The notation $\uline{[x, y]}$ represents a block holding integers $x$ and $y$. It is clear that $S_1$, $S_2$, and $S_3$ occupy 3, 2, and 1 block, respectively.
+
+\vgap
+
+Demonstrate how to merge $S_1$, $S_2$, and $S_3$ into one sorted file using the merging algorithm taught in the class. What is the I/O cost of the algorithm?
 
 \begin{sol}
-\extraspacing {\bf Solution.} We will generate $2^1, 2^2, 2^3, ...$ until finding the smallest $i$ such that $2^i > n$. Initially, set $i = 1$ and $p = 2$. Repeat the following until $p > n$: 
-\begin{itemize} 
- \item Increase $i$ by 1. 
- \item Increase $p$ by a factor of 2.  
-\end{itemize}
-Finally, return $i - 1$ as the answer. It is clear that $i$ is increased no more than $1 + \log_2 n$ times. For each value of $i$, performing the aforementioned steps can be easily implemented in less than 10 atomic operations. The total cost is therefore at most $10 (1 + \log_2 n)$ which is less than $100 \log_2 n$ for all $n \ge 2$.
-\end{sol}
+\extraspacing {\bf Solution.} The merging algorithm allocates (i) one memory block as the input buffer to read $S_i$, for each $i \in [1, 3]$, and (ii) one memory block as the output buffer. In the beginning, the algorithm loads the first block of each input file into memory, whose content is shown below:
 
-\extraspacing {\bf Problem 2.} The following figure shows an input to the dictionary search problem. 
-
-\begin{center} 
-    \includegraphics[height=30mm]{./artwork/bin_srch}
+\begin{center}
+    Memory: $\uline{[1, 10]}, \uline{[5, 35]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$
 \end{center}
 
-\noindent Describe how binary search works using the input.
+\noindent As long as no input buffer is empty, the algorithm moves the smallest integer in the 3 input buffers to the output buffer. This yields:
 
-\begin{sol} 
-\extraspacing {\bf Solution.} First, compare 35 to the 8th element 52 in memory. Since $35 < 52$, we can now focus on the first 7 elements. Next, compare 35 to the 4th element 26. Since $35 > 26$, we only need to consider the 5th, 6th, and 7th elements. Then, the algorithm compares 35 first to the 6th, and then to the 5th, before returning the answer ``no''.
-
-\extraspacing {\bf \underline{Remark.}} Binary search looks for the ``middle element'' among the subset of elements that are still in consideration. However, what it means by the ``middle'' can be subjective. In the above, we adopted the following convention. Suppose that $t$ elements still remain. If $t$ is an odd number, then the middle element is the one that stands strictly in the middle (such as 26 in the above example). If $t$ is even, then the middle element is the $(t/2)$-th (such as 52 in the above example). This is---purposely---different from what was shown in the lecture notes. In quizzes/exams, you are free to adopt any conventions. 
-\end{sol}
-
-
-\extraspacing {\bf Problem 3 (Predecessor Search).} Let us first define the notion of {\em predecessor}. Let $S$ be a set of integers. Given an integer $v$, the {\em predecessor} of $v$ in $S$ is the largest integer in $S$ that is at most $v$. For example, suppose $S = \{3, 14, 15, 26, 32, 40\}$. The predecessor of $25$ is 15, while that of 26 is 26. 
-
-\vgap
-
-Consider the following problem. You are given a set $S$ of $n$ integers, which are stored at memory cells 1, 2, ..., $n$ in ascending order. The value of $n$ is given in the CPU, and so is an integer $v$. The following shows an example with $n = 16$ and $v = 35$. 
-
-\begin{center} 
-    \includegraphics[height=30mm]{./artwork/bin_srch}
+\begin{center}
+    Memory: $\uline{[\hspace{5mm}, 10]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[1, 5]}$
 \end{center}
 
-Describe an algorithm to find the predecessor of $v$. Your algorithm should have running time at most $100 + 100 \log_2 n$. 
+\noindent Now the output buffer is full and thus flushed to the disk:
 
-\begin{sol} 
-\extraspacing {\bf Solution.} First perform binary search on $S$ using $v$. Let $x$ be the last element that the algorithm compared $v$ to. If $x = v$, then $x$ is the predecessor of $v$. If $x < v$, then $x$ is the predecessor of $v$. Finally, if $x > v$, then the predecessor of $v$ is the element immediately before $x$---in the special case where $x$ is already the smallest element in $S$, then $v$ has no predecessor in $S$. 
-
-\vgap 
-
-Binary search takes no more than $7 \log_2 n$ atomic operations. Clearly, the algorithm finishes in less than 10 atomic operations after binary search. The overall cost is therefore less than $10 + 7\log_2 n < 100 \log_2 n$. 
-\end{sol}
-
-
-\extraspacing {\bf Problem 4 (Prefix Counting).} Consider the following problem. You are given a set $S$ of $n$ integers, which are stored at memory cells 1, 2, ..., $n$ in ascending order. The value of $n$ is given in the CPU, and so is an integer $v$. The following shows an example with $n = 16$ and $v = 35$. 
-
-\begin{center} 
-    \includegraphics[height=30mm]{./artwork/bin_srch}
+\begin{center}
+    Memory: $\uline{[\hspace{5mm}, 10]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}$ \\
 \end{center}
 
-\noindent Describe an algorithm to find the number of integers in $S$ that are at most $v$. In the above example, for instance, you should return 5. Your algorithm should have running time at most $100 + 100 \log_2 n$. 
+\noindent Moving the next smallest element in the input buffers to the output buffer yields:
 
-\begin{sol} 
-\extraspacing {\bf Solution.} Notice that our predecessor search algorithm in Problem 4 not only finds the predecessor $x$ of $v$, but also the address $a$ of the memory cell where $x$ is stored. To solve the prefix counting problem, first find $x$. If $x$ does not exist, return 0. Otherwise, return $a$. The cost is clearly no more than $100 \log_2 n$.  
-\end{sol}
-
-\extraspacing {\bf Problem 5 (The 3-Sum Problem).} Consider the following problem. The input $S$ consists of $n$ integers, which are given at memory cells 1, 2, ..., $n$, arranged in ascending order. The value of $n$ is given in the CPU. So is a value $v$. The following shows an example with $n = 16$ and $v = 150$.
-
-\begin{center} 
-    \includegraphics[height=30mm]{./artwork/3_sum}
+\begin{center}
+    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[10, \hspace{5mm}]}$
 \end{center}
 
-\noindent Describe an algorithm to determine whether $S$ has 3 numbers that sum up to $v$. In the above example, the answer is ``yes'' because $150 = 40 + 45 + 65$. Your algorithm should have running time at most $100 + 100 \cdot n^2 \log_2 n$.
+\noindent The first input buffer is full, prompting the algorithm to read the next page of $S_1$:
 
-\begin{sol} 
-\extraspacing {\bf Solution.} The tutorial slides described how to solve the following ``2-sum'' problem. There, we are given a set $S$ of $n$ integers as in the 3-Sum problem, the value of $n$, and also an integer $v$. The goal is to determine whether $S$ contains two numbers that add up to $v$. The tutorial slides presented two algorithms for solving this problem. The first one has running time less than $7 n \log_2 n$. 
+\begin{center}
+    Memory: $\uline{[20, 30]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[10, \hspace{5mm}]}$
+\end{center}
 
-\vgap 
+\noindent The next few steps of the algorithm are straightforward:
 
-Observe that we can settle the 3-sum problem by solving $n$ instances of the 2-sum problem. Specifically, for each $i \in [1, n]$, let $x$ be the $i$-th integer from $S$. We invoke an algorithm for solving the 2-sum problem where we ask whether $S$ contains 2 elements (other than $x$) that sum up to $v - x$. If so, then we return ``yes'' immediately to the 3-sum problem. Otherwise, we attempt the next $i$. After all the values of $i$ have been attempted, we return ``no''. 
+\begin{center}
+    Memory: $\uline{[\hspace{5mm}, 30]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[10, 20]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[\hspace{5mm}, 30]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[30, \hspace{5mm}]}$
+\end{center}
 
-\vgap 
+\noindent Reading the next page of $S_1$ gives:
 
-It is easy to implement the above strategy in cost less than $100 \cdot n^2 \log_2 n$. 
+\begin{center}
+    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[30, 35]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}$ \\
+\end{center}
+
+\noindent Now we reading the next page of $S_2$:
+
+\begin{center}
+    Memory: $\uline{[40, 50]}, \uline{[37, 38]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[37, 38]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}, \uline{[37, 38]}$ \\
+\end{center}
+
+\noindent No need to replenish the input buffer of $S_2$ because this file has been exhausted. The remaining execution should be straightforward:
+
+\begin{center}
+    Memory: $\uline{[\hspace{5mm}, 50]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 60]}, \uline{[40, 45]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[\hspace{5mm}, 50]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 60]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}, \uline{[37, 38]}, \uline{[40, 45]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[50, 60]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}, \uline{[37, 38]}, \uline{[40, 45]}, \uline{[50, 60]}$
+\end{center}
+
 \end{sol}
 
 
-% \extraspacing {\bf Problem 6.} Still the same problem as above, but improve the running time of your algorithm to at most $100 \cdot n^2$. 
-% 
-% \begin{sol} 
-% \extraspacing {\bf Solution.} The second algorithm given in the tutorial slides for the 2-sum problem has running time less than $6n$. Plugging in this algorithm in our solution framework for Problem 5 gives a new algorithm with running time less than $100 \cdot n^2$.
-% \end{sol}
-
-
-
-%\bibliographystyle{abbrv}
-%\bibliography{../ref}
 
 \end{document}
