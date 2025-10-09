@@ -225,7 +225,7 @@
 
     \myitems{
         \item \red{\dblog{$T$, $A$, $a_{old}$}} \\
-        \blue{Meaning:} transaction $\red{T}$ will change a tuple's attribute $\red{A}$, and the attribute's value on disk is $\red{a_{old}}$ currently.
+        \blue{Meaning:} transaction $\red{T}$ will change a tuple's attribute $\red{A}$, and the global memory copy of the attribute has value $\red{a_{old}}$ currently.
     }
 }
 %-------------------------------------------------------------
@@ -475,7 +475,7 @@
 
     \myitems{
         \item \red{\dblog{$T$, $A$, $a_{old}$, $a_{new}$}} \\
-        \blue{Meaning:} transaction $\red{T}$ will change a tuple's attribute $\red{A}$ to $\red{a_{new}}$, and the attribute's value on disk is $\red{a_{old}}$ currently.
+        \blue{Meaning:} transaction $\red{T}$ will change a tuple's attribute $\red{A}$ to $\red{a_{new}}$, and the global memory copy of the attribute has value $\red{a_{old}}$ currently.
     }
 }
 %-------------------------------------------------------------
