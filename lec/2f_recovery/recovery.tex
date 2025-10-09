@@ -66,43 +66,15 @@
     \vgap
 
     \cbox{red}{
-        \bred{Transactions may crash}. When they do, the system's \blue{recovery module} must perform a \blue{rollback} to cancel their modifications to the database.
+        The database may crash at any time (e.g., someone pulls the power plug). After a crash, the system's \blue{recovery module} must ensure
+        \myitems{
+            \item the changes made by the committed transactions are retained, and
+            \item those made by the others transactions are canceled.
+        }
     }
 
 \end{small}
 \end{frame}
-%-------------------------------------------------------------
-\myfrm{
-
-    \cbox{red}{
-        A transaction may crash at every instruction.
-    }
-
-    \cbox{green}{
-        \blue{Example 1:} \vspace{-5mm}
-
-        \begin{center}
-        \begin{tabular}{c|c}
-            schedule & remark\\
-            \hline
-            $\red{T_1}: \rd(A)$ & trans.\ 1 reads a tuple's value on some attribute \\
-            $T_1: A = A + 1$ &\\
-            $T_1: \wt(A)$ & trans.\ 1 updates the tuple \\
-            $T_1: \cmt$ & \\
-            $\red{T_2}: \rd(A)$ & trans.\ 2 reads the same value \\
-            $T_2: A = A + 1$ &\\
-            $T_2: \wt(A)$ & trans.\ 2 updates the tuple \\
-            $T_2: \cmt$
-        \end{tabular}
-
-        %\vgap
-        \end{center}
-        \cbox{blue}{
-            We must be prepared for the possibility where the power plugged is pulled at any moment.
-        }
-
-    }
-}
 %-------------------------------------------------------------
 \myfrm{
     \xmybox{Multiple Copies of the Same Value}
@@ -146,6 +118,30 @@
         \includegraphics[height=25mm]{./artwork/val-copies2}
     \end{center}
 
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 1:} Consider the schedule below \bred{at the transaction level}.
+
+        \begin{center}
+        \begin{tabular}{c|c}
+            schedule & remark\\
+            \hline
+            $\red{T_1}: \rd(A)$ & trans.\ 1 reads a tuple's value on some attribute \\
+            $T_1: A = A + 1$ &\\
+            $T_1: \wt(A)$ & trans.\ 1 updates the tuple \\
+            $T_1: \cmt$ & \\
+            $\red{T_2}: \rd(A)$ & trans.\ 2 reads the same value \\
+            $T_2: A = A + 1$ &\\
+            $T_2: \wt(A)$ & trans.\ 2 updates the tuple \\
+            $T_2: \cmt$
+        \end{tabular}
+
+        %\vgap
+        \end{center}
+
+    }
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -283,7 +279,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Recovery from a Crash}
+    \xmybox{Recovery from a System Crash}
 
     \vgap
 
@@ -405,7 +401,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Recovery from a Crash}
+    \xmybox{Recovery from a System Crash}
 
     \vgap
 
@@ -531,7 +527,7 @@
 }
 %-------------------------------------------------------------
 \myfrm{
-    \xmybox{Recovery from a Crash}
+    \xmybox{Recovery from a System Crash}
 
     \vgap
 
@@ -639,12 +635,16 @@
     }
 }
 %-------------------------------------------------------------
-% \myfrm{
-%     \cbox{blue}{
-%         \blue{Think:} What are the drawbacks of each method?
-%     }
-% }
-% %-------------------------------------------------------------
+\myfrm{
+    \cbox{yellow}{
+        \blue{Remark:} Our discussion has focused on \bred{system crashes}.
+
+        \vgap
+
+        In practice, a transaction may decide to abort itself, in which case a \blue{rollback} process is needed to cancel its modifications to the database. How would you perform the rollback using the logging methods you have learned?
+    }
+}
+%-------------------------------------------------------------
 \end{document} 
 
 
