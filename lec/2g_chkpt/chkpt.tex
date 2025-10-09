@@ -57,20 +57,78 @@
 
     \vgap
 
-    Recall:
-    \cbox{blue}{
-        A \blue{transaction} is a sequence of instructions submitted to a database with the requirement that \bred{either} the entire sequence is executed \bred{or} nothing from the sequence should be executed.
-    }
-    This is the \blue{all-or-nothing} requirement.
+    The recovery methods discussed so far have a drawback: \bred{the log grows indefinitely with time}! When the log gets excessively long, recovery becomes exceedingly expensive. This lecture will introduce the \blue{checkpointing} technique to deal with the issue.
 
     \vgap
 
-    \cbox{red}{
-        \bred{Transactions may crash}. When they do, the system's \blue{recovery module} must perform a \blue{rollback} to cancel their modifications to the database.
+    \cbox{blue}{
+        We will assume that \bred{undo/redo logging} is applied.
     }
 
 \end{small}
 \end{frame}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{blue}{
+        \blue{Rationale behind checkpointing:}
+        ``Settle everything'' now so that recovery never needs to look into the past.
+    }
+    We will clarify how to do the ``settling'' in the next slide.
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Checkpointing}
+
+    \vgap
+
+    Perform the following steps:
+    \myenums{
+        \item Write to the disk a log record \red{\dblog{START CKPT $(T_1, ..., T_k)$}} where $\red{T_1, ..., T_k}$ are the IDs of the transactions currently \blue{active} (i.e., running at the moment).
+
+        \item Write every global memory copy to its corresponding disk copy.
+
+        \item Write to the disk a log record \red{\dblog{END CKPT}}.
+    }
+
+    \cbox{blue}{
+        \blue{Note:} The checkpointing process is \blue{non-quiescent}, namely, transactions are running in the meantime.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+\cbox{green}{
+\begin{scriptsize}
+        \blue{Example 1:} Assume $\red{A = 10}$ on the disk initially. \vspace{-5mm}
+
+        \begin{center}
+        \begin{tabular}{c|c|c|c|c|c|c|c}
+             & & \multicolumn{5}{|c|}{value of $A$} \\
+            & schedule & disk & global & $T_1$ & $T_2$ & $T_3$ & log\\
+            \hline
+            0& & 10 & n/a & n/a & n/a & n/a & \dblog{START $T_1$}\\
+            1& $\inp(A)$ & 10 & 10 & n/a & n/a & n/a & \\
+            2& $T_1: \rd(A)$ & 10 & 10 & 10 & n/a & n/a & \\
+            3& $T_1: A = A + 1$ & 10 & 10 & 11 & n/a & n/a & \\
+            4&&&&& & n/a & \dblog{START $T_2$}\\
+            5& $T_1: \wt(A)$ & 10 & 11 & 11 & n/a & n/a & \\
+            6& $T_1: \cmt$ & 10 & 11 & n/a & n/a & n/a & \\
+            7& $T_2: \rd(A)$ & 10 & 11 & n/a & 11 & n/a & \\
+            8& $T_2: A = A + 1$ & 10 & 11 & n/a & 12 & n/a & \\
+            9& $T_2: \wt(A)$ & 10 & 12 & n/a & 12 & n/a & \\
+            10& \red{chkpt starts} &&&& & n/a & \\
+            11&  &&&& & n/a & \dblog{START $T_3$}\\
+            12& $T_2: \cmt$ & 10 & 12 & n/a & n/a & n/a & \\
+            13& $T_3: \rd(A)$ & 10 & 11 & n/a & 11 & n/a & \\
+            14& $T_3: A = A + 1$ & 10 & 11 & n/a & 12 & n/a & \\
+            15& $T_3: \wt(A)$ & 10 & 12 & n/a & 12 & n/a & \\
+            16& $T_3: \cmt$ & 10 & 12 & n/a & n/a & n/a & \\
+            17& \red{chkpt done} &&&& & n/a & \\
+            18& $\out(A)$ & 12 & 12 & n/a & n/a & n/a & \\
+        \end{tabular}
+        \end{center}
+\end{scriptsize}
+    }
+}
 %-------------------------------------------------------------
 \end{document} 
 
