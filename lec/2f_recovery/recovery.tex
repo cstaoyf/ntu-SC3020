@@ -98,7 +98,7 @@
         %\vgap
         \end{center}
         \cbox{blue}{
-            We must be prepared for the possibility where the power plugged is pull at any moment.
+            We must be prepared for the possibility where the power plugged is pulled at any moment.
         }
 
     }
@@ -579,7 +579,11 @@
         \end{tabular}
         \end{center}
 
-        In the redo phase, the recovery algorithm sets the disk copy of $A$ to 11. The undo phase finds no disk modifications necessary.
+        In the redo phase, the recovery algorithm processes the log top down and sets the disk copy of $A$ to 11.
+
+        \vgap
+
+        The undo phase processes the log bottom up and finds no disk modifications necessary.
     }
 }
 %-------------------------------------------------------------
@@ -596,7 +600,11 @@
         \end{tabular}
         \end{center}
 
-        The redo phase finds no disk modifications necessary. The undo phase
+        The redo phase processes the log top down and finds no disk modifications necessary.
+
+        \vgap
+
+        The undo phase processes the log bottom up and
         sets the disk copy of $A$ to 10.
     }
 }
@@ -626,7 +634,7 @@
         What would be the value of $A$ after recovery? Does it make sense?
 
         \cbox{red}{
-            Can this log be created if we use a concurrency control protocol you learned from this course?
+            Can this log be created if a concurrency control protocol taught in this course is applied?
         }
     }
 }
