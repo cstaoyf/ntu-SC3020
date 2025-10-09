@@ -59,7 +59,7 @@
 
     \vgap
 
-    The recovery methods discussed so far have a drawback: \bred{the log grows indefinitely with time}! When the log gets excessively long, recovery becomes exceedingly expensive. This lecture will introduce the \blue{checkpoint technique} to deal with the issue.
+    The recovery methods discussed so far have a drawback: \bred{the log grows indefinitely over time}! When the log gets very long, recovery becomes exceedingly expensive. This lecture will introduce the \blue{checkpoint technique} to deal with the issue.
 
     \vgap
 
@@ -89,7 +89,7 @@
     }
 
     \cbox{blue}{
-        \blue{Note:} The checkpoint process is \blue{non-quiescent}, namely, transactions are running in the meantime.
+        \blue{Note:} The checkpoint process is \blue{non-quiescent}, meaning that transactions are running in the meantime.
     }
 }
 %-------------------------------------------------------------
@@ -149,15 +149,15 @@
         \blue{Recovery algorithm:}
         \myenums{
             \item \blue{If} \dblog{END CKPT} is absent, apply the ``conventional'' recovery strategy.
-            \item \blue{Else} find the \dblog{Start CKPT $(\red{L})$} record --- referred to as the \blue{ST-CKPT record} --- where $\red{L}$ is a set of transaction IDs.
+            \item \blue{Else} find the \dblog{START CKPT $(\red{L})$} record --- referred to as the \blue{ST-CKPT record} --- where $\red{L}$ is a set of transaction IDs.
             \item Identify the transactions that committed after the ST-CKPT record, and those that were running at the moment of crash.
-            \item Perform a \blue{redo-phase}: Scan the log \red{forward} from the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ had committed after the ST-CKPT record, set the disk copy of $A$ to $a_{new}$.
-            \item Perform \blue{undo-phase 1}: Scan the log \red{backward} till the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ did not commit before the crash, set the disk copy of $A$ to $a_{old}$.
-            \item Perform \blue{undo-phase 2}: Scan the log \red{backward} from the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $\red{T \in L}$ and it did not commit before the crash, set the disk copy of $A$ to $a_{old}$.
+            \item Perform a \blue{redo phase}: Scan the log \red{forward} from the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ had committed after the ST-CKPT record, set the disk copy of $A$ to $a_{new}$.
+            \item Perform \blue{undo phase 1}: Scan the log \red{backward} till the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ did not commit before the crash, set the disk copy of $A$ to $a_{old}$.
+            \item Perform \blue{undo phase 2}: Scan the log \red{backward} from the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $\red{T \in L}$ and it did not commit before the crash, set the disk copy of $A$ to $a_{old}$.
         }
 
         \cbox{blue}{
-            \blue{Think:} Does undo-phase 2 need to scan till the beginning of the log?
+            \blue{Think:} Does undo phase 2 need to scan till the beginning of the log?
         }
  %   }
 
@@ -218,8 +218,8 @@
         \end{tabular}
         \end{center}
 
-        The re-do phase scans records 7-11 and sets the disk copy of $A$ to 13. \\
-        No undo-phases 1 and 2 (\blue{think:} why?).
+        The redo phase scans records 7-11 and sets the disk copy of $A$ to 13. \\
+        No undo phases 1 and 2 (\blue{think:} why?).
 
 \end{scriptsize}
 %    }
@@ -248,9 +248,9 @@
         \end{tabular}
             \end{center}
 
-            The re-do phase scans records 7-9, but no disk modifications are necessary. \\
-            Undo-phase 1 scans from record 10 back to record 7 and sets the disk copy of $A$ to 12. \\
-            No undo-phase 2 (\blue{think:} why?).
+            The redo phase scans records 7-9, but no disk modifications are necessary. \\
+            Undo phase 1 scans from record 10 back to record 7 and sets the disk copy of $A$ to 12. \\
+            No undo phase 2 (\blue{think:} why?).
 
     \end{scriptsize}
     %    }
@@ -278,8 +278,8 @@
             \end{center}
 
             No re-do phase (\blue{think:} why?). \\
-            Undo-phase 1 scans records 8 and 7, but no disk modifications are necessary. \\
-            Undo-phase 2 scans from record 5 back to record 2 and sets the disk copy of $A$ to 10.
+            Undo phase 1 scans records 8 and 7, but no disk modifications are necessary. \\
+            Undo phase 2 scans from record 5 back to record 2 and sets the disk copy of $A$ to 10.
 
     \end{scriptsize}
     %    }
