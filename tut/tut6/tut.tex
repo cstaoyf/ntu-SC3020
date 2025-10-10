@@ -15,8 +15,8 @@
 \def\dom{\prec}
 \def\T{\mathcal{T}}
 
-%\newboolean{solver}\setboolean{solver}{true}
-\newboolean{solver}\setboolean{solver}{false}
+\newboolean{solver}\setboolean{solver}{true}
+%\newboolean{solver}\setboolean{solver}{false}
 \ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
 
 \begin{document}
