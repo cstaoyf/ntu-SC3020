@@ -15,14 +15,18 @@
 \def\dom{\prec}
 \def\T{\mathcal{T}}
 
-\newboolean{solver}\setboolean{solver}{true}
-%\newboolean{solver}\setboolean{solver}{false}
+%\newboolean{solver}\setboolean{solver}{true}
+\newboolean{solver}\setboolean{solver}{false}
 \ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
 
 \begin{document}
 
 \section*{SC3020-CZ4031: Tutorial 6}
 %Prepared by Yufei Tao \\
+
+\begin{center}
+    \uline{Classroom Discussion}
+\end{center}
 
 
 \extraspacing {\bf Problem 1.} Suppose that we have three sets of integers, denoted as $S_1, S_2$, and $S_3$, respectively. Each set is sorted and given to you in a file. Assume that each disk block can hold 2 integers, and the memory has 4 blocks. The content of $S_1, S_2$, and $S_3$ is shown below.
@@ -194,6 +198,21 @@ The total number of I/Os is 12 (6 read I/Os + 6 write I/Os).
 Solving the inequality for integer $M$ yields $M \ge 31624$.
 
 \end{sol}
+
+\begin{center}
+    \uline{Critical Thinking}
+\end{center}
+
+\extraspacing {\bf Problem 6} Let $R(A, B)$ be a relation with attributes $A$ and $B$. No two tuples in $R$ are identical. Explain how to sort $R$ according to the following order: rank tuple $t_1$ before tuple $t_2$ if (i) $t_1.A < t_2.A$ or (ii) $t_1.A = t_2.A$ and $t_1.B < t_2.B$.
+
+\extraspacing {\bf Problem 7} Let $S$ be a {\em bag} (a.k.a.\ multi-set) of integers, namely, $S$ may contain duplicate integers. Adapt the external sort algorithm to sort $S$.
+
+\extraspacing {\bf Problem 8} Let $S$ be a {\em bag} (a.k.a.\ multi-set) of integers, namely, $S$ may contain duplicate integers. Adapt the external sort algorithm to output a disk file containing the {\em distinct} integers of $S$ in ascending order.
+
+\extraspacing {\bf Problem 9} Discuss how to process the following query on a relation $R(A, B)$:
+\mytab{
+    \> \ttt{SELECT $A$, MAX($B$) FROM $R$ GROUP BY $A$} \\
+}
 
 
 \end{document}
