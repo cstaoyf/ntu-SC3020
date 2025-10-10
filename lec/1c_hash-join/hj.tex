@@ -62,7 +62,7 @@
     \vgap
 
     \cbox{blue}{
-        Recall that the \blue{block-based nested loop} (BNL) algorithm can compute the join result in $\red{B_1 + \lc \fr{B_1}{M-1} \rc B_2}$ I/Os. In particular, if $R_1$ can be loaded into memory entirely, then the I/O cost of BNL is $B_1 + B_2$.
+        Recall that the \blue{block-based nested loop} (BNL) algorithm can compute the join result in $\red{B_1 + \lc \fr{B_1}{M-1} \rc B_2}$ I/Os. In particular, if $R_1$ fits in $M-1$ memory blocks, then the I/O cost of BNL is $B_1 + B_2$.
     }
 
 }
