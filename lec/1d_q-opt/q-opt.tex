@@ -93,7 +93,7 @@
     \begin{itemize}
         \item Compute $\red{R_3} = R_1 \bowtie R_2$ with BNL and \blue{materialize} $R_3$ (i.e., write $R_3$ to the disk)
                 $\Rightarrow$ $10^4 + 10^6$ I/Os (BNL) + $B_1$ (mat.).
-        \item Compute $\red{R_4} = \sigma_{B = 1 \wedge C \in [100,200](R_3)}$ by reading $R_3$ and materialize $R_4$ \\
+        \item Compute $\red{R_4} = \sigma_{B = 1 \wedge C \in [100,200](R_3)}$ by reading $R_3$ and materializing $R_4$
                 $\Rightarrow$ $B_1$ (reading) + $B_2$ (materialization) I/Os.
         \item Compute $\Pi_{A,C}(R_4)$ by reading $R_4$ $\Rightarrow$ $B_2$ I/Os.
     \end{itemize}
@@ -136,7 +136,7 @@
     \begin{itemize}
         \item Compute $\red{R_3} = R_1 \bowtie R_2$ with \bred{sort join} and materialize $R_3$
                 $\Rightarrow$ $5(10^4 + 10^4)$ I/Os (\bred{under no-skew assumption}) + $B_1$ (mat.).
-        \item Compute $\red{R_4} = \sigma_{B = 1 \wedge C \in [100,200](R_3)}$ by reading $R_3$ and materialize $R_4$ \\
+        \item Compute $\red{R_4} = \sigma_{B = 1 \wedge C \in [100,200](R_3)}$ by reading $R_3$ and materializing $R_4$
                 $\Rightarrow$ $B_1$ (reading) + $B_2$ (materialization) I/Os.
         \item Compute $\Pi_{A,C}(R_4)$ by reading $R_4$ $\Rightarrow$ $B_2$ I/Os.
     \end{itemize}
@@ -198,9 +198,9 @@
 
     \mybox[green]{Strategy 3:}
     \begin{itemize}
-        \item Compute $\red{R_3} = \sigma_{B=1} R_1$ by reading $R_1$ and materialize $R_3$ \\
+        \item Compute $\red{R_3} = \sigma_{B=1} R_1$ by reading $R_1$ and materializing $R_3$ \\
         $\Rightarrow$ 10000 (reading) + 1000 (mat.) I/Os \\[-1mm]
-        \item Compute $\red{R_4} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ and materialize $R_4$ $\Rightarrow$ 10000 (reading) + 800 (mat.) I/Os \\[-1mm]
+        \item Compute $\red{R_4} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ and materializing $R_4$ $\Rightarrow$ 10000 (reading) + 800 (mat.) I/Os \\[-1mm]
         \item Compute $\red{R_5} = R_3 \bowtie R_4$ with sort join and materialize $R_5$
                 $\Rightarrow$ $5(1000 + 800)$ I/Os (under no-skew assumption) + $B_2$ (mat.). \\[-1mm]
         \item Compute $\Pi_{A,C}(R_5)$ by reading $R_5$ $\Rightarrow$ $B_2$ I/Os.
@@ -246,7 +246,7 @@
 \myfrm{
     \mybox[green]{Strategy 4:}
     \begin{itemize}
-        \item Compute $\red{R_3} = \sigma_{B=1} R_1$ by reading $R_1$ and materialize $R_3$ \\
+        \item Compute $\red{R_3} = \sigma_{B=1} R_1$ by reading $R_1$ and materializing $R_3$ \\
         $\Rightarrow$ 10000 (reading) + 1000 (mat.) I/Os \\[-1mm]
         \item Compute $\red{R_4} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by using the B-tree on $R_2.C$ and materialize $R_4$ $\Rightarrow$ 3 (B-tree) + 3000 (retrieving $\sigma_{C \in [100, 200]} R_2$) + 800 (mat.) I/Os \\[-1mm]
         \item Compute $\red{R_5} = R_3 \bowtie R_4$ with sort join and materialize $R_5$
@@ -293,9 +293,9 @@
 
     \mybox[green]{Strategy 5:}
     \begin{itemize}
-        \item Compute $\red{R_3} = \sigma_{B=1} R_1$ by reading $R_1$ and materialize $R_3$ \\
+        \item Compute $\red{R_3} = \sigma_{B=1} R_1$ by reading $R_1$ and materializing $R_3$ \\
         $\Rightarrow$ 10000 (reading) + 1000 (mat.) I/Os \\[-1mm]
-        \item Compute $\red{R_4} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ and materialize $R_4$ $\Rightarrow$ 10000 (reading) + 800 (mat.) I/Os \\[-1mm]
+        \item Compute $\red{R_4} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ and materializing $R_4$ $\Rightarrow$ 10000 (reading) + 800 (mat.) I/Os \\[-1mm]
         \item Compute $\red{R_5} = R_3 \bowtie R_4$ with sort join. \\
               \bred{For each tuple $\red{t} \in R_5$ found in memory, output directly $t.A$}. \\
                 $\Rightarrow$ $5(1000 + 800)$ I/Os (under no-skew assumption).
