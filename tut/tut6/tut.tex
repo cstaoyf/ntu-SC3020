@@ -182,7 +182,7 @@ The total number of I/Os is 12 (6 read I/Os + 6 write I/Os).
 \end{sol}
 
 
-\extraspacing {\bf Problem 4.} Let $S$ be a set of integers stored in 10000 blocks. If the memory has $M = 10$ blocks. How many merging steps are required to sort $S$?
+\extraspacing {\bf Problem 4.} Let $S$ be a set of integers stored in 10000 blocks. If the memory has $M = 100$ blocks. How many merging steps are required to sort $S$?
 
 \begin{sol}
 \extraspacing {\bf Solution.} The initial step creates $10000/10 = 1000$ sorted runs. Each merging step combines $M - 1 = 99$ sorted runs into a single new sorted run. Therefore, there are $\lc 1000/99 \rc = 11$ sorted runs after the first merging step. Another merging step will complete the sort. The answer is therefore 2.
