@@ -15,8 +15,8 @@
 \def\dom{\prec}
 \def\T{\mathcal{T}}
 
-\newboolean{solver}\setboolean{solver}{true}
-%\newboolean{solver}\setboolean{solver}{false}
+%\newboolean{solver}\setboolean{solver}{true}
+\newboolean{solver}\setboolean{solver}{false}
 \ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
 
 \begin{document}
@@ -182,10 +182,10 @@ The total number of I/Os is 12 (6 read I/Os + 6 write I/Os).
 \end{sol}
 
 
-\extraspacing {\bf Problem 4.} Let $S$ be a set of integers stored in 10000 blocks. If the memory has $M = 100$ blocks. How many merging steps are required to sort $S$?
+\extraspacing {\bf Problem 4.} Let $S$ be a set of integers stored in 100000 blocks. If the memory has $M = 100$ blocks. How many merging steps are required to sort $S$?
 
 \begin{sol}
-\extraspacing {\bf Solution.} The initial step creates $10000/10 = 1000$ sorted runs. Each merging step combines $M - 1 = 99$ sorted runs into a single new sorted run. Therefore, there are $\lc 1000/99 \rc = 11$ sorted runs after the first merging step. Another merging step will complete the sort. The answer is therefore 2.
+\extraspacing {\bf Solution.} The initial step creates $100000/100 = 1000$ sorted runs. Each merging step combines $M - 1 = 99$ sorted runs into a single new sorted run. Therefore, there are $\lc 1000/99 \rc = 11$ sorted runs after the first merging step. Another merging step will complete the sort. The answer is therefore 2.
 \end{sol}
 
 \extraspacing {\bf Problem 5.} Let $S$ be a set of integers stored in $10^9$ blocks. If we sort $S$ using the external sort algorithm, what is the smallest number $M$ of memory blocks required for the algorithm to incur only one merging step?
