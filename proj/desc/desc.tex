@@ -5,6 +5,7 @@
 \usepackage{amsfonts, amsmath, amssymb, amsthm}
 \usepackage{comment}
 \usepackage{graphicx}
+\usepackage{hyperref}
 \usepackage{ifthen}
 \usepackage{latexsym}
 %\usepackage{times}
@@ -15,204 +16,329 @@
 \def\dom{\prec}
 \def\T{\mathcal{T}}
 
+\def\vgap{\vspace{3mm}}
+
 %\newboolean{solver}\setboolean{solver}{true}
 \newboolean{solver}\setboolean{solver}{false}
 \ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
 
 \begin{document}
 
-\section*{SC3020-CE4301-CZ4031: Tutorial 6}
-%Prepared by Yufei Tao \\
+\section*{SC3020-CE4301-CZ4031: Project 2}
 
-\begin{center}
-    \uline{Classroom Discussion}
-\end{center}
+Prepared by Yufei Tao \\
+Oct 2025 \\
 
 
-\extraspacing {\bf Problem 1.} Suppose that we have three sets of integers, denoted as $S_1, S_2$, and $S_3$, respectively. Each set is sorted and given to you in a file. Assume that each disk block can hold 2 integers, and the memory has 4 blocks. The content of $S_1, S_2$, and $S_3$ is shown below.
+\section{Main Objective}
 
-\vgap
+This project is designed to deepen your understanding of query optimization and concurrency control through hands-on experience on a real database system.
 
-\noindent $S_1:$ $\uline{[1, 10]}, \uline{[20, 30]}, \uline{[40, 50]}$ \\
-$S_2:$ $\uline{[5, 35]}, \uline{[37, 38]}$ \\
-$S_3:$ $\uline{[45, 60]}$
+\section{Setup}
+
+This guide assumes that you are using Windows, which is the operating system installed on all the machines in the CCDS labs.
 
 \vgap
 
-\noindent The notation $\uline{[x, y]}$ represents a block holding integers $x$ and $y$. It is clear that $S_1$, $S_2$, and $S_3$ occupy 3, 2, and 1 block, respectively.
+First, download PostgreSQL at \url{https://www.postgresql.org/download} and install it. Make sure \ttt{pgAdmin4} is working --- this is a utility program that allows you to access and manage the database with a friendly GUI.
 
 \vgap
 
-Demonstrate how to merge $S_1$, $S_2$, and $S_3$ into one sorted file using the merging algorithm taught in the class. What is the I/O cost of the algorithm?
-
-\begin{sol}
-\extraspacing {\bf Solution.} The merging algorithm allocates (i) one memory block as the input buffer to read $S_i$, for each $i \in [1, 3]$, and (ii) one memory block as the output buffer. In the beginning, the algorithm loads the first block of each input file into memory, whose content is shown below:
-
-\begin{center}
-    Memory: $\uline{[1, 10]}, \uline{[5, 35]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$
-\end{center}
-
-\noindent As long as no input buffer is empty, the algorithm moves the smallest integer in the 3 input buffers to the output buffer. This yields:
-
-\begin{center}
-    Memory: $\uline{[\hspace{5mm}, 10]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[1, 5]}$
-\end{center}
-
-\noindent Now the output buffer is full and thus flushed to the disk:
-
-\begin{center}
-    Memory: $\uline{[\hspace{5mm}, 10]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
-    Output file on disk: $\uline{[1, 5]}$ \\
-\end{center}
-
-\noindent Moving the next smallest element in the input buffers to the output buffer yields:
-
-\begin{center}
-    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[10, \hspace{5mm}]}$
-\end{center}
-
-\noindent The first input buffer is full, prompting the algorithm to read the next page of $S_1$:
-
-\begin{center}
-    Memory: $\uline{[20, 30]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[10, \hspace{5mm}]}$
-\end{center}
-
-\noindent The next few steps of the algorithm are straightforward:
-
-\begin{center}
-    Memory: $\uline{[\hspace{5mm}, 30]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[10, 20]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[\hspace{5mm}, 30]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
-    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[30, \hspace{5mm}]}$
-\end{center}
-
-\noindent Reading the next page of $S_1$ gives:
-
-\begin{center}
-    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[30, 35]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
-    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}$ \\
-\end{center}
-
-\noindent Now we reading the next page of $S_2$:
-
-\begin{center}
-    Memory: $\uline{[40, 50]}, \uline{[37, 38]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[37, 38]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
-    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}, \uline{[37, 38]}$ \\
-\end{center}
-
-\noindent No need to replenish the input buffer of $S_2$ because this file has been exhausted. The remaining execution should be straightforward:
-
-\begin{center}
-    Memory: $\uline{[\hspace{5mm}, 50]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 60]}, \uline{[40, 45]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[\hspace{5mm}, 50]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 60]}, \uline{[\hspace{10mm}]}$ \\
-    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}, \uline{[37, 38]}, \uline{[40, 45]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[50, 60]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}$ \\
-    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}, \uline{[37, 38]}, \uline{[40, 45]}, \uline{[50, 60]}$
-\end{center}
-
-The total I/O cost is 12 because every block in the input files is read once and every block in the output file is written once.
-
-\end{sol}
-
-
-\extraspacing {\bf Problem 2.} Assume that each disk block can hold 2 integers, and the memory has 3 blocks. You are given a set $S$ stored on the disk in 9 blocks as shown below:
+Second, download the file \ttt{proj2-data.zip} from NTULearn (look for \ttt{Project 2} and then \ttt{Data for Project 2}). Unzip the file and you should see 8 \ttt{csv} files. These files were generated according to the TPC-H benchmark (see \url{https://www.tpc.org/tpch} for the details of TPC-H).
 
 \vgap
 
-\noindent $S: \uline{[50, 30]}, \uline{[80, 20]}, \uline{[10, 70]}, \uline{[40, 60]}, \uline{[55, 25]}, \uline{[90, 5]}, \uline{[85, 95]}, \uline{[35, 15]}, \uline{[65, 75]}$
-
-\vgap
-
-\noindent Suppose that we execute the initial step of the external sort algorithm taught in the class. Show all the sorted runs produced by this step. What is the I/O cost of this step?
-
-\begin{sol}
-
-\extraspacing {\bf Solution.} The initial step reads 3 blocks of $S$ into memory at a time, sort them (in memory), and write the sorted list into a sorted run. Therefore, the first sorted run is:
-
-\begin{center}
-    $\uline{[10, 20]}, \uline{[30, 50]}, \uline{[70, 80]}$,
-\end{center}
-
-\noindent the second sorted run is
-
-\begin{center}
-    $\uline{[5, 25]}, \uline{[40, 55]}, \uline{[60, 90]}$,
-\end{center}
-
-\noindent and the last sorted run is
-
-\begin{center}
-    $\uline{[15, 35]}, \uline{[60, 75]}, \uline{[85, 95]}$.
-\end{center}
-
-The I/O cost is 18 (9 read I/Os + 9 write I/Os).
-
-\end{sol}
-
-
-\extraspacing {\bf Problem 3.} Continuing on Problem 2, now execute the first merging step on the sorted runs you obtained. Show the sorted runs at the end of this step. What is the I/O cost of this step?
-
-\begin{sol}
-\extraspacing {\bf Solution.} The merging step combines two sorted runs from the previous step into a single new sorted run at a time. Hence, the first new sorted run is:
-
-\begin{center}
-    $\uline{[5, 10]}, \uline{[20, 25]}, \uline{[30, 40]}, \uline{[50, 55]}, \uline{[60, 70]}, \uline{[80, 90]}$.
-\end{center}
-
-\noindent The 3rd sorted from the previous step has no other sorted run to be combined with. Hence, it is taken as the second new sorted run directly:
-
-\begin{center}
-    $\uline{[15, 35]}, \uline{[60, 75]}, \uline{[85, 95]}$.
-\end{center}
-
-The total number of I/Os is 12 (6 read I/Os + 6 write I/Os).
-
-\end{sol}
-
-
-\extraspacing {\bf Problem 4.} Let $S$ be a set of integers stored in 100000 blocks. If the memory has $M = 100$ blocks. How many merging steps are required to sort $S$?
-
-\begin{sol}
-\extraspacing {\bf Solution.} The initial step creates $100000/100 = 1000$ sorted runs. Each merging step combines $M - 1 = 99$ sorted runs into a single new sorted run. Therefore, there are $\lc 1000/99 \rc = 11$ sorted runs after the first merging step. Another merging step will complete the sort. The answer is therefore 2.
-\end{sol}
-
-\extraspacing {\bf Problem 5.} Let $S$ be a set of integers stored in $10^9$ blocks. If we sort $S$ using the external sort algorithm, what is the smallest number $M$ of memory blocks required for the algorithm to incur only one merging step?
-
-\begin{sol}
-\extraspacing {\bf Solution.} The initial step creates $\lc 10^9 / M \rc$ sorted runs. If sorting needs to be completed with only one merging step, we need
-\myeqn{
-    \lc 10^9 / M \rc \le M - 1. \nn
-}
-Solving the inequality for integer $M$ yields $M \ge 31624$.
-
-\end{sol}
-
-\begin{center}
-    \uline{Critical Thinking}
-\end{center}
-
-\extraspacing {\bf Problem 6} Let $R(A, B)$ be a relation with attributes $A$ and $B$. No two tuples in $R$ are identical. Explain how to sort $R$ according to the following order: rank tuple $t_1$ before tuple $t_2$ if (i) $t_1.A < t_2.A$ or (ii) $t_1.A = t_2.A$ and $t_1.B < t_2.B$.
-
-\extraspacing {\bf Problem 7} Let $S$ be a {\em bag} (a.k.a.\ multi-set) of integers, namely, $S$ may contain duplicate integers. Adapt the external sort algorithm to sort $S$.
-
-\extraspacing {\bf Problem 8} Let $S$ be a {\em bag} (a.k.a.\ multi-set) of integers, namely, $S$ may contain duplicate integers. Adapt the external sort algorithm to output a disk file containing the {\em distinct} integers of $S$ in ascending order.
-
-\extraspacing {\bf Problem 9} Discuss how to process the following query on a relation $R(A, B)$:
-\mytab{
-    \> \ttt{SELECT $A$, MAX($B$) FROM $R$ GROUP BY $A$} \\
+Third, download the file \ttt{table-creation.txt} from NTULearn (look for \ttt{Project 2} and then \ttt{Table Creation Statements}). Use \ttt{pgAdmin4} to create a new database in PostgreSQL, and then use the statements in \ttt{table-creation.txt} to create 9 tables inside that database. Make sure that you see the following tables in \ttt{pgAdmin4}:
+\myitems{
+    \item \ttt{customer} \vspace{-2mm}
+    \item \ttt{lineitem} \vspace{-2mm}
+    \item \ttt{nation} \vspace{-2mm}
+    \item \ttt{orders} \vspace{-2mm}
+    \item \ttt{part} \vspace{-2mm}
+    \item \ttt{partsupp} \vspace{-2mm}
+    \item \ttt{region} \vspace{-2mm}
+    \item \ttt{supplier} \vspace{-2mm}
+    \item \ttt{t}.
 }
 
+Fourth, use \ttt{pgAdmin4} to import data into the first 8 tables from the \ttt{csv} files you obtained earlier. The file names match the table names in a straightforward manner (e.g., file \ttt{customer.csv} is for table \ttt{customer}). Note the foreign key constraints on the tables; choose a table ordering to do the importing by respecting those constraints.
+
+\section{Tasks}
+
+\subsection{Query Optimization}
+
+Familiarize yourself with the use of \ttt{explain} and \ttt{analyze} in PostgreSQL:
+\myitems{
+    \item By putting \ttt{explain} before an SQL query prompts the system to explain the execution plan selected for the query. For example, try: \\
+    \ttt{explain select * from lineitem;} \\
+    to see what happens.
+
+    \item By putting \ttt{explain analyze} before an SQL query prompts the system to (i) explain the execution plan selected for the query and (ii) physically execute the plan to obtain the actual performance statistics. For example, try: \\
+    \ttt{explain analyze select * from lineitem;} \\
+    to see what happens.
+}
+
+\subsubsection{Task 1}
+
+The \ttt{d+} command allows you to find the basic information of each table. Figure out the syntax of \ttt{d+} from online sources. Identify the index that PostgreSQL creates on each table automatically.
+
+\subsubsection{Task 2}
+
+Boot up your system and run the following as your first query.
+
+\vgap
+
+\noindent \ttt{explain analyze select * from lineitem where l\_quantity $>=$ 50;}
+
+\vgap
+
+\noindent Explain in plain words the query plan that PostgreSQL selects to answer the query. Run the query for a second time. Does it ``feel'' faster? How much faster? Why did it happen?
+
+\subsubsection{Task 3}
+
+Create an index with the following statement:
+
+\vgap
+
+\noindent \ttt{create index idx\_lineitem\_quantity on lineitem (l\_quantity);}
+
+\vgap
+
+\noindent Use \ttt{d+} to find out what index it is. Now run again
+
+\vgap
+
+\noindent \ttt{explain analyze select * from lineitem where l\_quantity $>=$ 50;}
+
+\vgap
+
+\noindent Explain in plain words the query plan that PostgreSQL selects to answer the query. Is it different from the plan chosen in Task 2? Why?
+
+\vgap
+
+\noindent Before proceeding to the next task, use the following statement to remove the index.
+
+\vgap
+
+\noindent \ttt{drop index idx\_lineitem\_quantity;}
+
+\subsubsection{Task 4}
+
+Create an index with the following statement:
+
+\vgap
+
+\noindent \ttt{create index  idx\_lineitem\_quantity\_hash on lineitem using hash (l\_quantity);}
+
+\vgap
+
+\noindent Now run
+
+\vgap
+
+\noindent \ttt{explain analyze select * from lineitem where l\_quantity $>=$ 50;}
+
+\vgap
+
+\noindent Explain in plain words the query plan that PostgreSQL selects to answer the query. Is it different from the plan chosen in Task 3? Why?
+
+\noindent Now run instead
+
+\vgap
+
+\noindent \ttt{explain analyze select * from lineitem where l\_quantity $=$ 50;}
+
+\vgap
+
+\noindent Explain in plain words the query plan that PostgreSQL selects to answer the query. Is it different from the plan chosen for the previous query? Why?
+
+
+\vgap
+
+\noindent Before proceeding to the next task, use the following statement to remove the index.
+
+\vgap
+
+\noindent \ttt{drop index idx\_lineitem\_quantity\_hash;}
+
+\subsubsection{Task 5}
+
+Execute the following command:
+
+\vgap
+
+\noindent \ttt{set work\_mem = '1MB';}
+
+\vgap
+
+\noindent Now run
+
+\vgap
+
+\noindent \ttt{explain analyze select l\_orderkey, l\_suppkey, sum(l\_quantity) as sum\_qty} \\
+\ttt{from lineitem} \\
+\ttt{group by l\_suppkey, l\_orderkey} \\
+\ttt{order by l\_suppkey, l\_orderkey;}
+
+\vgap
+
+\noindent Explain in plain words the query plan that PostgreSQL selects to answer the query.
+
+\vgap
+
+\noindent Now, execute the following command:
+
+\vgap
+
+\noindent \ttt{set work\_mem = '1000MB';}
+
+\vgap
+
+\noindent Run the same query again and explain in plain words the query plan that PostgreSQL selects to answer the query. Is it different from the plan used for 1MB of working memory? Why?
+
+\subsubsection{Task 6}
+
+Execute the following command:
+
+\vgap
+
+\noindent \ttt{set work\_mem = '1MB';}
+
+\vgap
+
+\noindent Now run
+
+\vgap
+
+\noindent \ttt{explain analyze select * from lineitem l1, lineitem l2} \\
+\noindent \ttt{where l1.l\_orderkey = l2.l\_suppkey;}
+
+\vgap
+
+\noindent Explain in plain words the query plan that PostgreSQL selects to answer the query. To do so, you need to learn from online sources the meaning of a {\em batch} (this is a concept specific to the hash join implementation of PostgreSQL).
+
+\vgap
+
+\noindent Now, execute the following command:
+
+\vgap
+
+\noindent \ttt{set work\_mem = '1MB';}
+
+\vgap
+
+\noindent Run the same query again and explain how the query plan has changed? Why did this happen?
+
+\subsubsection{Task 7}
+
+Execute the following command:
+
+\vgap
+
+\noindent \ttt{set work\_mem = '1MB';}
+
+\vgap
+
+\noindent Now run
+
+\vgap
+
+\noindent \ttt{explain analyze select * from lineitem l1, lineitem l2} \\
+\noindent \ttt{where l1.l\_orderkey = l2.l\_suppkey} \\
+\noindent \ttt{order by l2.l\_suppkey;}
+
+\vgap
+
+\noindent Explain in plain words the query plan that PostgreSQL selects to answer the query. Is it different from what you saw in Task 6? Why?
+
+\vgap
+
+\noindent Now, execute the following command:
+
+\vgap
+
+\noindent \ttt{set work\_mem = '1000MB';}
+
+\vgap
+
+\noindent Run the same query again and explain how the query plan has changed. Why did this happen?
+
+\vgap
+
+\noindent Now, execute the following command:
+
+\vgap
+
+\noindent \ttt{set work\_mem = '2000MB';}
+
+\vgap
+
+\noindent Run the same query for a third time and explain how the query plan has changed. Why did this happen?
+
+\subsubsection{Task 8}
+
+Execute the following command:
+
+\vgap
+
+\noindent \ttt{set work\_mem = '1MB';}
+
+\vgap
+
+\noindent Now run:
+
+\vgap
+
+\noindent \ttt{explain analyze select * from lineitem l, orders o} \\
+\ttt{where l.l\_orderkey = o.o\_orderkey order by o.o\_orderkey;}
+
+\vgap
+
+\noindent Explain in plain words the query plan that PostgreSQL selects to answer the query. Was any sorting performed? Why did this happen?
+
+\vgap
+
+\noindent If it helps, you can use the following command to see how the tuples of a relation (here we use \ttt{orders} as an example) are physically ordered on disk:
+
+\vgap
+
+\noindent \ttt{select ctid, * from orders LIMIT 100;}
+
+\subsubsection{Task 9}
+
+Execute the following commands:
+
+\vgap
+
+\noindent \ttt{set work\_mem = '1MB';} \\
+\noindent \ttt{create index idx\_lineitem\_quantity on lineitem (l\_quantity);}
+
+\vgap
+
+\noindent Now run:
+
+\vgap
+
+\noindent \ttt{explain analyze select * from lineitem l, orders o} \\
+\ttt{where l.l\_partkey = o.o\_custkey and l.l\_quantity = 20} \\
+\ttt{order by o.o\_custkey;}
+
+\vgap
+
+\noindent Explain in plain words the query plan that PostgreSQL selects to answer the query. Did the plan use the index \ttt{idx\_lineitem\_quantity} we built? How do you explain this?
+
+\vgap
+
+\noindent Now run instead:
+
+\vgap
+
+\noindent \ttt{explain analyze select * from lineitem l, orders o} \\
+\ttt{where l.l\_partkey = o.o\_custkey and l.l\_orderkey <= 10000 } \\
+\ttt{order by o.o\_custkey;}
+
+\vgap
+
+\noindent Explain in plain words the query plan that PostgreSQL selects to answer the query. Did the plan use any indexes? How do you explain this?
 
 \end{document}
