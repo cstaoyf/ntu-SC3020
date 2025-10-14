@@ -341,4 +341,97 @@ Execute the following commands:
 
 \noindent Explain in plain words the query plan that PostgreSQL selects to answer the query. Did the plan use any indexes? How do you explain this?
 
+\subsubsection{Task 10}
+
+\noindent Run:
+
+\vgap
+
+\noindent \ttt{explain analyze select * from lineitem l1, lineitem l2} \\
+\ttt{where l1.l\_orderkey = l2.l\_orderkey;}
+
+\vgap
+
+\noindent What was the result size predicted by the query planner? What is the actual result size?
+
+\vgap
+
+\noindent Run the following three queries:
+
+\myitems{
+    \item \noindent \ttt{select count(*) from lineitem;}
+
+    \item \noindent \ttt{select count(*) from lineitem l1, lineitem l2} \\
+    \ttt{where l1.l\_orderkey = l2.l\_orderkey;}
+
+    \item \noindent \ttt{select count(*) from lineitem l1, lineitem l2, lineitem l3} \\
+    \ttt{where l1.l\_orderkey = l2.l\_orderkey and l2.l\_orderkey = l3.l\_orderkey;}
+}
+
+\noindent How do you explain the running time differences of the above queries? By the way, you can terminate the 3rd query if it fails to terminate within 5 minutes.
+
+\vgap
+
+\noindent Can you describe an algorithm that can process all three queries with negligible cost differences?
+
+
+\subsection{Transactions}
+
+\subsubsection{Task 11}
+
+First, execute the command:
+
+\vgap
+
+\noindent
+\ttt{insert into public.t values(1, 10);}
+
+\vgap
+
+\noindent Now, start a transaction: \\
+
+\vgap
+
+\noindent \ttt{START TRANSACTION ISOLATION LEVEL READ COMMITTED;}
+
+\vgap
+
+\noindent \ttt{Run the following query}, which we will refer to as $Q1$:
+
+\vgap
+
+\noindent \ttt{select * from public.t;}
+
+\vgap
+
+\noindent Open {\em another} command-line session (in pgAdmin4, go to menu \ttt{Tools} and then click on \ttt{PSQL Tool}). In this session, execute the following commands:
+
+\vgap
+
+\noindent \ttt{START TRANSACTION ISOLATION LEVEL SERIALIZABLE;}  \\
+\noindent \ttt{insert into public.t values(2, 20);}  \\
+\noindent \ttt{COMMIT;}
+
+\vgap
+
+\noindent Now, go back to the first command-line session, and execute the following query, which we will refer to as $Q2$:
+
+\vgap
+
+\noindent \ttt{select * from public.t;}
+
+\vgap
+
+\noindent Are the results of $Q1$ and $Q2$ identical? What anomalies --- according to the lecture slides ``Transactions 2:
+Isolation Levels'' --- have you witnessed? Why is this allowed?
+
+\vgap
+
+\noindent Before proceeding, close both command-line sessions.
+
+
+
+
+
+
 \end{document}
