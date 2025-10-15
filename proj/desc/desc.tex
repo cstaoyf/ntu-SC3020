@@ -429,9 +429,145 @@ Isolation Levels'' --- have you witnessed? Why is this allowed?
 
 \noindent Before proceeding, close both command-line sessions.
 
+\subsubsection{Task 12}
+
+Open a new command-line session and execute the command:
+
+\vgap
+
+\noindent \ttt{delete from public.T where id >= 2;}
+
+\vgap
+
+\noindent Start a transaction --- which we denote as $T_1$ --- with:
+
+\vgap
+
+\noindent \ttt{START TRANSACTION ISOLATION LEVEL SERIALIZABLE;}
+
+\vgap
+
+\noindent \ttt{Run the following query}:
+
+\vgap
+
+\noindent \ttt{select * from public.t;}
+
+\vgap
+
+\noindent Open {\em another} command-line session of $T_1$ execute the following commands:
+
+\vgap
+
+\noindent \ttt{START TRANSACTION ISOLATION LEVEL SERIALIZABLE;}  \\
+\noindent \ttt{insert into public.t values(2, 20);}  \\
+\noindent \ttt{COMMIT;}
+
+\vgap
+
+\noindent Now, go back to the command-line session of $T_1$ and execute:
+
+\vgap
+
+\noindent \ttt{insert into public.t values(3, 30);}
+
+\vgap
+
+\noindent What do you observe? Why does this happen?
+
+\vgap
+
+\noindent Before proceeding, close both command-line sessions.
 
 
+\subsubsection{Task 13}
 
+Open a new command-line session and execute the commands:
 
+\vgap
+
+\noindent \ttt{delete from public.T where id >= 2;} \\
+\noindent \ttt{insert into public.t values(1, 10);}
+
+\vgap
+
+\noindent If the second command reports a primary key constraint error, it means that the tuple (1, 10) already exists, in which case all is good and you may proceed. Start a transaction --- which we denote as $T_1$ --- with:
+
+\vgap
+
+\noindent \ttt{START TRANSACTION ISOLATION LEVEL READ COMMITTED;}
+
+\vgap
+
+\noindent Open {\em another} command-line session and start a transaction --- which we denote as $T_2$ --- with:
+
+\vgap
+
+\noindent \ttt{START TRANSACTION ISOLATION LEVEL READ COMMITTED;}
+
+\vgap
+
+\noindent Go to the session of $T_1$ and execute:
+
+\vgap
+
+\noindent \ttt{update public.T set v = 20 where id = 1;}
+
+\vgap
+
+\noindent Now, go to the session of $T_2$ and execute:
+
+\vgap
+
+\noindent \ttt{update public.T set v = 30 where id = 1;}
+
+\vgap
+
+\noindent What do you observe? Why does this happen?
+
+\vgap
+
+\noindent Return to the session of $T_1$ and execute:
+
+\vgap
+
+\noindent \ttt{COMMIT;}
+
+\vgap
+
+\noindent Switch back to the session of $T_2$. What do you observe? Why does it happen?
+
+\vgap
+
+\noindent In the session of $T_2$, execute:
+
+\vgap
+
+\noindent \ttt{select * from public.t;}
+
+\vgap
+
+\noindent What do you see? Now execute the following commands:
+
+\vgap
+
+\noindent \ttt{ROLLBACK;}  \\
+\noindent \ttt{select * from public.t;}
+
+\vgap
+
+\noindent What do you see? Why does it happen?
+
+\section{What to Submit}
+
+You need to submit:
+
+Softcopy report containing details of the software including formal descriptions of
+the key algorithms with examples. You should also discuss limitations of the
+software (if any).
+
+Peer assessment report from each member of the team. Each individual
+member of a team needs to assess contributions of the group members. Details
+of peer assessment form will be provided closer to the submission date.
 
 \end{document}
