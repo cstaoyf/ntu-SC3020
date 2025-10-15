@@ -15,204 +15,128 @@
 \def\dom{\prec}
 \def\T{\mathcal{T}}
 
-%\newboolean{solver}\setboolean{solver}{true}
-\newboolean{solver}\setboolean{solver}{false}
+\newboolean{solver}\setboolean{solver}{true}
+%\newboolean{solver}\setboolean{solver}{false}
 \ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
 
 \begin{document}
 
-\section*{SC3020-CE4301-CZ4031: Tutorial 6}
+\section*{SC3020-CE4301-CZ4031: Tutorial 7}
 %Prepared by Yufei Tao \\
 
 \begin{center}
     \uline{Classroom Discussion}
 \end{center}
 
+Let $R_1(A, B)$ be a relation with attributes $A$ and $B$, and $R_2(A, C)$ be a relation with attributes $A$ and $C$. We assume that there is a B-tree on $R_2$ indexing the attribute $A$. Consider the following 4 algorithms for computing $R_1 \bowtie R_2$.
 
-\extraspacing {\bf Problem 1.} Suppose that we have three sets of integers, denoted as $S_1, S_2$, and $S_3$, respectively. Each set is sorted and given to you in a file. Assume that each disk block can hold 2 integers, and the memory has 4 blocks. The content of $S_1, S_2$, and $S_3$ is shown below.
-
-\vgap
-
-\noindent $S_1:$ $\uline{[1, 10]}, \uline{[20, 30]}, \uline{[40, 50]}$ \\
-$S_2:$ $\uline{[5, 35]}, \uline{[37, 38]}$ \\
-$S_3:$ $\uline{[45, 60]}$
-
-\vgap
-
-\noindent The notation $\uline{[x, y]}$ represents a block holding integers $x$ and $y$. It is clear that $S_1$, $S_2$, and $S_3$ occupy 3, 2, and 1 block, respectively.
-
-\vgap
-
-Demonstrate how to merge $S_1$, $S_2$, and $S_3$ into one sorted file using the merging algorithm taught in the class. What is the I/O cost of the algorithm?
-
-\begin{sol}
-\extraspacing {\bf Solution.} The merging algorithm allocates (i) one memory block as the input buffer to read $S_i$, for each $i \in [1, 3]$, and (ii) one memory block as the output buffer. In the beginning, the algorithm loads the first block of each input file into memory, whose content is shown below:
-
-\begin{center}
-    Memory: $\uline{[1, 10]}, \uline{[5, 35]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$
-\end{center}
-
-\noindent As long as no input buffer is empty, the algorithm moves the smallest integer in the 3 input buffers to the output buffer. This yields:
-
-\begin{center}
-    Memory: $\uline{[\hspace{5mm}, 10]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[1, 5]}$
-\end{center}
-
-\noindent Now the output buffer is full and thus flushed to the disk:
-
-\begin{center}
-    Memory: $\uline{[\hspace{5mm}, 10]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
-    Output file on disk: $\uline{[1, 5]}$ \\
-\end{center}
-
-\noindent Moving the next smallest element in the input buffers to the output buffer yields:
-
-\begin{center}
-    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[10, \hspace{5mm}]}$
-\end{center}
-
-\noindent The first input buffer is full, prompting the algorithm to read the next page of $S_1$:
-
-\begin{center}
-    Memory: $\uline{[20, 30]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[10, \hspace{5mm}]}$
-\end{center}
-
-\noindent The next few steps of the algorithm are straightforward:
-
-\begin{center}
-    Memory: $\uline{[\hspace{5mm}, 30]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[10, 20]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[\hspace{5mm}, 30]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
-    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[30, \hspace{5mm}]}$
-\end{center}
-
-\noindent Reading the next page of $S_1$ gives:
-
-\begin{center}
-    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[30, 35]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
-    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}$ \\
-\end{center}
-
-\noindent Now we reading the next page of $S_2$:
-
-\begin{center}
-    Memory: $\uline{[40, 50]}, \uline{[37, 38]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[37, 38]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
-    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}, \uline{[37, 38]}$ \\
-\end{center}
-
-\noindent No need to replenish the input buffer of $S_2$ because this file has been exhausted. The remaining execution should be straightforward:
-
-\begin{center}
-    Memory: $\uline{[\hspace{5mm}, 50]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 60]}, \uline{[40, 45]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[\hspace{5mm}, 50]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 60]}, \uline{[\hspace{10mm}]}$ \\
-    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}, \uline{[37, 38]}, \uline{[40, 45]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[50, 60]}$ \\
-    $\Rightarrow$ \\
-    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}$ \\
-    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}, \uline{[37, 38]}, \uline{[40, 45]}, \uline{[50, 60]}$
-\end{center}
-
-The total I/O cost is 12 because every block in the input files is read once and every block in the output file is written once.
-
-\end{sol}
-
-
-\extraspacing {\bf Problem 2.} Assume that each disk block can hold 2 integers, and the memory has 3 blocks. You are given a set $S$ stored on the disk in 9 blocks as shown below:
-
-\vgap
-
-\noindent $S: \uline{[50, 30]}, \uline{[80, 20]}, \uline{[10, 70]}, \uline{[40, 60]}, \uline{[55, 25]}, \uline{[90, 5]}, \uline{[85, 95]}, \uline{[35, 15]}, \uline{[65, 75]}$
-
-\vgap
-
-\noindent Suppose that we execute the initial step of the external sort algorithm taught in the class. Show all the sorted runs produced by this step. What is the I/O cost of this step?
-
-\begin{sol}
-
-\extraspacing {\bf Solution.} The initial step reads 3 blocks of $S$ into memory at a time, sort them (in memory), and write the sorted list into a sorted run. Therefore, the first sorted run is:
-
-\begin{center}
-    $\uline{[10, 20]}, \uline{[30, 50]}, \uline{[70, 80]}$,
-\end{center}
-
-\noindent the second sorted run is
-
-\begin{center}
-    $\uline{[5, 25]}, \uline{[40, 55]}, \uline{[60, 90]}$,
-\end{center}
-
-\noindent and the last sorted run is
-
-\begin{center}
-    $\uline{[15, 35]}, \uline{[60, 75]}, \uline{[85, 95]}$.
-\end{center}
-
-The I/O cost is 18 (9 read I/Os + 9 write I/Os).
-
-\end{sol}
-
-
-\extraspacing {\bf Problem 3.} Continuing on Problem 2, now execute the first merging step on the sorted runs you obtained. Show the sorted runs at the end of this step. What is the I/O cost of this step?
-
-\begin{sol}
-\extraspacing {\bf Solution.} The merging step combines two sorted runs from the previous step into a single new sorted run at a time. Hence, the first new sorted run is:
-
-\begin{center}
-    $\uline{[5, 10]}, \uline{[20, 25]}, \uline{[30, 40]}, \uline{[50, 55]}, \uline{[60, 70]}, \uline{[80, 90]}$.
-\end{center}
-
-\noindent The 3rd sorted from the previous step has no other sorted run to be combined with. Hence, it is taken as the second new sorted run directly:
-
-\begin{center}
-    $\uline{[15, 35]}, \uline{[60, 75]}, \uline{[85, 95]}$.
-\end{center}
-
-The total number of I/Os is 12 (6 read I/Os + 6 write I/Os).
-
-\end{sol}
-
-
-\extraspacing {\bf Problem 4.} Let $S$ be a set of integers stored in 100000 blocks. If the memory has $M = 100$ blocks. How many merging steps are required to sort $S$?
-
-\begin{sol}
-\extraspacing {\bf Solution.} The initial step creates $100000/100 = 1000$ sorted runs. Each merging step combines $M - 1 = 99$ sorted runs into a single new sorted run. Therefore, there are $\lc 1000/99 \rc = 11$ sorted runs after the first merging step. Another merging step will complete the sort. The answer is therefore 2.
-\end{sol}
-
-\extraspacing {\bf Problem 5.} Let $S$ be a set of integers stored in $10^9$ blocks. If we sort $S$ using the external sort algorithm, what is the smallest number $M$ of memory blocks required for the algorithm to incur only one merging step?
-
-\begin{sol}
-\extraspacing {\bf Solution.} The initial step creates $\lc 10^9 / M \rc$ sorted runs. If sorting needs to be completed with only one merging step, we need
-\myeqn{
-    \lc 10^9 / M \rc \le M - 1. \nn
-}
-Solving the inequality for integer $M$ yields $M \ge 31624$.
-
-\end{sol}
-
-\begin{center}
-    \uline{Critical Thinking}
-\end{center}
-
-\extraspacing {\bf Problem 6} Let $R(A, B)$ be a relation with attributes $A$ and $B$. No two tuples in $R$ are identical. Explain how to sort $R$ according to the following order: rank tuple $t_1$ before tuple $t_2$ if (i) $t_1.A < t_2.A$ or (ii) $t_1.A = t_2.A$ and $t_1.B < t_2.B$.
-
-\extraspacing {\bf Problem 7} Let $S$ be a {\em bag} (a.k.a.\ multi-set) of integers, namely, $S$ may contain duplicate integers. Adapt the external sort algorithm to sort $S$.
-
-\extraspacing {\bf Problem 8} Let $S$ be a {\em bag} (a.k.a.\ multi-set) of integers, namely, $S$ may contain duplicate integers. Adapt the external sort algorithm to output a disk file containing the {\em distinct} integers of $S$ in ascending order.
-
-\extraspacing {\bf Problem 9} Discuss how to process the following query on a relation $R(A, B)$:
-\mytab{
-    \> \ttt{SELECT $A$, MAX($B$) FROM $R$ GROUP BY $A$} \\
+\myitems{
+    \item Block-based nested loop (BNL)
+    \item Sort Join (SJ)
+    \item Hash Join (HJ)
+    \item Index-based nested loop (INL). This algorithm works as follows: for each tuple $t_1 \in R_1$, probe the B-tree on $R_2$ to find all the tuples $t_2 \in R_2$ satisfying the condition $t_1.A = t_2.A$.
 }
 
+\noindent The {\em query optimizer} is responsible for selecting the {\bf best query plan} whose {\em predicted I/O cost} is the lowest. In the following problems, we will gain an idea of how the query plan is chosen.
+
+\extraspacing {\bf Problem 1.} Suppose we know:
+\myitems{
+    \item $R_1$ has $10^5$ tuples, and $R_2$ has $10^7$ tuples.
+    \item Each block can store 10 tuples of $R_1$ or $R_2$. Hence, $R_1$ is stored in $B(R_1) = 10^4$ blocks, and $R_2$ in $B(R_2) = 10^6$.
+    \item Neither $R_1$ nor $R_2$ is sorted on $A$.
+    \item The memory has $M = 6001$ blocks.
+    \item The no skew assumption holds for SJ, and the good hashing assumption both holds for HJ.
+    \item The B-tree on $R_2$ has 3 levels.
+    \item For each tuple $t_1 \in R_1$, there are 55 tuples $t_2$ in $R_2$ satisfying the condition $t_1.A = t_2.A$.
+}
+If you are the query optimizer, how would you compute $R_1 \bowtie R_2$?
+
+\begin{sol}
+\extraspacing {\bf Solution.} We make the choice by predicting the I/O cost of each algorithm.
+
+\myitems{
+    \item BNL\\
+    I/O cost $= B(R_1) + \lc B(R_1)/(M-1) \rc \cdot B(R_2) = 10^4 + \lc \fr{10^4}{6000} \rc \cdot 10^6 = 2010000$.
+
+    \item SJ\\
+    I/O cost $= 5 (B(R_1) + B(R_2)) = 5050000$.
+
+    \item HJ\\
+    I/O cost $= 3 (B(R_1) + B(R_2)) = 3030000$.
+
+    \item INL\\
+    For each tuple $t_1 \in R_1$, probing the B-tree of $R_2$ (which is un-clustered) requires one I/O per level\footnote{In general, more than one I/O may be needed to access the leaf level of an un-clustered B-tree. However, in query optimization, it is often acceptable to assume that only one I/O is paid at each level. } and then 55 I/Os to retrieve the 55 tuples $t_2 \in R_2$ satisfying $t_1.A = t_2.A$ (one I/O per tuple). This is $58$ I/Os per tuple in $R_1$. As $R_1$ has $10^5$ tuples, the total I/O cost of B-tree probing is $58 \times 10^5 = 5800000$. In addition, reading the tuples of $R_1$ requires another $B(R_1) = 10^4$ blocks. Thus, overall, INL performs $5810000$ I/Os.
+}
+
+The best approach is to perform BNL.
+\end{sol}
+
+
+\extraspacing {\bf Problem 2.} Suppose we know:
+\myitems{
+    \item $R_1$ has $10^5$ tuples, and $R_2$ has $10^7$ tuples.
+    \item Each block can store 10 tuples of $R_1$ or $R_2$. Hence, $R_1$ is stored in $B(R_1) = 10^4$ blocks, and $R_2$ in $B(R_2) = 10^6$.
+    \item Neither $R_1$ nor $R_2$ is sorted on $A$.
+    \item The memory has $M = 2001$ blocks.
+    \item The no skew assumption holds for SJ, and the good hashing assumption both holds for HJ.
+    \item The B-tree on $R_2$ has 3 levels.
+    \item For each tuple $t_1 \in R_1$, there are 15 tuples $t_2$ in $R_2$ satisfying the condition $t_1.A = t_2.A$.
+}
+If you are the query optimizer, how would you compute $R_1 \bowtie R_2$?
+
+\begin{sol}
+\extraspacing {\bf Solution.} We make the choice by predicting the I/O cost of each algorithm.
+
+\myitems{
+    \item BNL\\
+    I/O cost $= B(R_1) + \lc B(R_1)/(M-1) \rc \cdot B(R_2) = 10^4 + \lc \fr{10^4}{2000} \rc \cdot 10^6 = 5010000$.
+
+    \item SJ\\
+    I/O cost $= 5 (B(R_1) + B(R_2)) = 5050000$.
+
+    \item HJ\\
+    I/O cost $= 3 (B(R_1) + B(R_2)) = 3030000$.
+
+    \item INL\\
+    I/O cost $= 5810000$ I/Os as analyzed in Problem 1.
+}
+
+The best approach is to perform HJ.
+\end{sol}
+
+
+\extraspacing {\bf Problem 3.} Suppose we know:
+\myitems{
+    \item $R_1$ has $10^5$ tuples, and $R_2$ has $10^7$ tuples.
+    \item Each block can store 10 tuples of $R_1$ or $R_2$. Hence, $R_1$ is stored in $B(R_1) = 10^4$ blocks, and $R_2$ in $B(R_2) = 10^6$.
+    \item {\bf $R_1$ is not sorted on $A$, but $R_2$ is sorted on $A$.}
+    \item The memory has $M = 2001$ blocks.
+    \item The no skew assumption holds for SJ, and the good hashing assumption both holds for HJ.
+    \item The B-tree on $R_2$ has 3 levels.
+    \item For each tuple $t_1 \in R_1$, there are 15 tuples $t_2$ in $R_2$ satisfying the condition $t_1.A = t_2.A$.
+}
+If you are the query optimizer, how would you compute $R_1 \bowtie R_2$?
+
+
+\begin{sol}
+\extraspacing {\bf Solution.} We make the choice by predicting the I/O cost of each algorithm.
+
+\myitems{
+    \item BNL\\
+    I/O cost $= 5010000$ as analyzed in Problem 2.
+
+    \item SJ\\
+    As $R_2$ is already sorted on $A$, SJ only needs to sort $R_1$, which costs $4 \cdot B(R_1)$. After that, one synchronous scan of $R_1$ and $R_2$ finds the result of $R_1 \bowtie R_2$. Hence, the I/O cost is $= 5 \cdot B(R_1) + B(R_2) = 1050000$.
+
+    \item HJ\\
+    I/O cost $= 3 (B(R_1) + B(R_2)) = 3030000$.
+
+    \item INL\\
+    Note that the B-tree of $R_2$ is clustered in this scenario!
+    For each tuple $t_1 \in R_1$, probing the B-tree of $R_2$ requires one I/O per level and then $\lc 55/10 \rc = 6$ I/Os to retrieve the 100 tuples $t_2 \in R_2$ satisfying $t_1.A = t_2.A$ (one I/O per tuple). This is $9$ I/Os per tuple in $R_1$. As $R_1$ has $10^5$ tuples, the total I/O cost of B-tree probing is $9 \times 10^5 = 900000$. In addition, reading the tuples of $R_1$ requires another $B(R_1) = 10^4$ blocks. Thus, overall, INL performs $910000$ I/Os.
+}
+
+The best approach is to perform INL.
+\end{sol}
 
 \end{document}
