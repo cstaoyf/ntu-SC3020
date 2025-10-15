@@ -1,0 +1,6 @@
+\extraspacing {\bf Solution.} The initial step creates $\lc 10^9 / M \rc$ sorted runs. If sorting needs to be completed with only one merging step, we need
+\myeqn{
+    \lc 10^9 / M \rc \le M - 1. \nn
+}
+Solving the inequality for integer $M$ yields $M \ge 31624$.
+

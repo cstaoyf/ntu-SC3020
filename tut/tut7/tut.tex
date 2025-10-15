@@ -1,0 +1,218 @@
+%\documentclass{...}
+
+\input{./def/yf-formatting}
+
+\usepackage{amsfonts, amsmath, amssymb, amsthm}
+\usepackage{comment}
+\usepackage{graphicx}
+\usepackage{ifthen}
+\usepackage{latexsym}
+%\usepackage{times}
+\usepackage[normalem]{ulem}
+
+\input{./def/yf-def}
+
+\def\dom{\prec}
+\def\T{\mathcal{T}}
+
+%\newboolean{solver}\setboolean{solver}{true}
+\newboolean{solver}\setboolean{solver}{false}
+\ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
+
+\begin{document}
+
+\section*{SC3020-CE4301-CZ4031: Tutorial 6}
+%Prepared by Yufei Tao \\
+
+\begin{center}
+    \uline{Classroom Discussion}
+\end{center}
+
+
+\extraspacing {\bf Problem 1.} Suppose that we have three sets of integers, denoted as $S_1, S_2$, and $S_3$, respectively. Each set is sorted and given to you in a file. Assume that each disk block can hold 2 integers, and the memory has 4 blocks. The content of $S_1, S_2$, and $S_3$ is shown below.
+
+\vgap
+
+\noindent $S_1:$ $\uline{[1, 10]}, \uline{[20, 30]}, \uline{[40, 50]}$ \\
+$S_2:$ $\uline{[5, 35]}, \uline{[37, 38]}$ \\
+$S_3:$ $\uline{[45, 60]}$
+
+\vgap
+
+\noindent The notation $\uline{[x, y]}$ represents a block holding integers $x$ and $y$. It is clear that $S_1$, $S_2$, and $S_3$ occupy 3, 2, and 1 block, respectively.
+
+\vgap
+
+Demonstrate how to merge $S_1$, $S_2$, and $S_3$ into one sorted file using the merging algorithm taught in the class. What is the I/O cost of the algorithm?
+
+\begin{sol}
+\extraspacing {\bf Solution.} The merging algorithm allocates (i) one memory block as the input buffer to read $S_i$, for each $i \in [1, 3]$, and (ii) one memory block as the output buffer. In the beginning, the algorithm loads the first block of each input file into memory, whose content is shown below:
+
+\begin{center}
+    Memory: $\uline{[1, 10]}, \uline{[5, 35]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$
+\end{center}
+
+\noindent As long as no input buffer is empty, the algorithm moves the smallest integer in the 3 input buffers to the output buffer. This yields:
+
+\begin{center}
+    Memory: $\uline{[\hspace{5mm}, 10]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[1, 5]}$
+\end{center}
+
+\noindent Now the output buffer is full and thus flushed to the disk:
+
+\begin{center}
+    Memory: $\uline{[\hspace{5mm}, 10]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}$ \\
+\end{center}
+
+\noindent Moving the next smallest element in the input buffers to the output buffer yields:
+
+\begin{center}
+    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[10, \hspace{5mm}]}$
+\end{center}
+
+\noindent The first input buffer is full, prompting the algorithm to read the next page of $S_1$:
+
+\begin{center}
+    Memory: $\uline{[20, 30]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[10, \hspace{5mm}]}$
+\end{center}
+
+\noindent The next few steps of the algorithm are straightforward:
+
+\begin{center}
+    Memory: $\uline{[\hspace{5mm}, 30]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[10, 20]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[\hspace{5mm}, 30]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 35]}, \uline{[45, 60]}, \uline{[30, \hspace{5mm}]}$
+\end{center}
+
+\noindent Reading the next page of $S_1$ gives:
+
+\begin{center}
+    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[30, 35]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}$ \\
+\end{center}
+
+\noindent Now we reading the next page of $S_2$:
+
+\begin{center}
+    Memory: $\uline{[40, 50]}, \uline{[37, 38]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[37, 38]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[40, 50]}, \uline{[\hspace{10mm}]}, \uline{[45, 60]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}, \uline{[37, 38]}$ \\
+\end{center}
+
+\noindent No need to replenish the input buffer of $S_2$ because this file has been exhausted. The remaining execution should be straightforward:
+
+\begin{center}
+    Memory: $\uline{[\hspace{5mm}, 50]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 60]}, \uline{[40, 45]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[\hspace{5mm}, 50]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{5mm}, 60]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}, \uline{[37, 38]}, \uline{[40, 45]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[50, 60]}$ \\
+    $\Rightarrow$ \\
+    Memory: $\uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}, \uline{[\hspace{10mm}]}$ \\
+    Output file on disk: $\uline{[1, 5]}, \uline{[10, 20]}, \uline{[30, 35]}, \uline{[37, 38]}, \uline{[40, 45]}, \uline{[50, 60]}$
+\end{center}
+
+The total I/O cost is 12 because every block in the input files is read once and every block in the output file is written once.
+
+\end{sol}
+
+
+\extraspacing {\bf Problem 2.} Assume that each disk block can hold 2 integers, and the memory has 3 blocks. You are given a set $S$ stored on the disk in 9 blocks as shown below:
+
+\vgap
+
+\noindent $S: \uline{[50, 30]}, \uline{[80, 20]}, \uline{[10, 70]}, \uline{[40, 60]}, \uline{[55, 25]}, \uline{[90, 5]}, \uline{[85, 95]}, \uline{[35, 15]}, \uline{[65, 75]}$
+
+\vgap
+
+\noindent Suppose that we execute the initial step of the external sort algorithm taught in the class. Show all the sorted runs produced by this step. What is the I/O cost of this step?
+
+\begin{sol}
+
+\extraspacing {\bf Solution.} The initial step reads 3 blocks of $S$ into memory at a time, sort them (in memory), and write the sorted list into a sorted run. Therefore, the first sorted run is:
+
+\begin{center}
+    $\uline{[10, 20]}, \uline{[30, 50]}, \uline{[70, 80]}$,
+\end{center}
+
+\noindent the second sorted run is
+
+\begin{center}
+    $\uline{[5, 25]}, \uline{[40, 55]}, \uline{[60, 90]}$,
+\end{center}
+
+\noindent and the last sorted run is
+
+\begin{center}
+    $\uline{[15, 35]}, \uline{[60, 75]}, \uline{[85, 95]}$.
+\end{center}
+
+The I/O cost is 18 (9 read I/Os + 9 write I/Os).
+
+\end{sol}
+
+
+\extraspacing {\bf Problem 3.} Continuing on Problem 2, now execute the first merging step on the sorted runs you obtained. Show the sorted runs at the end of this step. What is the I/O cost of this step?
+
+\begin{sol}
+\extraspacing {\bf Solution.} The merging step combines two sorted runs from the previous step into a single new sorted run at a time. Hence, the first new sorted run is:
+
+\begin{center}
+    $\uline{[5, 10]}, \uline{[20, 25]}, \uline{[30, 40]}, \uline{[50, 55]}, \uline{[60, 70]}, \uline{[80, 90]}$.
+\end{center}
+
+\noindent The 3rd sorted from the previous step has no other sorted run to be combined with. Hence, it is taken as the second new sorted run directly:
+
+\begin{center}
+    $\uline{[15, 35]}, \uline{[60, 75]}, \uline{[85, 95]}$.
+\end{center}
+
+The total number of I/Os is 12 (6 read I/Os + 6 write I/Os).
+
+\end{sol}
+
+
+\extraspacing {\bf Problem 4.} Let $S$ be a set of integers stored in 100000 blocks. If the memory has $M = 100$ blocks. How many merging steps are required to sort $S$?
+
+\begin{sol}
+\extraspacing {\bf Solution.} The initial step creates $100000/100 = 1000$ sorted runs. Each merging step combines $M - 1 = 99$ sorted runs into a single new sorted run. Therefore, there are $\lc 1000/99 \rc = 11$ sorted runs after the first merging step. Another merging step will complete the sort. The answer is therefore 2.
+\end{sol}
+
+\extraspacing {\bf Problem 5.} Let $S$ be a set of integers stored in $10^9$ blocks. If we sort $S$ using the external sort algorithm, what is the smallest number $M$ of memory blocks required for the algorithm to incur only one merging step?
+
+\begin{sol}
+\extraspacing {\bf Solution.} The initial step creates $\lc 10^9 / M \rc$ sorted runs. If sorting needs to be completed with only one merging step, we need
+\myeqn{
+    \lc 10^9 / M \rc \le M - 1. \nn
+}
+Solving the inequality for integer $M$ yields $M \ge 31624$.
+
+\end{sol}
+
+\begin{center}
+    \uline{Critical Thinking}
+\end{center}
+
+\extraspacing {\bf Problem 6} Let $R(A, B)$ be a relation with attributes $A$ and $B$. No two tuples in $R$ are identical. Explain how to sort $R$ according to the following order: rank tuple $t_1$ before tuple $t_2$ if (i) $t_1.A < t_2.A$ or (ii) $t_1.A = t_2.A$ and $t_1.B < t_2.B$.
+
+\extraspacing {\bf Problem 7} Let $S$ be a {\em bag} (a.k.a.\ multi-set) of integers, namely, $S$ may contain duplicate integers. Adapt the external sort algorithm to sort $S$.
+
+\extraspacing {\bf Problem 8} Let $S$ be a {\em bag} (a.k.a.\ multi-set) of integers, namely, $S$ may contain duplicate integers. Adapt the external sort algorithm to output a disk file containing the {\em distinct} integers of $S$ in ascending order.
+
+\extraspacing {\bf Problem 9} Discuss how to process the following query on a relation $R(A, B)$:
+\mytab{
+    \> \ttt{SELECT $A$, MAX($B$) FROM $R$ GROUP BY $A$} \\
+}
+
+
+\end{document}
