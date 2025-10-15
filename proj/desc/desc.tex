@@ -27,7 +27,11 @@
 \section*{SC3020-CE4301-CZ4031: Project 2}
 
 Prepared by Yufei Tao \\
-Oct 2025 \\
+15 Oct, 2025 \\
+
+\vgap
+
+\noindent \red{\bf DEADLINE: 11:59pm, 20 Nov, 2025}.
 
 
 \section{Main Objective}
@@ -69,11 +73,11 @@ Fourth, use \ttt{pgAdmin4} to import data into the first 8 tables from the \ttt{
 
 Familiarize yourself with the use of \ttt{explain} and \ttt{analyze} in PostgreSQL:
 \myitems{
-    \item By putting \ttt{explain} before an SQL query prompts the system to explain the execution plan selected for the query. For example, try: \\
+    \item Putting \ttt{explain} before an SQL query prompts the system to explain the execution plan selected for the query. For example, try: \\
     \ttt{explain select * from lineitem;} \\
     to see what happens.
 
-    \item By putting \ttt{explain analyze} before an SQL query prompts the system to (i) explain the execution plan selected for the query and (ii) physically execute the plan to obtain the actual performance statistics. For example, try: \\
+    \item Putting \ttt{explain analyze} before an SQL query prompts the system to (i) explain the execution plan selected for the query and (ii) physically execute the plan to obtain the actual performance statistics. For example, try: \\
     \ttt{explain analyze select * from lineitem;} \\
     to see what happens.
 }
@@ -141,6 +145,8 @@ Create an index with the following statement:
 \vgap
 
 \noindent Explain in plain words the query plan that PostgreSQL selects to answer the query. Is it different from the plan chosen in Task 3? Why?
+
+\vgap
 
 \noindent Now run instead
 
@@ -372,7 +378,11 @@ Execute the following commands:
 
 \vgap
 
-\noindent Can you describe an algorithm that can process all three queries with negligible cost differences?
+\noindent If you can change the implementation of PostgreSQL, do you see an algorithm that can process all three queries with negligible cost differences?
+
+\vgap
+
+Rewrite the 3rd query into another SQL query that returns the same result in less than 30 seconds (hint: \ttt{group by} and nested SQL).
 
 
 \subsection{Transactions}
@@ -388,7 +398,7 @@ First, execute the command:
 
 \vgap
 
-\noindent Now, start a transaction: \\
+\noindent Now, start a transaction:
 
 \vgap
 
@@ -396,7 +406,7 @@ First, execute the command:
 
 \vgap
 
-\noindent \ttt{Run the following query}, which we will refer to as $Q1$:
+\noindent Run the following query, which we will refer to as $Q1$:
 
 \vgap
 
@@ -560,16 +570,16 @@ Open a new command-line session and execute the commands:
 
 \section{What to Submit}
 
-Each project group should submit:
-
-\myitems{
-    \item A report in the pdf format. The report must contain a separate section for every task. Each section should include
+Each project group should submit a report in the pdf format. The report must contain a separate section for every task. Each section should include
     \myitems{
         \item the necessary screenshots to demonstrate how the corresponding task was carried out;
         \item detailed explanations for your answers to the questions asked in this document.
     }
+In addition, the report must include a declaration about each group member's contributions, including a contribution percentage for each member (e.g., if your group has 5 members and everyone has contributed equally, you should put down 20\% for each person).
 
-    \item A declaration in the pdf format about the contributions of each individual group member, including a contribution percentage for each member (e.g., if your group has 5 members and everyone has contributed equally, you should put down 20\% for each person).
-}
+\vgap
+
+The submission deadline is \red{\bf 11:59pm, 20 Nov, 2025}.
+
 
 \end{document}
