@@ -245,6 +245,10 @@
 %-------------------------------------------------------------
 \myfrm{
     \mybox[green]{Strategy 4:}
+    \begin{center}
+            \includegraphics[height=30mm]{./artwork/plan2} \vspace{-5mm}
+    \end{center}
+
     \begin{itemize}
         \item Compute $\red{R_3} = \sigma_{B=1} R_1$ by reading $R_1$ and materializing $R_3$ \\
         $\Rightarrow$ 10000 (reading) + 1000 (mat.) I/Os \\[-1mm]
@@ -333,6 +337,7 @@
     \mybox[green]{Strategy 6:}
     \begin{itemize}
         \item Compute $\red{R_3} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ $\Rightarrow$ 10000 I/Os. \\[-1mm]
+        \item Using the hash index on $R_1$, we can find $\red{R_4} = \sigma_{B=1} R_1$ in 1 + 1000 = 1001 I/Os. \\[-1mm]
         \item \bred{As soon as getting a tuple} $\red{t} \in R_3$ \bred{in memory}: probe the hash index on $R_1.B$ to find all tuples $\red{s} \in \sigma_{B=1} R_1$; output $(s.A, t.C)$. \\
         $\Rightarrow$ $|R_3| \cdot 1000$ I/Os.
     \end{itemize}
@@ -363,7 +368,6 @@
     \mybox[green]{Strategy 7:}
     \begin{itemize}
         \item Compute $\red{R_3} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ $\Rightarrow$ 10000 I/Os. \\[-1mm]
-        \item Using the hash index on $R_1$, we can find $\red{R_4} = \sigma_{B=1} R_1$ in 1 + 1000 = 1001 I/Os. \\[-1mm]
         \item \bred{Every time we have accumulated $M - 1 = 100$ blocks of new tuples of $R_3$ in memory}, probe the hash index on $R_1.B$ to find $\red{R_4} = \sigma_{B=1} R_1$; output $(s.A, t.C)$ for each $\red{t} \in R_3$ in memory and every $\red{s} \in R_4$ \\
         $\Rightarrow$ $\lc 800/100 \rc \cdot 1001 = 8008$ I/Os.
     \end{itemize}
