@@ -28,7 +28,7 @@
     \uline{Classroom Discussion}
 \end{center}
 
-Let $R_1(A, B)$ be a relation with attributes $A$ and $B$, and $R_2(A, C)$ be a relation with attributes $A$ and $C$. We assume that there is a B-tree on $R_2$ indexing the attribute $A$. Consider the following 4 algorithms for computing $R_1 \bowtie R_2$.
+Let $R_1(A, B)$ be a relation with attributes $A$ and $B$, and $R_2(A, C)$ be a relation with attributes $A$ and $C$. We assume that there is a B-tree on $R_2$ indexing the attribute $A$. Consider the following four algorithms for computing $R_1 \bowtie R_2$.
 
 \myitems{
     \item Block-based nested loop (BNL)
@@ -45,7 +45,7 @@ Let $R_1(A, B)$ be a relation with attributes $A$ and $B$, and $R_2(A, C)$ be a 
     \item Each block can store 10 tuples of $R_1$ or $R_2$. Hence, $R_1$ is stored in $B(R_1) = 10^4$ blocks, and $R_2$ in $B(R_2) = 10^6$.
     \item Neither $R_1$ nor $R_2$ is sorted on $A$.
     \item The memory has $M = 6001$ blocks.
-    \item The no skew assumption holds for SJ, and the good hashing assumption both holds for HJ.
+    \item The no skew assumption holds for SJ, and the good hashing assumption holds for HJ.
     \item The B-tree on $R_2$ has 3 levels.
     \item For each tuple $t_1 \in R_1$, there are 55 tuples $t_2$ in $R_2$ satisfying the condition $t_1.A = t_2.A$.
 }
@@ -78,7 +78,7 @@ The best approach is to perform BNL.
     \item Each block can store 10 tuples of $R_1$ or $R_2$. Hence, $R_1$ is stored in $B(R_1) = 10^4$ blocks, and $R_2$ in $B(R_2) = 10^6$.
     \item Neither $R_1$ nor $R_2$ is sorted on $A$.
     \item The memory has $M = 2001$ blocks.
-    \item The no skew assumption holds for SJ, and the good hashing assumption both holds for HJ.
+    \item The no skew assumption holds for SJ, and the good hashing assumption holds for HJ.
     \item The B-tree on $R_2$ has 3 levels.
     \item For each tuple $t_1 \in R_1$, there are 15 tuples $t_2$ in $R_2$ satisfying the condition $t_1.A = t_2.A$.
 }
@@ -104,14 +104,13 @@ If you are the query optimizer, how would you compute $R_1 \bowtie R_2$?
 The best approach is to perform HJ.
 \end{sol}
 
-
 \extraspacing {\bf Problem 3.} Suppose we know:
 \myitems{
     \item $R_1$ has $10^5$ tuples, and $R_2$ has $10^7$ tuples.
     \item Each block can store 10 tuples of $R_1$ or $R_2$. Hence, $R_1$ is stored in $B(R_1) = 10^4$ blocks, and $R_2$ in $B(R_2) = 10^6$.
     \item {\bf $R_1$ is not sorted on $A$, but $R_2$ is sorted on $A$.}
     \item The memory has $M = 2001$ blocks.
-    \item The no skew assumption holds for SJ, and the good hashing assumption both holds for HJ.
+    \item The no skew assumption holds for SJ, and the good hashing assumption holds for HJ.
     \item The B-tree on $R_2$ has 3 levels.
     \item For each tuple $t_1 \in R_1$, there are 15 tuples $t_2$ in $R_2$ satisfying the condition $t_1.A = t_2.A$.
 }
@@ -138,5 +137,36 @@ If you are the query optimizer, how would you compute $R_1 \bowtie R_2$?
 
 The best approach is to perform INL.
 \end{sol}
+
+\extraspacing {\bf Problem 4.} Suppose we know:
+\myitems{
+    \item $R_1$ has $10^5$ tuples, and $R_2$ has $10^7$ tuples.
+    \item Each block can store 10 tuples of $R_1$ or $R_2$. Hence, $R_1$ is stored in $B(R_1) = 10^4$ blocks, and $R_2$ in $B(R_2) = 10^6$.
+    \item $R_1$ is not sorted on $A$, but $R_2$ is sorted on $A$.
+    \item The memory has $M = 2002$ blocks.
+    \item The no skew assumption holds for SJ, and the good hashing assumption holds for HJ.
+    \item The B-tree on $R_2$ has 3 levels.
+    \item For each tuple $t_1 \in R_1$, there are 15 tuples $t_2$ in $R_2$ satisfying the condition $t_1.A = t_2.A$.
+}
+We want to compute $R_1 \bowtie R_2$, sort the result on attribute $A$, and store the sorted list on disk. You can assume that each block can store 7 tuples in the join result. If you are the query optimizer, how would you process the query?
+
+
+\begin{sol}
+\extraspacing {\bf Solution.} We make the choice by predicting the I/O cost of each algorithm.
+
+\myitems{
+    %\item BNL\\
+    %I/O cost $= 5010000$ as analyzed in Problem 2.
+
+    \item SJ\\
+    The join result contains $10^5 \times 15 = 1500000$ tuples, which fit in $\lc 1500000/7 \rc = 214286$ I/Os. SJ performs 1050000 I/Os as analyzed in Problem 3, plus $214286$ I/Os for writing the output --- note that the output is already sorted by $A$. The total I/O cost is 1124286.
+
+    \item INL\\
+    INL performs 910000 I/Os as analyzed in Problem 3, plus 214286 I/Os for writing the output. After that, it is still necessary to sort the join result on $A$, the cost of which is $4 \times 214286 = 857144$ I/Os (external sort). Hence, the total I/O cost is 1981430.
+}
+We omit the cost analysis of BNL and HJ (which must perform more I/Os than in Problem 3). The best approach is to perform SJ.
+\end{sol}
+
+
 
 \end{document}
