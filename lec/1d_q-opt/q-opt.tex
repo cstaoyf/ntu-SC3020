@@ -363,10 +363,11 @@
     \mybox[green]{Strategy 7:}
     \begin{itemize}
         \item Compute $\red{R_3} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ $\Rightarrow$ 10000 I/Os. \\[-1mm]
+        \item Using the hash index on $R_1$, we can find $\red{R_4} = \sigma_{B=1} R_1$ in 1 + 1000 = 1001 I/Os. \\[-1mm]
         \item \bred{Every time we have accumulated $M - 1 = 100$ blocks of new tuples of $R_3$ in memory}, probe the hash index on $R_1.B$ to find $\red{R_4} = \sigma_{B=1} R_1$; output $(s.A, t.C)$ for each $\red{t} \in R_3$ in memory and every $\red{s} \in R_4$ \\
-        $\Rightarrow$ $\lc 800/100 \rc \cdot 1000 = 8000$ I/Os.
+        $\Rightarrow$ $\lc 800/100 \rc \cdot 1001 = 8008$ I/Os.
     \end{itemize}
-    In total: $18000$ I/Os.
+    In total: $18008$ I/Os.
 }
 %-------------------------------------------------------------
 \myfrm{
