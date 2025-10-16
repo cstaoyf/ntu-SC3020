@@ -179,12 +179,12 @@
 
     \vgap
 
-    Recall that the input to the problem has $\red{k}$ relations $\red{R_1}, \red{R_2}, ..., \red{R_k}$. The problem can be solved naively with $\red{k \cdot k!}$ calls to the size oracle (\blue{think}: how?).
+    Recall that the input to the problem has $\red{k}$ relations $\red{R_1}, \red{R_2}, ..., \red{R_k}$. The problem can be solved naively with $\red{O(k \cdot k!)}$ calls to the size oracle (\blue{think}: how?).
 
     \vgap
 
     \cbox{blue}{
-        We will show that the problem can be solved with less than $\red{k \cdot 2^k}$ oracle calls by dynamic programming.
+        We will show that the problem can be solved with less than $\red{2^k}$ oracle calls by dynamic programming.
     }
 }
 %-------------------------------------------------------------
@@ -255,7 +255,7 @@
         }
         If $|S| > 2$, then
         \myeqn{
-            \best(S) = \size(S) + \min_{\substack{\text{subset $\red{S'} \in S$}\\ \text{with $\red{|S'| = |S| - 1}$}}} \best(S'). \label{thm:2}
+            \best(S) = \size(S) + \min_{\substack{\text{subset $\red{S'} \subseteq S$}\\ \text{with $\red{|S'| = |S| - 1}$}}} \best(S'). \label{thm:2}
         }
     }
 
@@ -271,23 +271,23 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{blue}{
-        \blue{Corollary 2:} Let $\red{S}$ be a subset of $\set{R_1, ..., R_k}$ with $|S| \ge 3$. If $\best(S')$ is available for every subset $S' \subseteq S$ with $|S'| = |S| - 1$, we can compute $\best(S)$ with $|S| \le k$ oracle calls.
+        \blue{Corollary 2:} Let $\red{S}$ be a subset of $\set{R_1, ..., R_k}$ with $|S| \ge 3$. If $\best(S')$ is available for every subset $S' \subseteq S$ with $|S'| = |S| - 1$, we can compute $\best(S)$ with a single oracle call.
     }
 
     The corollary naturally implies the following algorithm for solving the join order problem.
 
-    \vgap
+    \cbox{green}{
 
     \blue{Step 1:} Find $\best(S)$ for every $S \subseteq \set{R_1, ..., R_k}$ with $\red{|S| = 2}$ \\ (one oracle call for each $S$).
 
     \vgap
 
-    \blue{Step $\red{t \ge 2}$:} Find $\best(S)$ for every $S \subseteq \set{R_1, ..., R_k}$ with $\red{|S| = t+1}$ \\
-    (at most $k$ oracle calls for each $S$).
+    \blue{Step $\red{t \ge 2}$:} For every $S \subseteq \set{R_1, ..., R_k}$ with $\red{|S| = t+1}$, compute $\best(S)$ with one oracle call.
+    }
 
     \vgap
 
-    We obtain $\best(\set{R_1, ..., R_k})$ after Step $k - 1$.
+    We obtain the final answer $\best(\set{R_1, ..., R_k})$ after Step $k - 1$.
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -319,19 +319,19 @@
             \hspace{-8mm}
             \begin{minipage}{0.47\linewidth}
                 \begin{tabular}{c|c|c}
-                    $S$ & $\best$ & \# oracle calls\\
+                    $S$ & $\best$ & reason\\
                     \hline
-                    $R_1,R_2$ & 1000 & 1\\
-                    $R_1,R_3$ & 100 & 1 \\
-                    $R_1,R_4$ & 50 & 1 \\
-                    $R_2,R_3$ & 20 & 1\\
-                    $R_2,R_4$ & 100 & 1\\
-                    $R_3,R_4$ & 30 & 1\\
-                    $R_1, R_2, R_3$ & 1020 & 2 \\
-                    $R_1, R_2, R_4$ & 1550 & 2\\
-                    $R_1, R_3, R_4$ & 830 & 2 \\
-                    $R_2, R_3, R_4$ & 90 & 2\\
-                    $R_1, R_2, R_3, R_4$ & 110 & 3
+                    $R_1,R_2$ & 1000 & - \\
+                    $R_1,R_3$ & 100 & - \\
+                    $R_1,R_4$ & 50 & - \\
+                    $R_2,R_3$ & 20 & - \\
+                    $R_2,R_4$ & 100 & - \\
+                    $R_3,R_4$ & 30 & - \\
+                    $R_1, R_2, R_3$ & 1020 & $R_2, R_3$ \\
+                    $R_1, R_2, R_4$ & 1550 & $R_1, R_4$ \\
+                    $R_1, R_3, R_4$ & 830 & $R_3, R_4$ \\
+                    $R_2, R_3, R_4$ & 90 & $R_2, R_3$ \\
+                    $R_1, R_2, R_3, R_4$ & 110 & $R_2, R_3, R_4$
                 \end{tabular}
             \end{minipage}
         \end{tabular}
@@ -346,7 +346,7 @@
 
     \vgap
 
-    $\set{R_1, R_2, ..., R_k}$ has less than $\red{2^k}$ subsets of size at least 2. For every such subset $\red{S}$, the value $\best(S)$ is computed in one of the $k-1$ steps, and the computation requires at most $k$ oracle calls. The total number of oracle calls is therefore less than $k \cdot 2^k$.
+    $\set{R_1, R_2, ..., R_k}$ has less than $\red{2^k}$ subsets of size at least 2. For every such subset $\red{S}$, the value $\best(S)$ is computed with one oracle call. The total number of oracle calls is therefore less than $2^k$.
 
     \vgap
 
