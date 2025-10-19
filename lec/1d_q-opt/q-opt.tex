@@ -309,7 +309,7 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{blue}{
-        Pipelining may avoid materializing intermediate results altogether, but doing so may \bred{not} necessarily reduce the cost.
+        Pipelining may avoid materializing intermediate results altogether.
     }
 }
 %-------------------------------------------------------------
@@ -321,7 +321,7 @@
             \myitems{
                 \item $\red{B(R_1)} = \red{B(R_2)} = 10000$ \\[-1mm]
                 \item $\sigma_{B = 1} R_1 $ has $1000$ blocks. $R_1$ is \bred{clustered} on $B$ and there is a \bred{hash index} on $R_1.B$. \\[-1mm]
-                \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ has $\red{T}$ tuples occupying $800$ blocks  \\[-1mm]
+                \item $\sigma_{B = 1 \wedge C \in [100, 200]} R_2$ occupies $800$ blocks  \\[-1mm]
                 %\item $\sigma_{B = 1 \wedge C \in [100,200]} R_1 \bowtie R_2$ has $\red{B_2}$ blocks. \\[-1mm]
                 \item $\red{M} = 101$.
             }
