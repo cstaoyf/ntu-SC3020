@@ -12,6 +12,8 @@
 
 \input{./def/yf-def}
 
+\def\extraspacing{\vspace{5mm} \noindent}
+
 \def\dom{\prec}
 \def\T{\mathcal{T}}
 
@@ -33,10 +35,10 @@ Consider three relations: $R_1(A, B)$ --- that is, a relation with attributes $A
 \myitems{
     \item Fact 0.1: Each disk block can store 20 integer values.
     \item Fact 0.2: $|R_1| = |R_2| = |R_3| = 10^7$ (i.e., each relation has $10^7$ tuples). Each of $R_1$, $R_2$, and $R_3$ occupies $10^6$ disk blocks.
-    \item Fact 0.3: The attribute $A$ is the primary key of $R_1$.
+    \item Fact 0.3: The attribute $A$ is the primary key of $R_1$ and $R_3$, but not of $R_2$.
     \item Fact 0.4: There is a B-tree on $R_1$ indexing the attribute $A$. The B-tree has 3 levels.
     \item Fact 0.5: $R_1$ is sorted on $A$, but neither $R_2$ nor $R_3$ is sorted on $A$.
-    \item Fact 0.6: The memory has $M = 2000$ blocks.
+    \item Fact 0.6: The memory has $M = 2500$ blocks.
 }
 
 \extraspacing {\bf Problem 1.} Suppose we also know:
@@ -52,12 +54,12 @@ Given the query
     \> \ttt{select} * {from} $R_1, R_2, R_3$ \\
     \> \ttt{where} $R_1.A = R_2.A$ \ttt{and} $R_2.A = R_3.A$ \ttt{and} $R_2.C \ge 100$;
 }
-We execute it using the plan below:
+We process it using the plan below:
 \myenums{
     \item Scan $R_2$ to materialize
     \myeqn{
         %R_1' = \{\text{tuple } t \in R_1 \mid t.B \ge 100\} \nn \\
-        R_4 = \{\text{tuple } t \in R_1 \mid t.C \ge 100\}. \nn
+        R_4 = \{\text{tuple } t \in R_2 \mid t.C \ge 100\}. \nn
     }
 
     \item  Compute
@@ -83,7 +85,7 @@ The total cost is no more than $1.5 \times 10^6 + 5,333,334 + 5,500,002 = 12,333
 \extraspacing {\bf Problem 2.} Describe an alternative plan to process the query in Problem 1 using at most $11.5 \times 10^6$ I/Os.
 
 \begin{sol}
-\extraspacing {\bf Solution.} First, compute and materialize $R_4$ in $1.5 \times 10^6$ I/Os as before. As $R_4$ occupies $5 \times 10^5$ blocks, sort $R_4$ on $A$ using $4 \times (5 \times 10^5) = 2 \times 10^6$ I/Os. We can then compute and materialize $R_5$ using sort-join (SJ) in $10^6 + 5 \times 10^5 + 833,334 = 2,333,334$ I/Os. Finally, computing $R_5 \bowtie R_3$ in $5,500,002$ I/Os as before.
+\extraspacing {\bf Solution.} First, compute and materialize $R_4$ in $1.5 \times 10^6$ I/Os as before. As $R_4$ occupies $5 \times 10^5$ blocks, sorting $R_4$ on $A$ requires $4 \times (5 \times 10^5) = 2 \times 10^6$ I/Os. We can then compute and materialize $R_5$ using sort-join (SJ) in $10^6 + 5 \times 10^5 + 833,334 = 2,333,334$ I/Os. Finally, computing $R_5 \bowtie R_3$ in $5,500,002$ I/Os as before.
 
 \vgap
 
@@ -91,5 +93,108 @@ The total cost is no more than $1.5 \times 10^6 + 2 \times 10^6 + 2,333,334 + 5,
 
 \end{sol}
 
+
+\extraspacing {\bf Problem 3.} Suppose we also know:
+\myitems{
+    \item Fact 3.1: 1\% of the tuples in $R_2$ satisfy $C \ge 1000$.
+}
+Given the query
+
+%Describe how to process the following query with no more than $13 \times 10^6$ I/Os (the query result is displayed on screen).
+
+\mytab{
+    \> \ttt{select} * {from} $R_1, R_2, R_3$ \\
+    \> \ttt{where} $R_1.A = R_2.A$ \ttt{and} $R_2.A = R_3.A$ \ttt{and} $R_2.C \ge 1000$ \\
+    \> \ttt{order by} $R_1.A$;
+}
+We process it using the plan below:
+\myenums{
+    \item Scan $R_2$ to obtain
+    \myeqn{
+        %R_1' = \{\text{tuple } t \in R_1 \mid t.B \ge 100\} \nn \\
+        R_4 = \{\text{tuple } t_2 \in R_2 \mid t_2.C \ge 1000\}. \nn
+    }
+    {\bf without} materializing it.
+
+    \item  Compute
+    \myeqn{
+        R_5 = R_1 \bowtie R_4 \nn
+    }
+    and materialize it.
+
+    \item Compute
+    \myeqn{
+        R_6 = R_5 \bowtie R_3 \nn
+    }
+    and materialize it.
+
+    \item Output $R_6$ in ascending order of attribute $A$.
+}
+\noindent Provide an argument to show that the above plan performs no more than $5 \times 10^6$ I/Os. Whenever needed, you can make (i) the no-skew assumption for SJ and (ii) the good hashing assumption for HJ.
+
+\begin{sol}
+    \extraspacing {\bf Solution.} Relation $R_4$ has $10^5$ tuples and fits in $10^4$ blocks. Every time we find a tuple $t_2 \in R_2$ with $t_2.C \ge 1000$, we search on the B-tree of $R_1$ to see if there is a tuple $t_1 \in R_1$ satisfying $t_1.A = t_2.A$ (note: there can be at most one such tuple because $A$ is the primary key of $R_1$). Since each search cost takes 4 I/Os (the B-tree has 3 levels; see Fact 0.4), doing the search for all the tuples in $R_4$ requires $4 \times 10^5$ I/Os. Relation $R_5$ has at most $10^5$ tuples and fits in $\lc 10^5 / 6 \rc = 16667$ blocks (each tuple has 3 integers). Hence, Steps 1 and 2 can be performed in $
+        10^6 + 4 \times 10^5 + 16667 = 1,416,667
+    $ I/Os.
+
+    \vgap
+
+    $R_6$ has at most $10^5$ tuples. As each tuple of $R_6$ has 4 integers, a block can contain 5 tuples of $R_6$, which thus fits in $10^5 / 5 = 20000$ blocks. We can compute  and materialize $R_5$ using HJ in $3 \times (16667 + 10^6) + 20000 = 3,070,001$ I/Os.
+    Finally, we carry out Step 4 using external sort, which requires at most $4 \times 20000 = 80000$ I/Os.
+
+    \vgap
+
+    The total I/O cost is therefore $1,416,667 + 3,070,001 + 80,000 =4,566,668$ I/Os.
+\end{sol}
+
+
+
+\extraspacing {\bf Problem 4.} Suppose we also know:
+\myitems{
+    \item Fact 4.1: 0.1\% of the tuples in $R_2$ satisfy $C \ge 10000$.
+}
+Consider the query
+
+%Describe how to process the following query with no more than $13 \times 10^6$ I/Os (the query result is displayed on screen).
+
+\mytab{
+    \> \ttt{select} * {from} $R_1, R_2, R_3$ \\
+    \> \ttt{where} $R_1.A = R_2.A$ \ttt{and} $R_2.A = R_3.A$ \ttt{and} $R_2.C \ge 10000$ \\
+    \> \ttt{order by} $R_1.A$;
+}
+
+\noindent Describe a plan to process the query in no more than $2.5 \times 10^6$ I/Os.
+
+
+\begin{sol}
+    \extraspacing {\bf Solution.}
+    Scan $R_2$ to obtain
+    \myeqn{
+        %R_1' = \{\text{tuple } t \in R_1 \mid t.B \ge 100\} \nn \\
+        R_4 = \{\text{tuple } t_2 \in R_2 \mid t_2.C \ge 10000\}. \nn
+    }
+    Note that $R_4$ has $10^4$ tuples and fits in 1000 blocks. As the memory has $M = 2500$ blocks, we can keep the entire $R_4$ in memory.
+
+    \vgap
+
+    Next, we compute
+    \myeqn{
+        R_5 = R_1 \bowtie R_4. \nn
+    }
+    Towards the purpose, for each tuple $t_4 \in R_4$, we search on the B-tree of $R_1$ to see if there is a tuple $t_1 \in R_1$ satisfying $t_1.A = t_4.A$. Since each search cost takes 4 I/Os (the B-tree has 3 levels), doing the search for all the tuples in $R_4$ requires $4 \times 10^4$ I/Os. Relation $R_5$ has at most $10^5$ tuples and fits in $\lc 10^4 / 6 \rc = 1667$ blocks.
+
+    \vgap
+
+    Next, we compute
+    \myeqn{
+        R_6 = R_5 \bowtie R_3. \nn
+    }
+    Towards the purpose, we keep the entire $R_5$ in memory and perform one scan over $R_3$. Relation $R_6$ has at most $10^4$ tuples. As each tuple of $R_6$ has 4 integers, a block can contain 5 tuples of $R_6$, which thus fits in $10^4 / 5 = 2000$ blocks. We can therefore keep $R_6$ in memory.
+    Finally, sort $R_6$ in memory and output it in ascending order of attribute $A$.
+
+    \vgap
+
+    The total I/O cost is $10^6 + 4 \times 10^4 + 10^6 = 2,040,000$.
+\end{sol}
 
 \end{document}
