@@ -1,0 +1,199 @@
+%\documentclass{...}
+
+\input{./def/yf-formatting}
+
+\usepackage{amsfonts, amsmath, amssymb, amsthm}
+\usepackage{comment}
+\usepackage{graphicx}
+\usepackage{ifthen}
+\usepackage{latexsym}
+%\usepackage{times}
+\usepackage[normalem]{ulem}
+
+\input{./def/yf-def}
+
+\def\dom{\prec}
+\def\T{\mathcal{T}}
+
+%\newboolean{solver}\setboolean{solver}{true}
+\newboolean{solver}\setboolean{solver}{false}
+\ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
+
+\begin{document}
+
+\section*{SC3020-CE4301-CZ4031: Tutorial 7}
+%Prepared by Yufei Tao \\
+
+\begin{center}
+    \uline{Classroom Discussion}
+\end{center}
+
+Let $R_1(A, B)$ be a relation with attributes $A$ and $B$, and $R_2(A, C)$ be a relation with attributes $A$ and $C$. There is a B-tree on $R_2$ indexing the attribute $A$. Consider the following four algorithms for computing $R_1 \bowtie R_2$.
+
+\myitems{
+    \item Block-based nested loop (BNL)
+    \item Sort Join (SJ)
+    \item Hash Join (HJ)
+    \item Index-based nested loop (INL). This algorithm works as follows: for each tuple $t_1 \in R_1$, probe the B-tree on $R_2$ to find all the tuples $t_2 \in R_2$ satisfying the condition $t_1.A = t_2.A$.
+}
+
+\noindent The {\em query optimizer} is responsible for selecting the {\bf best query plan} whose {\em predicted I/O cost} is the lowest. In the following problems, we will gain an idea of how the query plan is chosen.
+
+\extraspacing {\bf Problem 1.} Suppose we know:
+\myitems{
+    \item $R_1$ has $10^5$ tuples, and $R_2$ has $10^7$ tuples.
+    \item Each block can store 10 tuples of $R_1$ or $R_2$. Hence, $R_1$ is stored in $B(R_1) = 10^4$ blocks, and $R_2$ in $B(R_2) = 10^6$.
+    \item Neither $R_1$ nor $R_2$ is sorted on $A$.
+    \item The memory has $M = 6001$ blocks.
+    \item The no skew assumption holds for SJ, and the good hashing assumption holds for HJ.
+    \item The B-tree on $R_2$ has 3 levels.
+    \item For each tuple $t_1 \in R_1$, there are 55 tuples $t_2$ in $R_2$ satisfying the condition $t_1.A = t_2.A$.
+}
+If you are the query optimizer, how would you compute $R_1 \bowtie R_2$?
+
+\begin{sol}
+\extraspacing {\bf Solution.} We make the choice by predicting the I/O cost of each algorithm.
+
+\myitems{
+    \item BNL\\
+    I/O cost $= B(R_1) + \lc B(R_1)/(M-1) \rc \cdot B(R_2) = 10^4 + \lc \fr{10^4}{6000} \rc \cdot 10^6 = 2010000$.
+
+    \item SJ\\
+    I/O cost $= 5 (B(R_1) + B(R_2)) = 5050000$.
+
+    \item HJ\\
+    I/O cost $= 3 (B(R_1) + B(R_2)) = 3030000$.
+
+    \item INL\\
+    For each tuple $t_1 \in R_1$, probing the B-tree of $R_2$ (which is un-clustered) requires one I/O per level\footnote{In general, more than one I/O may be needed to access the leaf level of an un-clustered B-tree. However, in query optimization, it is often acceptable to assume that only one I/O is paid at each level. } and then 55 I/Os to retrieve the 55 tuples $t_2 \in R_2$ satisfying $t_1.A = t_2.A$ (one I/O per tuple). This is $58$ I/Os per tuple in $R_1$. As $R_1$ has $10^5$ tuples, the total I/O cost of B-tree probing is $58 \times 10^5 = 5800000$. In addition, reading the tuples of $R_1$ requires another $B(R_1) = 10^4$ blocks. Thus, overall, INL performs $5810000$ I/Os.
+}
+
+The best approach is to perform BNL.
+\end{sol}
+
+
+\extraspacing {\bf Problem 2.} Suppose we know:
+\myitems{
+    \item $R_1$ has $10^5$ tuples, and $R_2$ has $10^7$ tuples.
+    \item Each block can store 10 tuples of $R_1$ or $R_2$. Hence, $R_1$ is stored in $B(R_1) = 10^4$ blocks, and $R_2$ in $B(R_2) = 10^6$.
+    \item Neither $R_1$ nor $R_2$ is sorted on $A$.
+    \item {\bf The memory has $M = 2001$ blocks.}
+    \item The no skew assumption holds for SJ, and the good hashing assumption holds for HJ.
+    \item The B-tree on $R_2$ has 3 levels.
+    \item For each tuple $t_1 \in R_1$, there are 55 tuples $t_2$ in $R_2$ satisfying the condition $t_1.A = t_2.A$.
+}
+If you are the query optimizer, how would you compute $R_1 \bowtie R_2$?
+
+\begin{sol}
+\extraspacing {\bf Solution.} We make the choice by predicting the I/O cost of each algorithm.
+
+\myitems{
+    \item BNL\\
+    I/O cost $= B(R_1) + \lc B(R_1)/(M-1) \rc \cdot B(R_2) = 10^4 + \lc \fr{10^4}{2000} \rc \cdot 10^6 = 5010000$.
+
+    \item SJ\\
+    I/O cost $= 5 (B(R_1) + B(R_2)) = 5050000$.
+
+    \item HJ\\
+    I/O cost $= 3 (B(R_1) + B(R_2)) = 3030000$.
+
+    \item INL\\
+    I/O cost $= 5810000$ I/Os as analyzed in Problem 1.
+}
+
+The best approach is to perform HJ.
+\end{sol}
+
+\extraspacing {\bf Problem 3.} Suppose we know:
+\myitems{
+    \item $R_1$ has $10^5$ tuples, and $R_2$ has $10^7$ tuples.
+    \item Each block can store 10 tuples of $R_1$ or $R_2$. Hence, $R_1$ is stored in $B(R_1) = 10^4$ blocks, and $R_2$ in $B(R_2) = 10^6$.
+    \item {\bf $R_1$ is not sorted on $A$, but $R_2$ is sorted on $A$.}
+    \item The memory has $M = 2001$ blocks.
+    \item The no skew assumption holds for SJ, and the good hashing assumption holds for HJ.
+    \item The B-tree on $R_2$ has 3 levels.
+    \item For each tuple $t_1 \in R_1$, there are 55 tuples $t_2$ in $R_2$ satisfying the condition $t_1.A = t_2.A$.
+}
+If you are the query optimizer, how would you compute $R_1 \bowtie R_2$?
+
+
+\begin{sol}
+\extraspacing {\bf Solution.} We make the choice by predicting the I/O cost of each algorithm.
+
+\myitems{
+    \item BNL\\
+    I/O cost $= 5010000$ as analyzed in Problem 2.
+
+    \item SJ\\
+    As $R_2$ is already sorted on $A$, SJ only needs to sort $R_1$, which costs $4 \cdot B(R_1)$. After that, one synchronous scan of $R_1$ and $R_2$ finds the result of $R_1 \bowtie R_2$. Hence, the I/O cost is $= 5 \cdot B(R_1) + B(R_2) = 1050000$.
+
+    \item HJ\\
+    I/O cost $= 3 (B(R_1) + B(R_2)) = 3030000$.
+
+    \item INL\\
+    Note that the B-tree of $R_2$ is clustered in this scenario!
+    For each tuple $t_1 \in R_1$, probing the B-tree of $R_2$ requires one I/O per level and then $\lc 55/10 \rc = 6$ I/Os to retrieve the 100 tuples $t_2 \in R_2$ satisfying $t_1.A = t_2.A$ (one I/O per tuple). This is $9$ I/Os per tuple in $R_1$. As $R_1$ has $10^5$ tuples, the total I/O cost of B-tree probing is $9 \times 10^5 = 900000$. In addition, reading the tuples of $R_1$ requires another $B(R_1) = 10^4$ blocks. Thus, overall, INL performs $910000$ I/Os.
+}
+
+The best approach is to perform INL.
+\end{sol}
+
+\extraspacing {\bf Problem 4.} Suppose we know:
+\myitems{
+    \item $R_1$ has $10^5$ tuples, and $R_2$ has $10^7$ tuples.
+    \item Each block can store 10 tuples of $R_1$ or $R_2$. Hence, $R_1$ is stored in $B(R_1) = 10^4$ blocks, and $R_2$ in $B(R_2) = 10^6$.
+    \item $R_1$ is not sorted on $A$, but $R_2$ is sorted on $A$.
+    \item The memory has $M = 2002$ blocks.
+    \item The no skew assumption holds for SJ, and the good hashing assumption holds for HJ.
+    \item The B-tree on $R_2$ has 3 levels.
+    \item For each tuple $t_1 \in R_1$, there are 55 tuples $t_2$ in $R_2$ satisfying the condition $t_1.A = t_2.A$.
+}
+We want to compute $R_1 \bowtie R_2$, sort the result on attribute $A$, and store the sorted list on disk. You can assume that each block can store 7 tuples in the join result. If you are the query optimizer, how would you process the query?
+
+
+\begin{sol}
+\extraspacing {\bf Solution.} We make the choice by predicting the I/O cost of each algorithm.
+
+\myitems{
+    %\item BNL\\
+    %I/O cost $= 5010000$ as analyzed in Problem 2.
+
+    \item SJ\\
+    The join result contains $10^5 \times 55 = 5500000$ tuples, which fit in $\lc 5500000/7 \rc = 785715$ blocks. SJ performs 1050000 I/Os as analyzed in Problem 3, plus $785715$ I/Os for writing the output --- note that the output is already sorted by $A$. The total I/O cost is 1,835,715.
+
+    \item INL\\
+    INL performs 910000 I/Os as analyzed in Problem 3, plus 785715 I/Os for writing the output. After that, it is still necessary to sort the join result on $A$, the cost of which is $4 \times 785715 = 3,142,860$ I/Os (external sort). Hence, the total I/O cost is 4,838,575.
+}
+We omit the cost analysis of BNL and HJ (which must perform more I/Os than in Problem 3). The best approach is to perform SJ.
+\end{sol}
+
+\extraspacing {\bf Problem 5.} Suppose we know:
+\myitems{
+    \item $R_1$ has $10^5$ tuples, and $R_2$ has $10^7$ tuples.
+    \item Each block can store 10 tuples of $R_1$ or $R_2$. Hence, $R_1$ is stored in $B(R_1) = 10^4$ blocks, and $R_2$ in $B(R_2) = 10^6$.
+    \item $R_1$ is not sorted on $A$, but $R_2$ is sorted on $A$.
+    \item The memory has $M = 2002$ blocks.
+    \item The B-tree on $R_2$ has 3 levels.
+    \item For each tuple $t_1 \in R_1$, there are 55 tuples $t_2$ in $R_2$ satisfying the condition $t_1.A = t_2.A$.
+    \item Attribute $A$ is the primary key of $R_1$.
+}
+There is another relation $R_3(A, D)$ with attributes $A$ and $D$. This relation has $10^7$ tuples, which are already sorted on $A$ in a file occupying $10^6$ blocks. Describe a query plan that can compute $R_1 \bowtie R_2 \bowtie R_3$ in at most $4,000,000$ I/Os.
+
+\begin{sol}
+    \extraspacing {\bf Solution.} Use the query plan selected in Problem 4 to write $R_4 = R_1 \bowtie R_2$ onto the disk, sorted by $A$. This requires 1,835,715 I/Os; $ R_3$ occupies $785,715$ blocks. Now the task boils down to computing $R_4 \bowtie R_3$. For every value $a$ in the domain of $A$, there can be at most 55 tuples $t_4 \in R_4$ satisfying $t_4.A = a$ (here we used the conditions stated in the last two bullets of the statement of Problem 5). Hence, the no-skew assumption holds when we apply SJ to compute $R_4 \bowtie R_3$.
+    As both $R_4$ and $R_3$ are sorted on $A$, SJ can produce the result of $R_3 \bowtie R_4$ by reading $R_3$ and $R_4$ once in $785,715 + 10^6 = 1,785,715$ I/Os. Therefore, the total I/O cost is $1,835,715 + 1,785,715 = 3,621,430$.
+\end{sol}
+
+\begin{center}
+    \uline{Critical Thinking}
+\end{center}
+
+\extraspacing {\bf Problem 6.} Find another query plan to solve Problem 5 in at most $2,050,000$ I/Os.
+
+\extraspacing {\bf Problem 7*.} Find another query plan to solve Problem 5 in at most $2,030,000$ I/Os. \\
+(Hint: To meet this I/O budget, you cannot sort $R_1$ completely. Instead, do only the initial step of external sort. What next?)
+
+\extraspacing {\bf Problem 8.} Based on today's discussion, what are the pros and cons of SJ and HJ in your opinion?
+
+
+\end{document}
