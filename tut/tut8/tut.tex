@@ -17,8 +17,8 @@
 \def\best{\mathit{best}}
 \def\size{\mathit{size}}
 
-\newboolean{solver}\setboolean{solver}{true}
-%\newboolean{solver}\setboolean{solver}{false}
+%\newboolean{solver}\setboolean{solver}{true}
+\newboolean{solver}\setboolean{solver}{false}
 \ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
 
 \begin{document}
@@ -125,7 +125,7 @@ We process it using the plan below:
 
     \vgap
 
-    $R_6$ has at most $10^5$ tuples. As each tuple of $R_6$ has 4 integers, a block can contain 5 tuples of $R_6$, which thus fits in $10^5 / 5 = 20000$ blocks. We can compute  and materialize $R_5$ using HJ in $3 \times (16667 + 10^6) + 20000 = 3,070,001$ I/Os.
+    $R_6$ has at most $10^5$ tuples. As each tuple of $R_6$ has 4 integers, a block can contain 5 tuples of $R_6$, which thus fits in $10^5 / 5 = 20000$ blocks. We can compute  and materialize $R_6$ using HJ in $3 \times (16667 + 10^6) + 20000 = 3,070,001$ I/Os.
     Finally, we carry out Step 4 using external sort, which requires at most $4 \times 20000 = 80000$ I/Os.
 
     \vgap
@@ -167,7 +167,7 @@ Consider the query
     \myeqn{
         R_5 = R_1 \bowtie R_4. \nn
     }
-    Towards the purpose, for each tuple $t_4 \in R_4$, we search on the B-tree of $R_1$ to see if there is a tuple $t_1 \in R_1$ satisfying $t_1.A = t_4.A$. Since each search cost takes 4 I/Os (the B-tree has 3 levels), doing the search for all the tuples in $R_4$ requires $4 \times 10^4$ I/Os. Relation $R_5$ has at most $10^5$ tuples, fits in $\lc 10^4 / 6 \rc = 1667$ blocks, and can be stored in memory.
+    Towards the purpose, for each tuple $t_4 \in R_4$, we search on the B-tree of $R_1$ to see if there is a tuple $t_1 \in R_1$ satisfying $t_1.A = t_4.A$. Since each search cost takes 4 I/Os (the B-tree has 3 levels), doing the search for all the tuples in $R_4$ requires $4 \times 10^4$ I/Os. Relation $R_5$ has at most $10^4$ tuples, fits in $\lc 10^4 / 6 \rc = 1667$ blocks, and can be stored in memory.
 
     \vgap
 
@@ -267,7 +267,7 @@ Consider the query
 % \end{sol}
 
 
-\extraspacing {\bf Problem 6.} Suppose we also know:
+\extraspacing {\bf Problem 6*.} Suppose we also know:
 \myitems{
     \item 1\% of the tuples in $R_2$ satisfy $C \ge 1000$.
 }
@@ -281,6 +281,7 @@ Given the query
     \> \ttt{group by} $R_1.A$;
 }
 
-\noindent describe a plan to process the query in at most $XXX \times 10^6$ I/Os, assuming that the query result is displayed on screen.
+\noindent describe a plan to process the query in at most $3.5 \times 10^6$ I/Os, assuming that the query result is displayed on screen.
+(Hint: Run the strategy in the solution to Problem 2 but discard attributes $C$ and $D$ as early as you can.)
 
 \end{document}
