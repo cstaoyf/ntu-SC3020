@@ -14,8 +14,8 @@
 
 \def\extraspacing{\vspace{5mm} \noindent}
 
-\def\dom{\prec}
-\def\T{\mathcal{T}}
+\def\best{\mathit{best}}
+\def\size{\mathit{size}}
 
 \newboolean{solver}\setboolean{solver}{true}
 %\newboolean{solver}\setboolean{solver}{false}
@@ -24,7 +24,7 @@
 \begin{document}
 
 \section*{SC3020-CE4301-CZ4031: Tutorial 8}
-%Prepared by Yufei Tao \\
+Prepared by Yufei Tao \\
 
 \begin{center}
     \uline{Classroom Discussion}
@@ -182,6 +182,67 @@ Consider the query
 
     The total I/O cost is $10^6 \text{ (for reading $R_2$)} + 4 \times 10^4 + 10^6 \text{ (for reading $R_3$)} = 2,040,000$.
 \end{sol}
+
+\extraspacing {\bf Problem 4.} Let $R_1, R_2, ..., R_4$ be four relations. The table below shows the result sizes of all possible natural joins involving at least two relations.
+
+\begin{center}
+    \begin{tabular}{c|c}
+        $S$ & join size \\
+        \hline
+        $R_1,R_2$ & 1000 \\
+        $R_1,R_3$ & 100 \\
+        $R_1,R_4$ & 5000 \\
+        $R_2,R_3$ & 2000 \\
+        $R_2,R_4$ & 700 \\
+        $R_3,R_4$ & 300 \\
+        $R_1, R_2, R_3$ & 10000 \\
+        $R_1, R_2, R_4$ & 15000 \\
+        $R_1, R_3, R_4$ & 8000 \\
+        $R_2, R_3, R_4$ & 60000 \\
+        $R_1, R_2, R_3, R_4$ & 200000
+    \end{tabular}
+\end{center}
+
+\noindent For each of these natural joins, find the optimal join order.
+
+\begin{sol}
+    \extraspacing {\bf Solution.} We demonstrate the execution of the dynamic programming algorithm on the provided input. First, the algorithm looks at all possible size-2 subsets of $\set{R_1, R_2, R_3, R_4}$. For each such subset $S$, the algorithm queries the size oracle to obtain $\size(S)$ and then sets $\best(S) = \size(S)$. By doing so, it generates the following table:
+
+    \begin{center}
+    \begin{tabular}{c|c|c}
+        $S$ & best (smallest) penalty & best order\\
+        \hline
+        $R_1,R_2$ & 1000 & $R_1 \bowtie R_2$ \\
+        $R_1,R_3$ & 100 & $R_1 \bowtie R_3$\\
+        $R_1,R_4$ & 5000 & $R_1 \bowtie R_4$\\
+        $R_2,R_3$ & 2000 & $R_2 \bowtie R_3$\\
+        $R_2,R_4$ & 700 & $R_2 \bowtie R_4$\\
+        $R_3,R_4$ & 300 & $R_3 \bowtie R_4$
+    \end{tabular}
+    \end{center}
+
+    \noindent Note that the order in the last column of the above table does not matter (e.g., $R_2 \bowtie R_1$ is also an optimal order for $S = \set{R_1, R_2}$).
+
+    \vgap
+
+    Next, the algorithm looks at all possible size-3 subsets of $\set{R_1, R_2, R_3, R_4}$. To illustrate consider $S = \set{R_1, R_2, R_3}$. If $R_1$ is the last relation in the join order, the  penalty is $\best(\set{R_2, R_3}) + \size(S) = 2000 + 10000 = 12000$. If $R_2$ is the last relation in the join order, the penalty is $\best(\set{R_1, R_3}) + \size(S) = 100 + 10000 = 10100$. If $R_3$ is the last relation in the join order, the penalty is $\best(\set{R_1, R_2}) + \size(S) = 1000 + 10000 = 11000$. Therefore, the lowest possible penalty is 10100 and the optimal join order for $\set{R_1, R_2, R_3}$ is $R_1 \bowtie R_3 \bowtie R_2$. After processing every size-3 subset in the same manner, the algorithm creates the following table:
+
+        \begin{center}
+    \begin{tabular}{c|c|c}
+        $S$ & best (smallest) penalty & best order\\
+        \hline
+        $R_1,R_2,R_3$ & 10100 & $R_1 \bowtie R_3 \bowtie R_2$ \\
+        $R_1,R_2,R_4$ & 15700 & $R_2 \bowtie R_4 \bowtie R_1$\\
+        $R_1,R_3,R_4$ & 8300 & $R_3 \bowtie R_4 \bowtie R_1$\\
+        $R_2,R_3,R_4$ & 60300 & $R_3 \bowtie R_4 \bowtie R_2$
+    \end{tabular}
+    \end{center}
+
+    Finally, the algorithm looks at $S = \set{R_1, R_2, R_3, R_4}$. If $R_1$ is the last relation in the join order, the penalty is $\best(\set{R_2, R_3, R_4}) + \size(S) = 60300 + 200000 = 260300$. If $R_2$ is the last relation in the join order, the penalty is $\best(\set{R_1, R_3, R_4}) + \size(S) = 8300 + 200000 = 208300$.
+    If $R_3$ is the last relation in the join order, the penalty is $\best(\set{R_1, R_2, R_4}) + \size(S) = 15700 + 200000 = 215700$.
+    If $R_4$ is the last relation in the join order, the penalty is $\best(\set{R_1, R_2, R_3}) + \size(S) = 10100 + 200000 = 210100$. Therefore, the lowest possible penalty is 208300 and the optimal join order for $S$ is $R_3 \bowtie R_4 \bowtie R_1 \bowtie R_2$.
+\end{sol}
+
 
 \vgap
 
