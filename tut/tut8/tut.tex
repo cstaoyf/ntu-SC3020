@@ -69,7 +69,7 @@ we process it using the plan below:
 
     \item Compute $R_5 \bowtie R_3$ using HJ.
 }
-\noindent Provide an argument to show that the above plan performs no more than $13 \times 10^6$ I/Os. Whenever needed, you can make the good hashing assumption for HJ.
+\noindent Provide an argument to show that the above plan performs no more than $13 \times 10^6$ I/Os, assuming that the query result is displayed on screen. Whenever needed, you can make the good hashing assumption for HJ.
 
 \begin{sol}
 \extraspacing {\bf Solution.} By Facts 0.2 and 1.1, the I/O cost of Step 1 is $10^6 + 5 \times 10^5 = 1.5 \times 10^6$ I/Os. The relation $R_4$ occupies $5 \times 10^5$ blocks. As $|R_4| = 5 \times 10^6$, Fact 0.3 tells us that $R_5$ has at most $5 \times 10^6$ tuples. A block can store $\lf 20/3 \rf = 6$ tuples of $R_5$ (each tuple has 3 integers). Hence, $R_5$ fits in $\lc 5 \times 10^6 / 6 \rc = 833,334$ blocks. The I/O cost of Step 2 is thus at most $3 (10^6 + 5 \times 10^5) + 833,334 = 5,333,334$. Finally, Step 3 takes $3 (833,334 + 10^6) = 5,500,002$ I/Os.
@@ -116,7 +116,7 @@ We process it using the plan below:
 
     \item Output $R_6$ in ascending order of attribute $A$.
 }
-\noindent Provide an argument to show that the above plan performs no more than $5 \times 10^6$ I/Os. Whenever needed, you can make (i) the no-skew assumption for sort-join (SJ) and (ii) the good hashing assumption for HJ.
+\noindent Provide an argument to show that the above plan performs no more than $5 \times 10^6$ I/Os, assuming that the query result is displayed on screen. Whenever needed, you can make (i) the no-skew assumption for sort-join (SJ) and (ii) the good hashing assumption for HJ.
 
 \begin{sol}
     \extraspacing {\bf Solution.} By Fact 2.1, relation $R_4$ has $10^5$ tuples and fits in $10^4$ blocks. Every time we find a tuple $t_2 \in R_2$ with $t_2.C \ge 1000$, we search the B-tree of $R_1$ to see if there is a tuple $t_1 \in R_1$ satisfying $t_1.A = t_2.A$ (note: there can be at most one such tuple because $A$ is the primary key of $R_1$). Since each search cost takes 4 I/Os (the B-tree has 3 levels; see Fact 0.4), doing the search for all the tuples in $R_4$ requires $4 \times 10^5$ I/Os. Relation $R_5$ has at most $10^5$ tuples and fits in $\lc 10^5 / 6 \rc = 16667$ blocks (each tuple has 3 integers). Hence, Steps 1 and 2 can be performed in $
@@ -149,7 +149,7 @@ Consider the query
     \> \ttt{order by} $R_1.A$;
 }
 
-\noindent Describe a plan to process the query in no more than $2.5 \times 10^6$ I/Os.
+\noindent Describe a plan to process the query in no more than $2.5 \times 10^6$ I/Os, assuming that the query result is displayed on screen.
 
 
 \begin{sol}
@@ -220,6 +220,6 @@ Given the query
     \> \ttt{group by} $R_1.A$;
 }
 
-\noindent describe a plan to process the query in at most $XXX \times 10^6$ I/Os.
+\noindent describe a plan to process the query in at most $XXX \times 10^6$ I/Os, assuming that the query result is displayed on screen.
 
 \end{document}
