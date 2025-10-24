@@ -17,8 +17,8 @@
 \def\best{\mathit{best}}
 \def\size{\mathit{size}}
 
-%\newboolean{solver}\setboolean{solver}{true}
-\newboolean{solver}\setboolean{solver}{false}
+\newboolean{solver}\setboolean{solver}{true}
+%\newboolean{solver}\setboolean{solver}{false}
 \ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
 
 \begin{document}
@@ -233,14 +233,14 @@ Consider the query
         \hline
         $R_1,R_2,R_3$ & 10100 & $R_1 \bowtie R_3 \bowtie R_2$ \\
         $R_1,R_2,R_4$ & 15700 & $R_2 \bowtie R_4 \bowtie R_1$\\
-        $R_1,R_3,R_4$ & 8300 & $R_3 \bowtie R_4 \bowtie R_1$\\
+        $R_1,R_3,R_4$ & 8100 & $R_1 \bowtie R_3 \bowtie R_4$\\
         $R_2,R_3,R_4$ & 60300 & $R_3 \bowtie R_4 \bowtie R_2$
     \end{tabular}
     \end{center}
 
-    Finally, the algorithm looks at $S = \set{R_1, R_2, R_3, R_4}$. If $R_1$ is the last relation in the join order, the penalty is $\best(\set{R_2, R_3, R_4}) + \size(S) = 60300 + 200000 = 260300$. If $R_2$ is the last relation in the join order, the penalty is $\best(\set{R_1, R_3, R_4}) + \size(S) = 8300 + 200000 = 208300$.
+    Finally, the algorithm looks at $S = \set{R_1, R_2, R_3, R_4}$. If $R_1$ is the last relation in the join order, the penalty is $\best(\set{R_2, R_3, R_4}) + \size(S) = 60300 + 200000 = 260300$. If $R_2$ is the last relation in the join order, the penalty is $\best(\set{R_1, R_3, R_4}) + \size(S) = 8100 + 200000 = 208100$.
     If $R_3$ is the last relation in the join order, the penalty is $\best(\set{R_1, R_2, R_4}) + \size(S) = 15700 + 200000 = 215700$.
-    If $R_4$ is the last relation in the join order, the penalty is $\best(\set{R_1, R_2, R_3}) + \size(S) = 10100 + 200000 = 210100$. Therefore, the lowest possible penalty is 208300 and the optimal join order for $S$ is $R_3 \bowtie R_4 \bowtie R_1 \bowtie R_2$.
+    If $R_4$ is the last relation in the join order, the penalty is $\best(\set{R_1, R_2, R_3}) + \size(S) = 10100 + 200000 = 210100$. Therefore, the lowest possible penalty is 208100 and the optimal join order for $S$ is $R_1 \bowtie R_3 \bowtie R_4 \bowtie R_2$.
 \end{sol}
 
 
