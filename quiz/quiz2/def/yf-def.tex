@@ -1,0 +1,146 @@
+
+%=== use the these packages if they are not already in use ===
+% \usepackage{amsfonts}
+% \usepackage{amsmath}
+% \usepackage{amssymb}
+% \usepackage{amsthm}
+\usepackage{bbm} 
+%\usepackage{cite}
+\usepackage{color}
+%\usepackage{euscript}
+\usepackage{graphicx}
+\usepackage{mathrsfs} 
+%\usepackage{microtype}
+\usepackage[normalem]{ulem}
+% \usepackage{wrapfig}
+%=============================================================
+
+%===== control =====
+\allowdisplaybreaks
+
+%===== fonts =====
+\def\ttt{\texttt}
+\def\tsc{\textsc}
+
+%===== spacing =====
+
+\def\extraspacing{\vspace{3mm} \noindent}
+\def\figcapup{\vspace{-1mm}}
+\def\figcapdown{\vspace{-0mm}}
+\def\hgap{\textrm{\hspace{1mm}}}
+\def\thmvgap{\vspace{0mm}}
+\def\vgap{\vspace{1mm}}
+
+
+%===== tabbing =====
+
+\def\tab{\hspace{3mm}}
+\def\tabpos{\hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} %\= 
+%\= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm} \= \hspace{4mm}
+\kill}
+\newcommand{\mytab}[1]{\begin{tabbing}\tabpos #1\end{tabbing}}
+
+%===== blocks =====
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THEOREMS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\newtheorem{example}{Example}[section]
+
+% \theoremstyle{plain}
+% \newtheorem{theorem}{Theorem}[section]
+% \newtheorem{proposition}[theorem]{Proposition}
+% \newtheorem{lemma}[theorem]{Lemma}
+% \newtheorem{corollary}[theorem]{Corollary}
+% \theoremstyle{definition}
+% \newtheorem{definition}[theorem]{Definition}
+% \newtheorem{assumption}[theorem]{Assumption}
+% \theoremstyle{remark}
+% \newtheorem{remark}[theorem]{Remark}
+
+% \newtheorem{theorem}{Theorem}
+% \newtheorem{lemma}[theorem]{Lemma}
+% \newtheorem{corollary}[theorem]{Corollary}
+% \newtheorem{proposition}{Proposition}
+% \newtheorem{definition}{Definition}
+% \newtheorem{problem}{Problem}
+
+\newcommand{\boxminipg}[2]{\begin{center}\fbox{\begin{minipage}{#1}#2\end{minipage}}\end{center}}
+\newcommand{\minipg}[2]{\begin{center}\begin{minipage}{#1}#2\end{minipage}\end{center}}
+\newcommand{\myitems}[1]{\begin{itemize} #1 \end{itemize}}
+\newcommand{\myenums}[1]{\begin{enumerate} #1 \end{enumerate}}
+
+%===== math macros =====
+
+\newcommand{\bm}[1]{\textrm{\boldmath${#1}$}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+% \newcommand{\smat}[2]{\left[\begin{tabular}{#1}#2\end{tabular}\right]}
+% \newcommand{\bmat}[2]{\left|\begin{tabular}{#1}#2\end{tabular}\right|}
+\newcommand{\bmat}[1]{\begin{bmatrix}#1\end{bmatrix}}
+\newcommand{\vmat}[1]{\begin{vmatrix}#1\end{vmatrix}}
+\newcommand{\myeqn}[1]{\begin{eqnarray}#1\end{eqnarray}}
+\newcommand{\set}[1]{\{#1\}}
+
+
+\newcommand{\explain}[1]{(\textrm{#1})}
+%\newcommand{\bracket}[1]{\left(#1\right)}
+%\newcommand{\dbar}[1]{\Vert#1\Vert}
+%\newcommand{\one}[1]{\mathbbm{1}\{#1\}}
+
+
+\def\mit{\mathit}
+\def\defeq{:=}
+\def\eps{\epsilon}
+\def\fr{\frac}
+\def\-{\mbox{-}}
+\def\ol{\overline}
+\def\real{\mathbb{R}}
+\def\intdom{\mathbb{N}}
+
+\def\tO{\tilde{O}}
+\def\tOmega{\tilde{\Omega}}
+
+\def\lc{\left \lceil}
+\def\lf{\left \lfloor}
+\def\rc{\right \rceil}
+\def\rf{\right \rfloor}
+\newcommand{\ceil}[1]{\left \lceil #1 \right \rceil}
+\newcommand{\floor}[1]{\left \lfloor #1 \right \rfloor}
+
+\def\nn{\nonumber}
+
+\def\Pr{\mathbf{Pr}}
+\def\var{\mathbf{Var}}
+
+% \def\dcl{\{\!\!\{}
+% \def\dcr{\}\!\!\}}
+% \def\bigdcl{\Big\{\!\!\Big\{}
+% \def\bigdcr{\Big\}\!\!\Big\}}
+
+
+\newcommand*{\ldb}{\{\mskip-5mu\{}
+\newcommand*{\rdb}{\}\mskip-5mu\}}
+
+\def\bigmid{\textrm{ $\Big|$ }}
+
+\def\setm{\setminus}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\polylog}{polylog}
+\DeclareMathOperator*{\poly}{poly}
+\DeclareMathOperator*\expt{\mathbf{E}}
+%\DeclareMathOperator*\Pr{\mathbf{Pr}}
+
+%===== misc =====
+
+\def\done{\qed \vspace{2mm}}	% end of proof
+\def\tbc{\hspace*{\fill} $\textrm{{\em (to be continued)}}\blacktriangle$ \vspace{2mm}}
+%\def\done{\hspace*{\fill} $\Box$}	% end of proof
+\allowdisplaybreaks
+%===== coloring =====
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{\bf #1}}
+\newcommand{\purple}[1]{\textcolor{purple}{\bf #1}}
+\newcommand{\todo}[1]{\textcolor{red}{\bf [TO DO: #1]}}
