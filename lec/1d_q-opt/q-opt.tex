@@ -339,9 +339,9 @@
         \item Compute $\red{R_3} = \sigma_{B=1 \wedge C \in [100, 200]} R_2$ by reading $R_2$ $\Rightarrow$ 10000 I/Os. \\[-1mm]
         \item Using the hash index on $R_1$, we can find $\red{R_4} = \sigma_{B=1} R_1$ in 1 + 1000 = 1001 I/Os. \\[-1mm]
         \item \bred{As soon as getting a tuple} $\red{t} \in R_3$ \bred{in memory}: probe the hash index on $R_1.B$ to find all tuples $\red{s} \in \sigma_{B=1} R_1$; output $(s.A, t.C)$. \\
-        $\Rightarrow$ $|R_3| \cdot 1000$ I/Os.
+        $\Rightarrow$ $|R_3| \cdot 1001$ I/Os.
     \end{itemize}
-    In total: $10000 + 10000 |R_3|$ I/Os.
+    In total: $10000 + 1001 |R_3|$ I/Os.
 }
 %-------------------------------------------------------------
 \myfrm{
