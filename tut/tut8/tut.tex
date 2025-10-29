@@ -176,11 +176,11 @@ Consider the query
         R_6 = R_5 \bowtie R_3. \nn
     }
     with one scan over $R_3$ while keeping $R_5$ in memory. The tuples of $R_6$ are written to the disk.
-    Relation $R_6$ has at most $10^4$ tuples. As each tuple of $R_6$ has 4 integers, a block can contain 5 tuples of $R_6$, which thus fits in $10^4 / 5 = 2000$ blocks.  Finally, sort $R_6$ with external sort and output its tuples in ascending order of attribute $A$.
+    Relation $R_6$ has at most $10^4$ tuples. As each tuple of $R_6$ has 4 integers, a block can contain 5 tuples of $R_6$, which thus fits in $10^4 / 5 = 2000$ blocks.  Finally, load $R_6$ into memory, sort it, and output its tuples in ascending order of attribute $A$.
 
     \vgap
 
-    The total I/O cost is $10^6 \text{ (for reading $R_2$)} + 4 \times 10^4 + 10^6 \text{ (for reading $R_3$)} + 10^4 \text{ (for writing $R_6$)} + 4 \times 10^4 \text{ (for sorting $R_6$)} = 2,090,000$.
+    The total I/O cost is $10^6 \text{ (for reading $R_2$)} + 4 \times 10^4 + 10^6 \text{ (for reading $R_3$)} + 10^4 \text{ (for writing $R_6$)} + 10^4 \text{ (for reading $R_6$)} = 2,060,000$.
 \end{sol}
 
 \extraspacing {\bf Problem 4.} Let $R_1, R_2, ..., R_4$ be four relations. The table below shows the result sizes of all possible natural joins involving at least two relations.
