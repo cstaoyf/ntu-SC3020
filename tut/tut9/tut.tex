@@ -167,21 +167,21 @@ The following are two schedules for executing these transactions (showing only t
 
 \extraspacing {\bf Problem 4.} Consider three transactions:
 \myitems{
-    \item $T_1$: R($A$), W($B$), W($D$)
+    \item $T_1$: R($A$); W($B$); W($D$);
 
-    \item $T_2$: R($B$), W($C$), W($A$)
+    \item $T_2$: R($B$); W($C$); W($A$);
 
-    \item $T_3$: R($C$), W($D$), R($C$)
+    \item $T_3$: R($C$); W($D$); R($C$)
 }
-where R($X$) means reading $X$ from the disk, and W($X$) means writing $X$ to the disk. Suppose that all the transactions are executed with the same isolation level. For each schedule below, indicate the strongest isolation level (among read uncommitted, read committed, repeatable read, and serializable) that can produce the schedule. Remark: the numbers in a schedule denote transaction IDs; e.g., R1($A$) represents an R($A$) operation from $T_1$.
+where R($X$) means reading $X$ from the disk, and W($X$) means writing $X$ to the disk. Suppose that all the transactions are executed with the same isolation level. For each schedule below, indicate the strongest isolation level (among ``read uncommitted'', ``read committed'', ``repeatable read'', and ``serializable'') that can produce the schedule. Remark: the numbers in a schedule denote transaction IDs; e.g., R1($A$) represents an R($A$) operation from $T_1$.
 
 \vgap
 
-(a) R1($A$), R2($B$), R3($C$), W2($C$), W2($A$), Commit2, W3($D$), R3($C$), Commit3, W1($B$), W1($D$), Commit1
+(a) R1($A$); R2($B$); R3($C$); W2($C$); W2($A$); Commit2; W3($D$); R3($C$); Commit3; W1($B$); W1($D$); Commit1;
 
 \vgap
 
-(b) R1($A$), R2($B$), W2($C$), W2($A$), W1($B$), W1($D$), Commit1, Commit2, R3($C$), W3($D$), R3($C$), Commit3
+(b) R1($A$); R2($B$); W2($C$); W2($A$); W1($B$); W1($D$); Commit1; Commit2; R3($C$); W3($D$); R3($C$); Commit3;
 
 \begin{sol}
     \extraspacing {\bf Solution.} (a) First, we check for unrepeatable reads. Observe that $T_3$ is the only transaction that performs two reads on the same value, which is $C$. In this schedule, the two R3($C$) operations have a W2($C$) operation in between. Hence, there is no guarantee that the two R3($C$) will fetch the same value. Thus, an unrepeatable read exist.
@@ -192,7 +192,7 @@ where R($X$) means reading $X$ from the disk, and W($X$) means writing $X$ to th
 
     \vgap
 
-    We can now conclude that the strongest isolation level possible is read committed.
+    We can now conclude that the strongest isolation level possible is ``read committed''.
 
     \vgap
 
@@ -208,15 +208,22 @@ where R($X$) means reading $X$ from the disk, and W($X$) means writing $X$ to th
 
    \vgap
 
-   We can now conclude that the strongest isolation level possible is repeatable read.
+   We can now conclude that the strongest isolation level possible is ``repeatable read''.
 
 
 \end{sol}
 
 
-%(b) R1($A$); R2($B$); R3($C$); W2($C$); W2($A$); Commit2; W3($D$); R3($C$); W1($B$); R1($C$); W1($D$); Commit3; Commit1;
+\begin{center}
+    \uline{Critical Thinking}
+\end{center}
 
-% (b) R3($A$); W3($D$); R1($A$); R2($B$); W1($B$); W2($C$); W1($D$); R1($C$); I2($A$); Commit2; Commit3; Commit1;
-%
-% (c) R1($A$); R2($B$); R3($C$); W1($B$); W2($C$); R3($A$); W3($D$); I2($A$); Commit1; Commit3; Commit2;
+\extraspacing {\bf Problem 5.} In booking a hotel room online, we sometimes encounter the following situation: a room suddenly becomes unavailable when we are ready to pay for it, even though we have not yet left the website. Are you able to explain this from the perspective of isolation levels?
+
+\extraspacing {\bf Problem 6.} Many transactions in reality perform nothing but a single read. More specifically, such a transaction looks like this:
+\begin{center}
+    \ttt{READ}($X$); \ttt{COMMIT};
+\end{center}
+These transactions typically run at the ``read committed'' level even in critical applications (e.g., banking). Does this make sense to you? Are there advantages in running them at the ``repeatable read'' level? How about the ``serializable'' level?
+
 \end{document}
