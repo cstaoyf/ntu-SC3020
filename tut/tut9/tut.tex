@@ -87,15 +87,15 @@ The following are two schedules for executing these transactions (showing only t
         schedule 1 & schedule 2 \\
         \hline
         $T_1: \ttt{READ}(A)$ & $T_1: \ttt{READ}(A)$ \\
-        $T_1: \ttt{READ}(B)$ & $T_1: \ttt{READ}(B)$  \\
-        $T_1: \ttt{WRITE}(B)$ & $T_1: \ttt{WRITE}(B)$ \\
-        $T_1: \ttt{WRITE}(A)$ & $T_2: \ttt{READ}(B)$  \\
-        $T_2: \ttt{READ}(B)$ & $T_2: \ttt{WRITE}(B)$  \\
-        $T_2: \ttt{WRITE}(B)$ & $T_3: \ttt{READ}(C)$  \\
+        $T_1: \ttt{READ}(B)$ & $T_3: \ttt{READ}(C)$ \\
+        $T_1: \ttt{WRITE}(B)$ & $T_1: \ttt{READ}(B)$ \\
+        $T_1: \ttt{WRITE}(A)$ & $T_1: \ttt{WRITE}(B)$ \\
+        $T_2: \ttt{READ}(B)$ & $T_2: \ttt{READ}(B)$ \\
+        $T_2: \ttt{WRITE}(B)$ & $T_2: \ttt{WRITE}(B)$  \\
         $T_2: \ttt{READ}(C)$ & $T_3: \ttt{WRITE}(C)$  \\
         $T_2: \ttt{WRITE}(C)$ & $T_2: \ttt{READ}(C)$  \\
-        $T_3: \ttt{READ}(C)$ & $T_2: \ttt{WRITE}(C)$  \\
-        $T_3: \ttt{WRITE}(C)$ & $T_1: \ttt{WRITE}(A)$
+        $T_3: \ttt{READ}(C)$ &  $T_1: \ttt{WRITE}(A)$ \\
+        $T_3: \ttt{WRITE}(C)$ & $T_2: \ttt{WRITE}(C)$
     \end{tabular}
 \end{center}
 
