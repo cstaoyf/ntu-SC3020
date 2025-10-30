@@ -111,7 +111,53 @@ The following are two schedules for executing these transactions (showing only t
     (2) Yes: schedule 2 is equivalent to the serial schedule $T_1, T_3, T_2$.
 \end{sol}
 
-\extraspacing {\bf Problem 3.}
+\extraspacing {\bf Problem 3.} We have a relation \ttt{ACC}(\ttt{id}, \ttt{balance}), which has only 1 tuple $(1, 100)$. Consider the following concurrent schedule:
+
+\begin{center}
+    \begin{tabular}{c|c|c}
+        & $T_1$ & $T_2$ \\
+        \hline
+        1 & \ttt{select sum}(\ttt{balance}) \ttt{from ACC} & \\
+        2 && \ttt{update ACC set balance} = \ttt{balance} + 100 \\
+        3 & \ttt{select sum}(\ttt{balance}) \ttt{from ACC} & \\
+        4 && \ttt{insert into ACC values} (2, 200) \\
+        5 & \ttt{select sum}(\ttt{balance}) \ttt{from ACC} & \\
+    \end{tabular}
+\end{center}
+
+%(1) What is the result of the query in Instruction 1?
+
+%\vgap
+
+(1) Suppose that the database executes the query in instruction 3 on \ttt{ACC} after the relation has been updated by Instruction 2. What is its result? Among non-serializability, phantom, non-repeatable read, and dirty read, what anomalies does this incur?
+
+\vgap
+
+(2) Suppose that the database executes the query in instruction 5 on \ttt{ACC} after the relation has been updated by Instructions 2 and 4. What is its result? Among non-serializability, phantom, non-repeatable read, and dirty read, what anomalies does this incur?
+
+\vgap
+
+(3) Can the situations in (1) and (2) occur if $T_1$ and $T_2$ are run at the ``read committed'' isolation level? What if $T_2$ commits right after Instruction 2 (without executing Instruction 4)?
+
+\vgap
+
+(4) Suppose that both $T_1$ and $T_2$ are both at the ``serializable'' isolation level. The above schedule is actually allowed by PostgreSQL. However, all three queries of $T_1$ will return the same result 100. Does this violate serializability? Why?
+
+\begin{sol}
+    \extraspacing {\bf Solution.} (1) The query returns 200. There are three anomalies here: non-serializability, non-repeatable read, and dirty read (because $T_2$ has not committed).
+
+    \vgap
+
+    (2) The query returns 400. There are two anomalies here: non-serializability, phantom, and dirty read.
+
+    \vgap
+
+    (3) No because ``read committed'' does not allow dirty reads. However, if $T_2$ commits rights after Instruction 2, then the answer is yes.
+
+    \vgap
+
+    (4) It does not! The execution of PostgreSQL is equivalent to the serial schedule $T_1, T_2$.
+\end{sol}
 
 
 \end{document}
