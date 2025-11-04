@@ -48,10 +48,9 @@
 
 \mytab{
     \ttt{select} $A$, \ttt{SUM}$(B)$ \ttt{from} $R_1$ \\
-    \ttt{where} \ttt{exists} ( \\
-    \> \ttt{select} * \ttt{from} $R_2, R_3$ \\
-    \> \ttt{where} $R_1.B = R_2.B$ \ttt{and} $R_2.C = R_3.C$ \ttt{and} $R_3.D \ge 100$ \\
-    ) \\
+    \ttt{where} \ttt{exists} \\
+    \> (\ttt{select} * \ttt{from} $R_2, R_3$ \ttt{where} $R_1.B = R_2.B$ \ttt{and} $R_2.C = R_3.C$ \ttt{and} $R_3.D \ge 100$ ) \\
+    %) \\
     \ttt{group by} $A$
 
 }
