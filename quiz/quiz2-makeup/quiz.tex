@@ -86,11 +86,11 @@
 %Whenever needed, you can make the good hashing assumption for HJ.
 
 \begin{sol}
-    \extraspacing {\bf Solution.} By Fact 6, $R_3'$ has $10^5$ tuples and fits in $10^4$ blocks. Hence, Step 1 requires $10^5 + 10^4 = 110,000$ I/Os.
+    \extraspacing {\bf Solution.} As $R_3'$ has $10^5$ tuples and fits in $10^4$ blocks, Step 1 requires $10^5 + 10^4 = 110,000$ I/Os.
 
     \vgap
 
-    For each tuple $t_1 \in R_1$, Step 2.1 performs $1 \text{ (for probing the hash index)} + 100/10 \text{ (for reading the}$ $\text{ tuples of $R'_2(t_1)$)} = 11$ I/Os, while Step 2.2 performs $10^4$ I/Os. Hence, Step 2 performs in total $10^4 \times (11 + 10^4) = 100,110,000$ I/Os.
+    For each tuple $t_1 \in R_1$, Step 2.1 performs $1 \text{ (for probing the hash index)} + 100/10 \text{ (for reading the}$ $\text{ tuples of $R'_2(t_1)$)} = 11$ I/Os, while Step 2.2 performs $10^4$ I/Os (reading $R'_3$). Hence, Step 2 performs in total $10^4 \times (11 + 10^4) = 100,110,000$ I/Os.
 
     \vgap
 
@@ -116,15 +116,15 @@
 
     \vgap
 
-    Use HJ to compute $R_4 = R_3' \bowtie R_2$ in $3 \times (10^7 + 10^4)= 30,030,000$ I/Os. Note that $|R_4| \le |R_3'| = 10^5$. Hence, materializing $R_4$ takes another $10^4$ I/Os at most.
+    Use HJ to compute $R_4 = \Pi_{B,C}(R_3' \bowtie R_2)$ in $3 \times (10^7 + 10^4)= 30,030,000$ I/Os. Note that $|R_4| \le |R_3'| = 10^5$. Materializing $R_4$ takes another $10^4$ I/Os at most.
 
     \vgap
 
-    Now, compute $R_5 = R_1 \bowtie R_4$ using HJ and materialize $\Pi_{A,B}(R_5)$. The HJ requires $3 \times (10^3 + 10^4) = 33,000$ I/Os, and the materialization takes at most $10^3$ I/Os.
+    Now, compute $R_5 = \Pi_{A,B}(R_1 \bowtie R_4)$ using HJ in $3 \times (10^3 + 10^4) = 33,000$ I/Os. Note that $|R_5| \le |R_1| = 10^4$. Materializing $R_5$ takes at most $10^3$ I/Os.
 
     \vgap
 
-    Finally, perform Step 4 in Question 1 in $4 \times 10^3$ I/Os.
+    Finally, perform Step 4 of the plan in Question 1 using $4 \times 10^3$ I/Os.
 
     \vgap
 
