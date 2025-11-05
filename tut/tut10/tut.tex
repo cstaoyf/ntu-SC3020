@@ -1,0 +1,229 @@
+%\documentclass{...}
+
+\input{./def/yf-formatting}
+
+\usepackage{amsfonts, amsmath, amssymb, amsthm}
+\usepackage{comment}
+\usepackage{graphicx}
+\usepackage{ifthen}
+\usepackage{latexsym}
+%\usepackage{times}
+\usepackage[normalem]{ulem}
+
+\input{./def/yf-def}
+
+\def\extraspacing{\vspace{5mm} \noindent}
+
+\def\best{\mathit{best}}
+\def\size{\mathit{size}}
+
+%\newboolean{solver}\setboolean{solver}{true}
+\newboolean{solver}\setboolean{solver}{false}
+\ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
+
+\begin{document}
+
+\section*{SC3020-CE4301-CZ4031: Tutorial 9}
+%Prepared by Yufei Tao \\
+
+\begin{center}
+    \uline{Classroom Discussion}
+\end{center}
+
+\extraspacing {\bf Problem 1.} Consider the following schedule:
+
+\begin{center}
+    \begin{tabular}{c|c}
+        no & instruction \\
+        \hline
+        1 & $T_1: \ttt{READ}(X)$ \\
+        2 & $T_1: X = X + 1$ \\
+        3 & $T_1: \ttt{WRITE}(X)$ \\
+        4 & $T_2: \ttt{READ}(X)$ \\
+        5 & $T_2: Y = X + 1$ \\
+        6 & $T_2: \ttt{WRITE}(Y)$ \\
+        7 & $T_3: \ttt{READ}(Y)$ \\
+        8 & $T_3: Z = Y + 1$ \\
+        9 & $T_3: \ttt{WRITE}(Z)$
+    \end{tabular}
+\end{center}
+
+(1) Assume that the values of $X$, $Y$, and $Z$ are all 0 on disk initially. What are their (disk) values after instruction 9?
+
+\vgap
+
+(2) Suppose that $T_1$ aborts right after instruction 9. A rollback process then kicks in. What are the values of $X$, $Y$, and $Z$ on disk after the process? Which of $T_2$ and $T_3$ are still running at that time?
+
+\vgap
+
+(3) Which of the three $\ttt{READ}$ operations are dirty?
+
+\vgap
+
+(4) Suppose that everything runs fine and the three transactions are ready to commit. What are the possible commit orders so that the overall schedule is recoverable?
+
+\begin{sol}
+\extraspacing {\bf Solution.} (1): $X = 1, Y = 2, Z = 3$.
+
+\vgap
+
+(2) $X = Y = Z = 0$. Neither $T_2$ nor $T_3$ is running because they are both forced to abort.
+
+\vgap
+
+(3) Instructions 4 and 7.
+
+\vgap
+
+(4) Since $T_2$ reads a value written by $T_1$, $T_2$ must commit after $T_1$. Likewise, since $T_3$ reads a value written by $T_2$, $T_3$ must commit after $T_2$. Therefore, the only possible commit order is $T_1, T_2, T_3$.
+\end{sol}
+
+\extraspacing {\bf Problem 2.} Consider three transactions:
+
+$T_1: \ttt{READ}(A); \ttt{READ}(B); A = A + 100; B = 2B; \ttt{WRITE}(B); \ttt{WRITE}(A); \ttt{COMMIT}$
+
+$T_2: \ttt{READ}(B); B = B + 50; \ttt{WRITE}(B); \ttt{READ}(C); C = B + C; \ttt{WRITE}(C); \ttt{COMMIT}$
+
+$T_3: \ttt{READ}(C); C = 3C; \ttt{WRITE}(C); \ttt{COMMIT}$
+
+The following are two schedules for executing these transactions (showing only the I/O and commit instructions):
+
+\begin{center}
+    \begin{tabular}{c|c}
+        schedule 1 & schedule 2 \\
+        \hline
+        $T_1: \ttt{READ}(A)$ & $T_1: \ttt{READ}(A)$ \\
+        $T_1: \ttt{READ}(B)$ & $T_3: \ttt{READ}(C)$ \\
+        $T_1: \ttt{WRITE}(B)$ & $T_1: \ttt{READ}(B)$ \\
+        $T_1: \ttt{WRITE}(A)$ & $T_1: \ttt{WRITE}(B)$ \\
+        $T_2: \ttt{READ}(B)$ & $T_2: \ttt{READ}(B)$ \\
+        $T_2: \ttt{WRITE}(B)$ & $T_2: \ttt{WRITE}(B)$  \\
+        $T_2: \ttt{READ}(C)$ & $T_3: \ttt{WRITE}(C)$  \\
+        $T_2: \ttt{WRITE}(C)$ & $T_2: \ttt{READ}(C)$  \\
+        $T_3: \ttt{READ}(C)$ &  $T_1: \ttt{WRITE}(A)$ \\
+        $T_3: \ttt{WRITE}(C)$ & $T_2: \ttt{WRITE}(C)$
+    \end{tabular}
+\end{center}
+
+(1) Are the two schedules equivalent?
+
+(2) Is schedule 2 serializable?
+
+\begin{sol}
+    \extraspacing {\bf Solution.} (i) Two schedules are equivalent if they always leave the database in the same state. Suppose that the disk values of $A$, $B$, and $C$ are $a_0, b_0$, and $c_0$, respectively. After schedule 1, their disk values become $a_0 + 100$, $2b_0 + 50$, and $3(2b_0 + 50 + c_0)$, respectively. After schedule 2, their disk values become $a_0 + 100, 2b_0 + 50$, and $3c_0 + 2b_0 + 50$, respectively. As $3(2b_0 + 50 + c_0)$ is not always equivalent to $3c_0 + 2b_0 + 50$, the two schedules are not equivalent.
+
+    \vgap
+
+    (2) Yes: schedule 2 is equivalent to the serial schedule $T_1, T_3, T_2$.
+\end{sol}
+
+\extraspacing {\bf Problem 3.} We have a relation \ttt{ACC}(\ttt{id}, \ttt{balance}), which has only 1 tuple $(1, 100)$. Consider the following concurrent schedule:
+
+\begin{center}
+    \begin{tabular}{c|c|c}
+        & $T_1$ & $T_2$ \\
+        \hline
+        1 & \ttt{select sum}(\ttt{balance}) \ttt{from ACC} & \\
+        2 && \ttt{update ACC set balance} = \ttt{balance} + 100 \\
+        3 & \ttt{select sum}(\ttt{balance}) \ttt{from ACC} & \\
+        4 && \ttt{insert into ACC values} (2, 200) \\
+        5 & \ttt{select sum}(\ttt{balance}) \ttt{from ACC} & \\
+    \end{tabular}
+\end{center}
+
+%(1) What is the result of the query in Instruction 1?
+
+%\vgap
+
+(1) Suppose that the database executes the query in instruction 3 on \ttt{ACC} after the relation has been updated by Instruction 2. What is its result? Among non-serializability, phantom, unrepeatable read, and dirty read, what anomalies does this incur?
+
+\vgap
+
+(2) Suppose that the database executes the query in instruction 5 on \ttt{ACC} after the relation has been updated by Instructions 2 and 4. What is its result? Among non-serializability, phantom, unrepeatable read, and dirty read, what anomalies does this incur?
+
+\vgap
+
+(3) Can the situations in (1) and (2) occur if $T_1$ and $T_2$ are run at the ``read committed'' isolation level? What if $T_2$ commits right after Instruction 2 (without executing Instruction 4)?
+
+\vgap
+
+(4) Suppose that both $T_1$ and $T_2$ are both at the ``serializable'' isolation level. The above schedule is actually allowed by PostgreSQL. However, all three queries of $T_1$ will return the same result 100. Does this violate serializability? Why?
+
+\begin{sol}
+    \extraspacing {\bf Solution.} (1) The query returns 200. There are three anomalies here: non-serializability, unrepeatable read, and dirty read (because $T_2$ has not committed).
+
+    \vgap
+
+    (2) The query returns 400. All four anomalies apply here.
+
+    \vgap
+
+    (3) No because ``read committed'' does not allow dirty reads. However, if $T_2$ commits rights after Instruction 2, then the answer is yes.
+
+    \vgap
+
+    (4) It does not! The execution of PostgreSQL is equivalent to the serial schedule $T_1, T_2$.
+\end{sol}
+
+\extraspacing {\bf Problem 4.} Consider three transactions:
+\myitems{
+    \item $T_1$: R($A$); W($B$); W($D$);
+
+    \item $T_2$: R($B$); W($C$); W($A$);
+
+    \item $T_3$: R($C$); W($D$); R($C$)
+}
+where R($X$) means reading $X$ from the disk, and W($X$) means writing $X$ to the disk. Suppose that all the transactions are executed with the same isolation level. For each schedule below, indicate the strongest isolation level (among ``read uncommitted'', ``read committed'', ``repeatable read'', and ``serializable'') that can produce the schedule. Remark: the numbers in a schedule denote transaction IDs; e.g., R1($A$) represents an R($A$) operation from $T_1$.
+
+\vgap
+
+(a) R1($A$); R2($B$); R3($C$); W2($C$); W2($A$); Commit2; W3($D$); R3($C$); Commit3; W1($B$); W1($D$); Commit1;
+
+\vgap
+
+(b) R1($A$); R2($B$); W2($C$); W2($A$); W1($B$); W1($D$); Commit1; Commit2; R3($C$); W3($D$); R3($C$); Commit3;
+
+\begin{sol}
+    \extraspacing {\bf Solution.} (a) First, we check for unrepeatable reads. Observe that $T_3$ is the only transaction that performs two reads on the same value, which is $C$. In this schedule, the two R3($C$) operations have a W2($C$) operation in between. Hence, there is no guarantee that the two R3($C$) will fetch the same value. Thus, an unrepeatable read exist.
+
+    \vgap
+
+    Second, we check for dirty reads but find none. In particular, the second R3($C$) is not dirty because $T_2$ had already committed before it occurred.
+
+    \vgap
+
+    We can now conclude that the strongest isolation level possible is ``read committed''.
+
+    \vgap
+
+   (b) First, we check for unrepeatable reads. By the reasoning explained earlier, it suffices to examine the two R3($C$) operations, which must fetch the same value this time. Hence, no unrepeatable reads exist.
+
+   \vgap
+
+   Second, we check for dirty reads. There are none.
+
+   \vgap
+
+   Third, we check for serializability. The fact that R1($A$) is before W2($A$) implies that $T_1$ must precede $T_2$ in any equivalent serial schedule. However, the fact that R2($B$) is before W1($B$) implies that $T_2$ must precede $T_1$ in any equivalent serial schedule. Therefore, the schedule is not serializable.
+
+   \vgap
+
+   We can now conclude that the strongest isolation level possible is ``repeatable read''.
+
+
+\end{sol}
+
+
+\begin{center}
+    \uline{Critical Thinking}
+\end{center}
+
+\extraspacing {\bf Problem 5.} In booking a hotel room online, we sometimes encounter the following situation: a room suddenly becomes unavailable when we are ready to pay for it, even though we have not yet left the website. Are you able to explain this from the perspective of isolation levels?
+
+\extraspacing {\bf Problem 6.} Many transactions in reality perform nothing but a single read. More specifically, such a transaction looks like this:
+\begin{center}
+    \ttt{READ}($X$); \ttt{COMMIT};
+\end{center}
+These transactions typically run at the ``read committed'' level even in critical applications (e.g., banking). Does this make sense to you? Are there advantages in running them at the ``repeatable read'' level? How about the ``serializable'' level?
+
+\end{document}
