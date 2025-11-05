@@ -140,7 +140,7 @@ Therefore, there are only two possible conflict-equivalent serial schedules: $T_
  7 & $T_3:$ X-LOCK(C) & \\
 8 & $T_3:$ READ(C) & $T_1$ on hold at UPGRADE(A); $T_2$ on hold at X-LOCK(C)\\
 9 & $T_3:$ WRITE(C) & \\
-10 & $T_3:$ COMMIT & releases all locks \\
+10 & $T_3:$ COMMIT & $T_3$ releases all locks \\
 11 & $T_1:$ UPGRADE(A) & \\
 12 & $T_2:$ X-LOCK(C) & \\
 13 & $T_1:$ WRITE(A) & \\
@@ -220,7 +220,8 @@ The precedence graph for (ii) is
         \hline
         1 & \ttt{select sum}(\ttt{balance}) \ttt{from ACC} & \\
         2 && \ttt{update ACC set balance} = \ttt{balance} + 100 \\
-        3 & \ttt{update ACC set balance} = \ttt{balance} + 100 &
+        3 & \ttt{update ACC set balance} = \ttt{balance} + 100 & \\
+        4 & & \ttt{select sum}(\ttt{balance}) \ttt{from ACC}
     \end{tabular}
 \end{center}
 
