@@ -28,7 +28,7 @@
 \def\ulock{\ttt{U-LOCK}}
 \def\unlock{\ttt{UNLOCK}}
 \def\wt{\ttt{WRITE}}
-\def\xlock{\ttt{X-LOCK}}
+\def\xlock{\ttt{LOCK}}
 
 \title[DATABASE SYSTEM PRINCIPLES]{Transactions 5:\\ Multi-Version Concurrency Control}
 
@@ -69,7 +69,7 @@
     %Our discussion will focus on the main ideas behind PostgreSQL's MVCC implementation, rather than its full details. To make this easier, we will work under the following assumption:
 
 
-    Our discussion will be based on the MVCC implementation in PostgreSQL. We will introduce an assumption:
+    We will introduce an assumption:
 
     \vgap
 
@@ -80,7 +80,12 @@
 
     \vgap
 
-    The assumption allows us to simplify the discussion and concentrate on the core principles behind MVCC's support for ``read committed''.
+    The assumption allows us to simplify the discussion and concentrate on the core principles behind MVCC's support for ``read committed''. It is not difficult to remove the assumption once those principles are clear.
+
+    \vgap
+
+
+    The protocol we will learn is close to what is implemented in PostgreSQL.
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -91,11 +96,7 @@
     \vgap
 
     \cbox{red}{
-        PostgreSQL has the requirement that a transaction $\red{T_1}$ starts before another transaction $\red{T_2}$, the ID of $T_1$ is smaller than that of $T_2$.
-
-        \vgap
-
-        Such a requirement is not needed in our discussion today.
+        \bred{Remark:} PostgreSQL has the requirement that a transaction $\red{T_1}$ starts before another transaction $\red{T_2}$, the ID of $T_1$ is smaller than that of $T_2$. We do not need this requirement today.
     }
 }
 %-------------------------------------------------------------
@@ -166,7 +167,7 @@
     }
 
     \cbox{blue}{
-        \blue{Rule 2:} Let $\red{T}$ be a transaction with id $\red{ID_T}$ and $\red{t}$ be a tuple. Suppose that $T$ performs $\red{\rd(t)}$, and the current history of $t$ is $\red{r_1}, \red{r_2}, ..., \red{r_\ell}$. The database acts as follows:
+        \blue{Rule 2:} Let $\red{t}$ be a tuple and $\red{T}$ be a transaction with id $\red{ID_T}$. Suppose that $T$ performs $\red{\rd(t)}$, and the current history of $t$ is $\red{r_1}, \red{r_2}, ..., \red{r_\ell}$. The database acts as follows:
         \myitems{
             \item \blue{if} $\red{r_\ell.\idins = ID_T}$, then return $r_\ell.v$;
 %             \item \blue{elseif} \bred{$r_\ell.\iddel \ne \ttt{NULL}$}, then return nothing;
@@ -208,7 +209,11 @@
     \vgap
 
     \cbox{blue}{
-        \blue{Rule 3:} Before a transaction can write to a tuple $\red{t}$, it must be holding a \bred{lock} on $t$. To obtain such a lock, a transaction needs to make a \blue{lock request}. The database grants the request if currently there are no locks on $t$. Otherwise, the request is denied, and the transaction is suspended until its request is granted.
+        \blue{Rule 3:} Before a transaction can write to a tuple $\red{t}$, it must be holding a \bred{lock} on $t$.
+
+        \vgap
+
+        To obtain such a lock, a transaction needs to make a \blue{lock request}. The database grants the request if currently there are no locks on $t$. Otherwise, the request is denied, and the transaction is suspended until its request is granted.
     }
 
 }
@@ -248,15 +253,13 @@
              (($x_3, y_3$), 110, \ttt{NULL}).
         \end{center}
 
-        \myitems{
-            \item If transaction 110 modifies $t$ to $(x_4, y_4)$, the log becomes
+        If transaction 110 modifies $t$ to $(x_4, y_4)$, the log becomes
             \begin{center}
              (($x_1, y_1$), 100, 103) \\
              (($x_2, y_2$), 103, 110) \\
              (($x_4, y_4$), 110, \ttt{NULL}).
         \end{center}
 
-        }
     }
 }
 %-------------------------------------------------------------
@@ -274,8 +277,7 @@
              (($x_3, y_3$), 110, \ttt{NULL}).
         \end{center}
 
-        \myitems{
-            \item Suppose that, after transaction 110 has committed, transaction 111 modifies $t$ to $(x_4, y_4)$. The log becomes
+        Suppose that transaction 111 modifies $t$ to $(x_4, y_4)$ after transaction 110 has committed. The log becomes
             \begin{center}
              (($x_1, y_1$), 100, 103) \\
              (($x_2, y_2$), 103, 110) \\
@@ -283,7 +285,6 @@
              (($x_4, y_4$), 111, \ttt{NULL}).
         \end{center}
 
-        }
     }
 }
 %-------------------------------------------------------------
@@ -305,6 +306,12 @@
 
     %\vgap
 
+    \vgap
+
+    If a transaction aborts, its changes to the history are canceled.
+
+    \vgap
+
     \cbox{green}{
         \blue{Example 1 (cont.):} Let $\red{t}$ be a tuple in the relation $R(X, Y)$ with the history:
 
@@ -314,14 +321,12 @@
              (($x_3, y_3$), 110, \ttt{NULL}).
         \end{center}
 
-        \myitems{
-            \item If transaction 110 aborts, the log becomes
+        If transaction 110 aborts, the log becomes
             \begin{center}
              (($x_1, y_1$), 100, 103) \\
              (($x_2, y_2$), 103, \ttt{NULL}) .
         \end{center}
 
-        }
     }
 }
 %-------------------------------------------------------------
@@ -520,7 +525,7 @@ $\red{\bm{\rightarrow}}$    8& & \cmt \\
         History of $t$:
         $(10, 100, 102)$, $(20,102, \ttt{NULL})$. \\
 
-        $T_2$ commits and releases the X-lock on $t$ (Rule 5).
+        $T_2$ commits and releases the lock on $t$ (Rule 5).
     }
 }
 %-------------------------------------------------------------
@@ -648,6 +653,17 @@ $\red{\bm{\rightarrow}}$
             \item It permits the user to ``travel back in time'', i.e., obtaining the database content at any past timestamp.
         }
         Multi-versioning is implemented in many database systems nowadays.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+
+    \vgap
+
+    The following material will not be tested.
+
+    \cbox{yellow}{
+        \blue{Think:} How would you modify the protocol to support tuple deletions?
     }
 }
 %-------------------------------------------------------------
