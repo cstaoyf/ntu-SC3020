@@ -58,14 +58,18 @@
         Recall that the serializable isolation level should be enforced for critical transactions. For non-critical transactions (e.g., browsing books in a library), the read committed isolation level may suffice. In fact, this is the default isolation level in PostgreSQL and ORACLE (both are well-known database systems).
     }
 
-    \vgap
+    %\vgap
 
-    The protocol we will discuss is a simplified version of what is implemented in PostgreSQL.
+
 \end{small}    
 \end{frame}
 %-------------------------------------------------------------
 \myfrm{
-    We will make an assumption:
+
+    %Our discussion will focus on the main ideas behind PostgreSQL's MVCC implementation, rather than its full details. To make this easier, we will work under the following assumption:
+
+
+    Our discussion will be based on the MVCC implementation in PostgreSQL. We will introduce an assumption:
 
     \vgap
 
@@ -76,7 +80,7 @@
 
     \vgap
 
-    The assumption allows us to focus on the core ideas of MVCC.
+    The assumption allows us to simplify the discussion and concentrate on the core principles behind MVCC's support for ``read committed''.
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -117,7 +121,11 @@
     \cbox{green}{
         %\blue{Invariant 1:} $r_\ell.\iddel = \ttt{NULL}$.
 
-        \blue{Invariant:} The transactions with IDs $r_1.\idins$, $r_2.\idins$, ..., $r_{\ell-1}.\idins$ must have committed. The transaction with ID $r_\ell.\idins$ is either running or has committed (i.e., it cannot be an aborted transaction).
+        \blue{Invariants:}
+        \myitems{
+            \item The transactions with IDs $r_1.\idins$, $r_2.\idins$, ..., $r_{\red{\ell-1}}.\idins$ must have committed.
+            \item The transaction with ID $r_{\red{\ell}}.\idins$ is either running or has committed (i.e., it cannot be an aborted transaction).
+        }
     }
 }
 %-------------------------------------------------------------
@@ -216,8 +224,8 @@
             \item If $t$ is new (i.e., no history), create a history of $t$ with only one record $\red{(v_{new}, ID_T, \ttt{NULL})}$.
             \item Otherwise, let $\red{r_1}, \red{r_2}, ..., \red{r_\ell}$ be the \bred{current} history of $t$.
             \myitems{
-                \item If $r_\ell.\idins = ID_T$, then set $r_\ell.v = v_{new}$.
-                \item Set $r_\ell.\iddel = ID_T$ and append a record $(v, ID_T, \ttt{NULL})$ to the history.
+                \item \blue{If} $r_\ell.\idins = ID_T$, then set $r_\ell.v = v_{new}$, i.e., replacing the last record.
+                \item \blue{Else}, set $r_\ell.\iddel = ID_T$ and append a new record $(v, ID_T, \ttt{NULL})$ to the history.
             }
 
 
@@ -634,7 +642,12 @@ $\red{\bm{\rightarrow}}$
 
         \vgap
 
-        It should be noted that multi-versioning is useful not only for concurrency control, e.g., it allows us to ``travel back in time'' to obtain the database content at any past timestamp. Multi-versioning is implemented in many database systems nowadays.
+        However, multi-versioning is also useful for other purposes such as
+        \myitems{
+            \item It can be used to implement other isolation levels (e.g., serializable).
+            \item It permits the user to ``travel back in time'', i.e., obtaining the database content at any past timestamp.
+        }
+        Multi-versioning is implemented in many database systems nowadays.
     }
 }
 %-------------------------------------------------------------
