@@ -17,7 +17,7 @@
 \def\abt{\ttt{ABORT}}
 \def\best{\mit{best}}
 \def\cmt{\ttt{COMMIT}}
-\def\iddel{ID_\mit{del}}
+\def\iddel{ID_\mit{mod}}
 \def\idins{ID_\mit{ins}}
 \def\ins{\ttt{INSERT}}
 \def\rd{\ttt{READ}}
@@ -58,13 +58,40 @@
         Recall that the serializable isolation level should be enforced for critical transactions. For non-critical transactions (e.g., browsing books in a library), the read committed isolation level may suffice. In fact, this is the default isolation level in PostgreSQL and ORACLE (both are well-known database systems).
     }
 
-    The protocol we will learn is implemented in PostgreSQL.
+    \vgap
+
+    The protocol we will discuss is a simplified version of what is implemented in PostgreSQL.
 \end{small}    
 \end{frame}
 %-------------------------------------------------------------
 \myfrm{
+    We will make an assumption:
+
+    \vgap
+
+    \cbox{red}{
+        \bred{Assumption:} \\
+        Tuples can be inserted and updated but never deleted.
+    }
+
+    \vgap
+
+    The assumption allows us to focus on the core ideas of MVCC.
+}
+%-------------------------------------------------------------
+\myfrm{
     \cbox{blue}{
-        Each transaction is assigned a unique \blue{ID}, with the requirement that a transaction $\red{T_1}$ starts before another transaction $\red{T_2}$, the ID of $T_1$ is smaller than that of $T_2$.
+        Each transaction is assigned a unique \blue{ID}.
+    }
+
+    \vgap
+
+    \cbox{red}{
+        PostgreSQL has the requirement that a transaction $\red{T_1}$ starts before another transaction $\red{T_2}$, the ID of $T_1$ is smaller than that of $T_2$.
+
+        \vgap
+
+        Such a requirement is not needed in our discussion today.
     }
 }
 %-------------------------------------------------------------
@@ -78,9 +105,9 @@
         \myitems{
             \item each $\red{r_i}$ ($1 \le \red{i} \le \ell$) has the form $(\red{v}, \red{\idins}, \red{\iddel})$, where
             \myitems{
-                \item $v$ is version of $t$ that ever existed;
+                \item $v$ is a version of $t$ that ever existed;
                 \item $\idins$ is the ID of the transaction that created $v$;
-                \item $\iddel$ is the ID of the transaction that deleted $v$ or \ttt{\red{NULL}} if $v$ has not been deleted;
+                \item $\iddel$ is the ID of the transaction that modified $v$ or \ttt{\red{NULL}} if $i = \ell$;
             }
 
             \item $r_{i+1}.\idins = r_i.\iddel$ for every $\red{i} \in [1, \ell - 1]$.
@@ -88,6 +115,8 @@
     }
 
     \cbox{green}{
+        %\blue{Invariant 1:} $r_\ell.\iddel = \ttt{NULL}$.
+
         \blue{Invariant:} If $\ell \ge 2$, the transactions with IDs $r_1.\idins$, $r_2.\idins$, ..., $r_{\ell-1}.\idins$ must have committed.
     }
 }
@@ -129,13 +158,14 @@
     }
 
     \cbox{blue}{
-        \blue{Rule 2:} Let $\red{T}$ be a transaction with id $\red{ID_T}$ and $\red{t}$ be a tuple. Suppose that $T$ performs $\red{\rd(t)}$, and the \bred{current} history of $t$ is $\red{r_1}, \red{r_2}, ..., \red{r_\ell}$. The database acts as follows:
+        \blue{Rule 2:} Let $\red{T}$ be a transaction with id $\red{ID_T}$ and $\red{t}$ be a tuple. Suppose that $T$ performs $\red{\rd(t)}$, and the current history of $t$ is $\red{r_1}, \red{r_2}, ..., \red{r_\ell}$. The database acts as follows:
         \myitems{
             \item \blue{if} $\red{r_\ell.\idins = ID_T}$, then return $r_\ell.v$;
-            \item \blue{elseif} \bred{$r_\ell.\iddel \ne \ttt{NULL}$}, then return nothing;
-            \item \blue{elseif} \bred{the transaction with ID $r_\ell.\idins$ has committed}, then return $r_\ell.v$;
-            \item \blue{elseif} \bred{$\ell \ge 2$}, then return $r_{\red{\ell-1}}.v$;
-            \item \blue{else} return nothing.
+%             \item \blue{elseif} \bred{$r_\ell.\iddel \ne \ttt{NULL}$}, then return nothing;
+%             \item \blue{elseif} \bred{the transaction with ID $r_\ell.\idins$ has committed}, then return $r_\ell.v$;
+%             \item \blue{elseif} \bred{$\ell \ge 2$}, then return $r_{\red{\ell-1}}.v$;
+%             \item \blue{else} return nothing.
+            \item \blue{else} return the \bred{last committed version} of $t$.
         }
     }
 }
@@ -167,19 +197,85 @@
 
     %\vgap
 
-   %\vgap
+    \vgap
 
     \cbox{blue}{
-        \blue{Rule 3:} Before a transaction can write to a tuple $\red{t}$, it must be holding an \bred{X-lock} on $t$. To obtain such a lock, a transaction needs to make a \blue{lock request}. The database grants the request if currently there are no locks on $t$. Otherwise, the request is denied, and the transaction is suspended until its request is granted.
+        \blue{Rule 3:} Before a transaction can write to a tuple $\red{t}$, it must be holding a \bred{lock} on $t$. To obtain such a lock, a transaction needs to make a \blue{lock request}. The database grants the request if currently there are no locks on $t$. Otherwise, the request is denied, and the transaction is suspended until its request is granted.
     }
 
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Concurrency Control}
+
+    \vgap
+
     \cbox{blue}{
-        \blue{Rule 4:} Let $\red{T}$ be a transaction with id $\red{ID_T}$ that holds an X-lock on a tuple $\red{t}$. Suppose that $T$ performs $\red{\wt(t, v)}$. The database acts as follows:
+        \blue{Rule 4:} Let $\red{T}$ be a transaction with id $\red{ID_T}$ that holds a lock on a tuple $\red{t}$. Suppose that $T$ performs $\red{\wt(t, v_{new})}$ --- namely, setting the tuple $t$ to $v_{new}$. The database acts as follows:
         \myitems{
-            \item If $t$ is new (i.e., no history), create a history of $t$ with only one record $\red{(v, ID_T, \ttt{NULL})}$.
-            \item Otherwise, let $\red{r_1}, \red{r_2}, ..., \red{r_\ell}$ be the \bred{current} history of $t$. Set $\red{r_\ell.\iddel = ID_T}$ and append a record $\red{(v, ID_T, \ttt{NULL})}$ to the history.
+            \item If $t$ is new (i.e., no history), create a history of $t$ with only one record $\red{(v_{new}, ID_T, \ttt{NULL})}$.
+            \item Otherwise, let $\red{r_1}, \red{r_2}, ..., \red{r_\ell}$ be the \bred{current} history of $t$.
+            \myitems{
+                \item If $r_\ell.\idins = ID_T$, then set $r_\ell.v = v_{new}$.
+                \item Set $r_\ell.\iddel = ID_T$ and append a record $(v, ID_T, \ttt{NULL})$ to the history.
+            }
+
+
         }
         %, and
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Concurrency Control}
+
+    %\vgap
+
+    \cbox{green}{
+        \blue{Example 1 (cont.):} Let $\red{t}$ be a tuple in the relation $R(X, Y)$ with the history:
+
+        \begin{center}
+             (($x_1, y_1$), 100, 103) \\
+             (($x_2, y_2$), 103, 110) \\
+             (($x_3, y_3$), 110, \ttt{NULL}).
+        \end{center}
+
+        \myitems{
+            \item If transaction 110 modifies $t$ to $(x_4, y_4)$, the log becomes
+            \begin{center}
+             (($x_1, y_1$), 100, 103) \\
+             (($x_2, y_2$), 103, 110) \\
+             (($x_4, y_4$), 110, \ttt{NULL}).
+        \end{center}
+
+        }
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \xmybox{Concurrency Control}
+
+    %\vgap
+
+    \cbox{green}{
+        \blue{Example 1 (cont.):} Let $\red{t}$ be a tuple in the relation $R(X, Y)$ with the history:
+
+        \begin{center}
+             (($x_1, y_1$), 100, 103) \\
+             (($x_2, y_2$), 103, 110) \\
+             (($x_3, y_3$), 110, \ttt{NULL}).
+        \end{center}
+
+        \myitems{
+            \item Suppose that, after transaction 110 has committed, transaction 111 modifies $t$ to $(x_4, y_4)$. The log becomes
+            \begin{center}
+             (($x_1, y_1$), 100, 103) \\
+             (($x_2, y_2$), 103, 110) \\
+             (($x_3, y_3$), 110, 111) \\
+             (($x_4, y_4$), 111, \ttt{NULL}).
+        \end{center}
+
+        }
     }
 }
 %-------------------------------------------------------------
