@@ -80,7 +80,7 @@
 
     \vgap
 
-    The assumption allows us to simplify the discussion and concentrate on the core principles behind MVCC's support for ``read committed''. It is not difficult to remove the assumption once those principles are clear, as briefly explained at the end of this lecture.
+    The assumption allows us to simplify the discussion and concentrate on the core principles behind MVCC's support for ``read committed''. It is not difficult to remove the assumption once those principles are clear, as will be briefly explained at the end of this lecture.
 
     \vgap
 
@@ -96,7 +96,7 @@
     \vgap
 
     \cbox{red}{
-        \bred{Remark:} PostgreSQL has the requirement that a transaction $\red{T_1}$ starts before another transaction $\red{T_2}$, the ID of $T_1$ is smaller than that of $T_2$. We do not need this requirement today.
+        \bred{Remark:} PostgreSQL has the requirement that if a transaction $\red{T_1}$ starts before another transaction $\red{T_2}$, the ID of $T_1$ is smaller than that of $T_2$. We do not need this requirement today.
     }
 }
 %-------------------------------------------------------------
@@ -148,7 +148,7 @@
         \myitems{
             \item $t$ was first inserted as $(x_1, y_1)$ by transaction (with ID) 100.
             \item $t$ was then modified to $(x_2, y_2)$ by transaction 103.
-            \item $t$ was then modified again to $(x_3, y_3)$ by transaction 110 and still exists till now.
+            \item $t$ was then modified again to $(x_3, y_3)$ by transaction 110, and this is the current version.
         }
 
         By the invariant, transactions 100 and 103 must have committed.
@@ -230,7 +230,7 @@
             \item Otherwise, let $\red{r_1}, \red{r_2}, ..., \red{r_\ell}$ be the \bred{current} history of $t$.
             \myitems{
                 \item \blue{If} $r_\ell.\idins = ID_T$, then set $r_\ell.v = v_{new}$, i.e., replacing the last record.
-                \item \blue{Else}, set $r_\ell.\iddel = ID_T$ and append a new record $(v, ID_T, \ttt{NULL})$ to the history.
+                \item \blue{Else}, set $r_\ell.\iddel = ID_T$ and append a new record $(v_{new}, ID_T, \ttt{NULL})$ to the history.
             }
 
 
@@ -253,7 +253,7 @@
              (($x_3, y_3$), 110, \ttt{NULL}).
         \end{center}
 
-        If transaction 110 modifies $t$ to $(x_4, y_4)$, the log becomes
+        If transaction 110 modifies $t$ to $(x_4, y_4)$, the history becomes
             \begin{center}
              (($x_1, y_1$), 100, 103) \\
              (($x_2, y_2$), 103, 110) \\
@@ -277,7 +277,7 @@
              (($x_3, y_3$), 110, \ttt{NULL}).
         \end{center}
 
-        Suppose that transaction 111 modifies $t$ to $(x_4, y_4)$ after transaction 110 has committed. The log becomes
+        Suppose that transaction 111 modifies $t$ to $(x_4, y_4)$ after transaction 110 has committed. The history becomes
             \begin{center}
              (($x_1, y_1$), 100, 103) \\
              (($x_2, y_2$), 103, 110) \\
@@ -321,7 +321,7 @@
              (($x_3, y_3$), 110, \ttt{NULL}).
         \end{center}
 
-        If transaction 110 aborts, the log becomes
+        If transaction 110 aborts, the history becomes
             \begin{center}
              (($x_1, y_1$), 100, 103) \\
              (($x_2, y_2$), 103, \ttt{NULL}) .
@@ -332,7 +332,7 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 2} Let $\red{t}$ be a tuple of relation $\red{R(A)}$ whose history has a single record $(10, 100, \ttt{NULL})$. Transaction 100 has committed. Transactions $\red{T_1}$, $\red{T_2}$, and $\red{T_3}$ have IDs 101, 102, and 103, respectively. Assume that the database attempts to execute the instructions of $T_1$ and $T_2$ in the order shown below.
+        \blue{Example 2:} Let $\red{t}$ be a tuple of relation $\red{R(A)}$ whose history has a single record $(10, 100, \ttt{NULL})$. Transaction 100 has committed. Transactions $\red{T_1}$, $\red{T_2}$, and $\red{T_3}$ have IDs 101, 102, and 103, respectively. Assume that the database attempts to execute the instructions of $T_1$ and $T_2$ in the order shown below.
 
         \begin{center}
         \begin{tabular}{c|c|c|c}
@@ -547,7 +547,7 @@ $\red{\bm{\rightarrow}}$    4& & & $\xlock(t)$ \\
         History of $t$:
         $(10, 100, 102)$, $(20,102, \ttt{NULL})$. \\
 
-        $T_3$ now resumes and holds the X-lock on $t$ (Rule 3).
+        $T_3$ now resumes and holds the lock on $t$ (Rule 3).
     }
 }
 %-------------------------------------------------------------
@@ -588,7 +588,7 @@ $\red{\bm{\rightarrow}}$
         History of $t$:
         $(10, 100, 102)$, $(20,102, 103)$, $(30,103, \ttt{NULL})$. \\
 
-                $T_3$ commits and releases the X-lock on $t$ (Rule 5).
+                $T_3$ commits and releases the lock on $t$ (Rule 5).
 
     }
 }
@@ -652,7 +652,7 @@ $\red{\bm{\rightarrow}}$
             \item Implementing other isolation levels (e.g., serializable);
             \item Obtaining the database content at any past timestamp (i.e., a \blue{snapshot}).
         }
-        today, many database systems support multi-versioning.
+        Today, many database systems support multi-versioning.
     }
 }
 %-------------------------------------------------------------
@@ -709,7 +709,7 @@ $\red{\bm{\rightarrow}}$
         \myitems{
             \item If transaction 111  issues $\rd(t)$, it gets nothing.
 
-            \item If transaction 109 issues $\rd(t)$ with transaction 111 already committed, it gets nothing, i.e., the \bred{last committed version}.
+            \item If transaction 109 issues $\rd(t)$ with transaction 111 already committed, it gets nothing --- note that ``nothing'' is indeed the \bred{last committed version}.
 
             \item If transaction 109 issues $\rd(t)$ with transaction 111 still running, it gets $(x_2, y_2)$, i.e., the \bred{last committed version}.
         }
