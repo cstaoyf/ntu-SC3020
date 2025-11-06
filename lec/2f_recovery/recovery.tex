@@ -249,7 +249,7 @@
     \vgap
 
     Intuitively, the ``correct'' ordering is: \\
-    \dblog{$T, A, a_{old}$} $\Rightarrow$ disk copy of $A$ changes $\Rightarrow$ \dblog{COMMIT $T$}
+    \dblog{$T, A, a_{old}$} $\Rightarrow$ changing the disk copy of $A$ $\Rightarrow$ \dblog{COMMIT $T$}
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -375,7 +375,7 @@
     \vgap
 
     Intuitively, the ``correct'' ordering is: \\
-    \dblog{$T, A, a_{new}$} $\Rightarrow$ \dblog{COMMIT $T$} $\Rightarrow$ disk copy of $A$ changes
+    \dblog{$T, A, a_{new}$} $\Rightarrow$ \dblog{COMMIT $T$} $\Rightarrow$ changing the disk copy of $A$
 }
 %-------------------------------------------------------------
 \myfrm{
@@ -499,9 +499,9 @@
     %\vgap
 
     Intuitively, the ``correct'' ordering is: \\
-    \dblog{$T, A, a_{new}$} $\Rightarrow$ \dblog{COMMIT $T$} \\
-    \dblog{$T, A, a_{new}$} $\Rightarrow$ disk copy of $A$ changes \\
-    Arbitrary ordering between \dblog{COMMIT $T$} and disk-copy changes.
+    \dblog{$T, A, a_{old}, a_{new}$} $\Rightarrow$ \dblog{COMMIT $T$} \\
+    \dblog{$T, A, a_{old}, a_{new}$} $\Rightarrow$ changing the disk copy of $A$ \\
+    Arbitrary ordering between \dblog{COMMIT $T$} and changing the disk copy of $A$.
 }
 %-------------------------------------------------------------
 \myfrm{

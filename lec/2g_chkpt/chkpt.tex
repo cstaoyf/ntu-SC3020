@@ -151,9 +151,9 @@
             \item \blue{If} \dblog{END CKPT} is absent, apply the ``conventional'' recovery strategy.
             \item \blue{Else} find the \dblog{START CKPT $(\red{L})$} record --- referred to as the \blue{ST-CKPT record} --- where $\red{L}$ is a set of transaction IDs.
             \item Identify the transactions that committed after the ST-CKPT record, and those that were running at the moment of crash.
-            \item Perform a \blue{redo phase}: Scan the log \red{forward} from the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ had committed after the ST-CKPT record, set the disk copy of $A$ to $a_{new}$.
-            \item Perform \blue{undo phase 1}: Scan the log \red{backward} till the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ did not commit before the crash, set the disk copy of $A$ to $a_{old}$.
-            \item Perform \blue{undo phase 2}: Scan the log \red{backward} from the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $\red{T \in L}$ and it did not commit before the crash, set the disk copy of $A$ to $a_{old}$.
+            \item Perform a \blue{redo phase}: Scan the log \bred{forward from} the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ had committed after the ST-CKPT record, set the disk copy of $A$ to $a_{new}$.
+            \item Perform \blue{undo phase 1}: Scan the log \bred{backward from} the end \bred{to} the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $T$ did not commit before the crash, set the disk copy of $A$ to $a_{old}$.
+            \item Perform \blue{undo phase 2}: Scan the log \bred{backward from} the ST-CKPT record. For every \red{\dblog{$T, A, a_{old}, a_{new}$}}, if $\red{T \in L}$ and it did not commit before the crash, set the disk copy of $A$ to $a_{old}$.
         }
 
         \cbox{blue}{
