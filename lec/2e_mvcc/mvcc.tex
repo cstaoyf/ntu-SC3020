@@ -117,7 +117,7 @@
     \cbox{green}{
         %\blue{Invariant 1:} $r_\ell.\iddel = \ttt{NULL}$.
 
-        \blue{Invariant:} If $\ell \ge 2$, the transactions with IDs $r_1.\idins$, $r_2.\idins$, ..., $r_{\ell-1}.\idins$ must have committed.
+        \blue{Invariant:} The transactions with IDs $r_1.\idins$, $r_2.\idins$, ..., $r_{\ell-1}.\idins$ must have committed. The transaction with ID $r_\ell.\idins$ is either running or has committed (i.e., it cannot be an aborted transaction).
     }
 }
 %-------------------------------------------------------------
@@ -187,7 +187,7 @@
         \myitems{
             \item If transaction 110 issues $\rd(t)$, it gets $(x_3, y_3)$.
             \item If trans.\ 109 issues $\rd(t)$ with trans.\ 110 already committed, it gets $(x_3, y_3)$, i.e., the \bred{last committed version}.
-            \item If trans.\ 109 issues $\rd(t)$ with trans.\ 110 still running, it gets $(x_2, y_2)$, i.e., \bred{last committed version}.
+            \item If trans.\ 109 issues $\rd(t)$ with trans.\ 110 still running, it gets $(x_2, y_2)$, i.e., the \bred{last committed version}.
         }
     }
 }
@@ -293,8 +293,33 @@
 }
 %-------------------------------------------------------------
 \myfrm{
+    \xmybox{Concurrency Control}
+
+    %\vgap
+
     \cbox{green}{
-        \blue{Example 2} Let $\red{t}$ be a tuple of relation $\red{R(A)}$ whose history has a single record $(10, 100, \ttt{NULL})$. Transaction 100 has committed. Transactions $\red{T_1}$, $\red{T_2}$, and $\red{T_2}$ have IDs 101, 102, and 103, respectively. Assume that the database attempts to execute the instructions of $T_1$ and $T_2$ in the order shown below.
+        \blue{Example 1 (cont.):} Let $\red{t}$ be a tuple in the relation $R(X, Y)$ with the history:
+
+        \begin{center}
+             (($x_1, y_1$), 100, 103) \\
+             (($x_2, y_2$), 103, 110) \\
+             (($x_3, y_3$), 110, \ttt{NULL}).
+        \end{center}
+
+        \myitems{
+            \item If transaction 110 aborts, the log becomes
+            \begin{center}
+             (($x_1, y_1$), 100, 103) \\
+             (($x_2, y_2$), 103, \ttt{NULL}) .
+        \end{center}
+
+        }
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \cbox{green}{
+        \blue{Example 2} Let $\red{t}$ be a tuple of relation $\red{R(A)}$ whose history has a single record $(10, 100, \ttt{NULL})$. Transaction 100 has committed. Transactions $\red{T_1}$, $\red{T_2}$, and $\red{T_3}$ have IDs 101, 102, and 103, respectively. Assume that the database attempts to execute the instructions of $T_1$ and $T_2$ in the order shown below.
 
         \begin{center}
         \begin{tabular}{c|c|c|c}
