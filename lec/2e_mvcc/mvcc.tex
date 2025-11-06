@@ -80,7 +80,7 @@
 
     \vgap
 
-    The assumption allows us to simplify the discussion and concentrate on the core principles behind MVCC's support for ``read committed''. It is not difficult to remove the assumption once those principles are clear.
+    The assumption allows us to simplify the discussion and concentrate on the core principles behind MVCC's support for ``read committed''. It is not difficult to remove the assumption once those principles are clear, as briefly explained at the end of this lecture.
 
     \vgap
 
@@ -195,8 +195,8 @@
 
         \myitems{
             \item If transaction 110 issues $\rd(t)$, it gets $(x_3, y_3)$.
-            \item If trans.\ 109 issues $\rd(t)$ with trans.\ 110 already committed, it gets $(x_3, y_3)$, i.e., the \bred{last committed version}.
-            \item If trans.\ 109 issues $\rd(t)$ with trans.\ 110 still running, it gets $(x_2, y_2)$, i.e., the \bred{last committed version}.
+            \item If transaction 109 issues $\rd(t)$ with transaction 110 already committed, it gets $(x_3, y_3)$, i.e., the \bred{last committed version}.
+            \item If transaction 109 issues $\rd(t)$ with transaction 110 still running, it gets $(x_2, y_2)$, i.e., the \bred{last committed version}.
         }
     }
 }
@@ -647,12 +647,12 @@ $\red{\bm{\rightarrow}}$
 
         \vgap
 
-        However, multi-versioning is also useful for other purposes such as
+        However, multi-versioning is useful for many other purposes as well. For instance:
         \myitems{
-            \item It can be used to implement other isolation levels (e.g., serializable).
-            \item It permits the user to ``travel back in time'', i.e., obtaining the database content at any past timestamp.
+            \item Implementing other isolation levels (e.g., serializable);
+            \item Obtaining the database content at any past timestamp (i.e., a \blue{snapshot}).
         }
-        Multi-versioning is implemented in many database systems nowadays.
+        today, many database systems support multi-versioning.
     }
 }
 %-------------------------------------------------------------
@@ -660,11 +660,65 @@ $\red{\bm{\rightarrow}}$
 
     \vgap
 
-    The following material will not be tested.
+
 
     \cbox{yellow}{
-        \blue{Think:} How would you modify the protocol to support tuple deletions?
+        \centering
+        The following material will not be tested.
     }
+
+    So far we have assumed no tuple deletions. Next, we will briefly explain how to remove the assumption based on the principles explained earlier.
+}
+%-------------------------------------------------------------
+\myfrm{
+
+
+    \vgap
+
+    If a tuple is removed, the transaction performing the removal is logged in the last record of the tuple's history.
+
+    \vgap
+
+    \cbox{green}{
+        \blue{Example 3:} Let $\red{t}$ be a tuple in the relation $R(X, Y)$ with the history:
+
+        \begin{center}
+             (($x_1, y_1$), 100, 103) \\
+             (($x_2, y_2$), 103, 110) \\
+             (($x_3, y_3$), 110, 111).
+        \end{center}
+
+        Tuple $t$ has been deleted by transaction 111.
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    When a transaction $\red{T}$ reads a tuple $\red{t}$ that has been deleted by another transaction, $T$ gets the last committed version of $t$.
+
+    \vgap
+
+    \cbox{green}{
+        \blue{Example 3 (cont.):} Let $\red{t}$ be a tuple in the relation $R(X, Y)$ with the history:
+
+        \begin{center}
+             (($x_1, y_1$), 100, 103) \\
+             (($x_2, y_2$), 103, 110) \\
+             (($x_3, y_3$), 110, 111).
+        \end{center}
+
+        \myitems{
+            \item If transaction 111  issues $\rd(t)$, it gets nothing.
+
+            \item If transaction 109 issues $\rd(t)$ with transaction 111 already committed, it gets nothing, i.e., the \bred{last committed version}.
+
+            \item If transaction 109 issues $\rd(t)$ with transaction 111 still running, it gets $(x_2, y_2)$, i.e., the \bred{last committed version}.
+        }
+    }
+}
+%-------------------------------------------------------------
+\myfrm{
+    \blue{Think:}\\
+    How would you extend Rule 4 to support the deletion of a tuple $\red{t}$?
 }
 %-------------------------------------------------------------
 \end{document} 
