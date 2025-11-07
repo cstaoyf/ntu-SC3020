@@ -401,7 +401,7 @@
 \myfrm{
     Recall:
     \cbox{blue}{
-        A \blue{phantom} refers to the situation where executing the same query twice returns different results even though the transaction performs no  modifications on the relevant data.
+        A \blue{phantom} refers to the situation where the same query, executed twice in the same transaction, returns different results because one or more tuples are inserted by another transaction.
     }
 
     \cbox{green}{
