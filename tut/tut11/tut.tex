@@ -1,0 +1,160 @@
+%\documentclass{...}
+
+\input{./def/yf-formatting}
+
+\usepackage{amsfonts, amsmath, amssymb, amsthm}
+\usepackage{comment}
+\usepackage{graphicx}
+\usepackage{ifthen}
+\usepackage{latexsym}
+%\usepackage{times}
+\usepackage[normalem]{ulem}
+
+\input{./def/yf-def}
+
+\def\extraspacing{\vspace{5mm} \noindent}
+
+\def\best{\mathit{best}}
+\def\size{\mathit{size}}
+
+\newboolean{solver}\setboolean{solver}{true}
+%\newboolean{solver}\setboolean{solver}{false}
+\ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
+
+\begin{document}
+
+\section*{SC3020-CE4301-CZ4031: Tutorial 11}
+Prepared by Yufei Tao \\
+
+\begin{center}
+    \uline{Classroom Discussion}
+\end{center}
+
+\extraspacing {\bf Problem 1.} Let $R(X, Y)$ be a relation with attributes $X$ and $Y$. We enforce the \ttt{READ COMMITTED} isolation level with the MVCC protocol. Here is the history of a tuple $t$ in the relation:
+\begin{center}
+    ((10, 10), $T_1$, $T_3$), ((20, 20), $T_3$, $T_2$), ((30, 30), $T_2$, \ttt{NULL}).
+\end{center}
+Answer the following questions:
+\myitems{
+    \item What is the status of $T_1$ (i.e., committed, running, or aborted)? How about $T_2$ and $T_3$?
+    \item If a transaction $T$ issues a READ($t$), what are the values read in each of the situations below?
+    \myitems{
+        \item [(a)] $T = T_2$;
+        \item [(b)] $T = T_4$, and $T_2$ is still running;
+        \item [(c)] $T = T_4$, and $T_2$ has committed.
+    }
+}
+
+
+\begin{sol}
+\extraspacing {\bf Solution.} Situation (a): $(30, 30)$. Situation (b): $(20, 20)$. Situation (c): $(30, 30)$.
+
+\end{sol}
+
+\extraspacing {\bf Problem 2.} Give a schedule that can produce the history in Problem 1. In your schedule, $T_1$ must be the first transaction to start, $T_2$ is the second, and $T_3$ is the last. It suffices to show the following instructions: START, WRITE, and COMMIT.
+
+\begin{sol}
+\extraspacing {\bf Solution.}
+
+\begin{center}
+ \begin{tabular}{c|c}
+ no & instruction \\
+ \hline
+  1 & $T_1:$ START \\
+  2 & $T_1:$ WRITE$(t, (10, 10))$ \\
+  3 & $T_1:$ COMMIT \\
+  4 & $T_2:$ START \\
+  5 & $T_3:$ START \\
+  6 & $T_3:$ WRITE$(t, (20, 20))$ \\
+  7 & $T_3:$ COMMIT \\
+  8 & $T_2:$ WRITE$(t, (30, 30))$ \\
+  9 & $T_2:$ COMMIT
+ \end{tabular}
+\end{center}
+
+\end{sol}
+
+\extraspacing {\bf Problem 3.} Suppose that the database attempts to execute the following instructions in the order shown using the MVCC protocol.
+
+\begin{center}
+\begin{tabular}{c|c|c|c|c}
+ & $T_1$ (ID 201) & $T_2$ (ID 202) & $T_3$ (ID 203) & $T_4$ (ID 204) \\
+\hline
+1  & LOCK($t$)       &                &                &                \\
+2  & WRITE($t$, 10)  &                &                &                \\
+3  & COMMIT           &                &                &                \\
+4  &                  & READ($t$)      &                &                \\
+5  &                  & LOCK($t$)      &                &                \\
+6  &                  & WRITE($t$, 15) &                &                \\
+7  &                  &                & LOCK($t$)      &                \\
+8  &                  &                & WRITE($t$, 18) &                \\
+9  &                  &                & ABORT           &                \\
+10 &                  &                &                & READ($t$)      \\
+11 &                  &                &                & LOCK($t$)      \\
+12 &                  &                &                & WRITE($t$, 25) \\
+13 &                  &                &                & COMMIT          \\
+14 &                  & COMMIT         &                &                \\
+\end{tabular}
+\end{center}
+
+Let us assume that $t$ is inserted to the database by the WRITE instruction of $T_1$. Answer the following questions.
+\myitems{
+    \item [(a)] Show the schedule produced, and give the history of $t$ after every instruction.
+    \item [(b)] What is the value returned for each READ instruction?
+    \item [(c)] Is the schedule serializable?
+}
+
+\begin{sol}
+    \extraspacing {\bf Solution.} (a)
+    \begin{center}
+        \begin{tabular}{c|c}
+            instruction & remark \\
+            \hline
+            $T_1$: LOCK($t$) & \\
+            $T_1$: WRITE($t$, 10) & history = (10, 201, NULL) \\
+            $T_1$: COMMIT &  \\
+            $T_2$: READ($t$) & \\
+            $T_2$: LOCK($t$)              & \\
+            $T_2$: WRITE($t$, 15)         & history = (10, 201, 202), (15, 202, NULL) \\
+            $T_3$: LOCK($t$)              & denied; $T_3$ put on hold \\
+            $T_4$: READ($t$)              & \\
+            $T_4$: LOCK($t$)              & denied; $T_4$ put on hold \\
+            $T_2$: COMMIT                 & $T_2$ releases lock \\
+            $T_3$: LOCK($t$)              & granted \\
+            $T_3$: WRITE($t$, 18)         & history = (10, 201, 202), (15, 202, 203), (18, 203, NULL) \\
+            $T_3$: ABORT                  & history reverts to (10, 201, 202), (15, 202, NULL); $T_3$ released lock \\
+            $T_4$: LOCK($t$)              & granted \\
+            $T_4$: WRITE($t$, 25)         & history = (10, 201, 202), (15, 202, 204), (25, 204, NULL) \\
+            $T_4$: COMMIT                 &
+        \end{tabular}
+    \end{center}
+
+    (b) Both READ operations return 10.
+
+    (c) To analyze the serializability, let us focus on the I/O instructions:
+
+    \begin{center}
+        \begin{tabular}{c|c}
+            instruction & remark \\
+            \hline
+            1 & $T_1$: WRITE($t$, 10) \\
+            2 & $T_2$: READ($t$) \\
+            3 & $T_2$: WRITE($t$, 15) \\
+            4 & $T_4$: READ($t$) \\
+            5 & $T_3$: WRITE($t$, 18) \\
+            6 & $T_4$: WRITE($t$, 25)
+        \end{tabular}
+    \end{center}
+
+
+\end{sol}
+
+
+\extraspacing
+
+\begin{center}
+    \uline{Critical Thinking}
+\end{center}
+
+
+\end{document}
