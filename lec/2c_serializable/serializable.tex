@@ -358,6 +358,16 @@
 }
 %-------------------------------------------------------------
 \myfrm{
+    \cbox{blue}{
+        Two schedules are \blue{conflict-equivalent} if we can turn one schedule into the other by swapping non-conflicting instructions.
+    }
+
+    \vgap
+
+    A schedule is conflict-serializable \bred{if and only if} it is conflict-equivalent to \bred{some} serial schedule.
+}
+%-------------------------------------------------------------
+\myfrm{
     As mentioned, conflict-serializability implies serializability. \\
     Is the opposite also true? The answer is: \bred{no}.
 
