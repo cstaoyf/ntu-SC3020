@@ -84,7 +84,7 @@ Let us assume that $t$ is inserted to the database by the WRITE instruction of $
 \begin{sol}
     \extraspacing {\bf Solution.} (a)
     \begin{center}
-        \begin{tabular}{c|c}
+        \begin{tabular}{l|l}
             instruction & remark \\
             \hline
             $T_1$: LOCK($t$) & \\
@@ -111,7 +111,7 @@ Let us assume that $t$ is inserted to the database by the WRITE instruction of $
     (c) To analyze conflict serializability, let us focus on the schedule's I/O instructions:
 
     \begin{center}
-        \begin{tabular}{c|c}
+        \begin{tabular}{c|l}
             instruction & remark \\
             \hline
             1 & $T_1$: WRITE($t$, 10) \\
@@ -133,7 +133,7 @@ Let us assume that $t$ is inserted to the database by the WRITE instruction of $
 \extraspacing {\bf Solution.}
 
 \begin{center}
- \begin{tabular}{c|c}
+ \begin{tabular}{c|l}
  no & instruction \\
  \hline
   1 & $T_1:$ START \\
@@ -156,7 +156,7 @@ Let us assume that $t$ is inserted to the database by the WRITE instruction of $
     \extraspacing {\bf Solution.}
 
 \begin{center}
-    \begin{tabular}{c|c}
+    \begin{tabular}{c|l}
     no & instruction \\
     \hline
     1 & $T_1:$ START \\
@@ -169,6 +169,81 @@ Let us assume that $t$ is inserted to the database by the WRITE instruction of $
     \end{center}
 \end{sol}
 
+\extraspacing {\bf Problem 5.} Consider the (system-level) schedule below:
+
+\begin{center}
+\begin{tabular}{c|l}
+    no & instruction \\
+    \hline
+    1  & $T_1$: START \\
+    2  & $T_2$: START \\
+    3  & $T_1$: READ($A$); $A = A + 10$ \\
+    4  & $T_1$: WRITE($A$) \\
+    5  & $T_2$: READ($B$); $B = B + 5$ \\
+    6  & $T_2$: WRITE($B$) \\
+    7  & $T_1$: READ($C$); $C = C - 10$ \\
+    8  & $T_1$: WRITE($C$) \\
+    9  & OUTPUT($A$) \\
+    10 & OUTPUT($C$) \\
+    11 & $T_1$: COMMIT \\
+    12 & $T_2$: COMMIT \\
+    13 & OUTPUT($B$)
+\end{tabular}
+\end{center}
+
+\noindent Assume that the initial values of $A$, $B$, and $C$ are all 10. Answer the following questions:
+\myitems{
+    \item [(a)] Give the log created by undo/redo logging.
+    \item [(b)] Suppose that a power outage occurs right before instruction 12. What are the values of $A$, $B$, and $C$ on the disk?
+}
+
+\begin{sol}
+    \extraspacing {\bf Solution.} (a)
+
+    \begin{center}
+        \begin{tabular}{l}
+        \texttt{<START T1>} \\
+        \texttt{<START T2>} \\
+        \texttt{<T1, A, 10, 20>} \\
+        \texttt{<T2, B, 10, 15>} \\
+        \texttt{<T1, C, 10, 0>} \\
+        \texttt{<COMMIT T1>} \\
+        \texttt{<COMMIT T2>}
+        \end{tabular}
+    \end{center}
+
+    (b) $A = 20$, $B = 10$, and $C = 0$.
+\end{sol}
+
+\extraspacing {\bf Problem 6.} Suppose that the system finds the following log after a reboot from crash.
+
+\begin{center}
+    \begin{tabular}{l}
+    \texttt{<START T1>} \\
+    \texttt{<START T2>} \\
+    \texttt{<START T3>} \\
+    \texttt{<T1, A, 50, 60>} \\
+    \texttt{<T2, B, 100, 80>} \\
+    \texttt{<T3, C, 200, 250>} \\
+    \texttt{<COMMIT T1>} \\
+    \texttt{<T2, A, 60, 120>} \\
+    \texttt{<COMMIT T3>}
+    \end{tabular}
+\end{center}
+
+\noindent Answer the following questions:
+
+\myitems{
+    \item [(a)] When the crash happened, what were the states of transactions $T_1$, $T_2$, and $T_3$, respectively?
+
+    \item [(b)] Describe how the recovery procedure will modify the disk values of $A$, $B$, and $C$.
+}
+
+\begin{sol}
+\extraspacing {\bf Solution.} (a) $T_1$ and $T_3$ were committed, and $T_2$ was still running.
+
+(b) The recovery procedure first performs a redo phase, which sets the disk values of $A$ and $C$ to 60 and 250, respectively. Then, the procedure performs an undo phase, which sets the disk values of $A$ and $B$ to 60 and 100, respectively.
+\end{sol}
 
 \extraspacing
 
@@ -176,5 +251,22 @@ Let us assume that $t$ is inserted to the database by the WRITE instruction of $
     \uline{Critical Thinking}
 \end{center}
 
+
+\extraspacing {\bf Problem 7.} Can MVCC produce a non-recoverable schedule?
+
+\extraspacing {\bf Problem 8.} In Problem 6(b), what if another crash occurs {\em during} the recovery procedure? What do you think the system should do after a reboot?
+
+\extraspacing {\bf Problem 9.} Argue that the MVCC protocol cannot produce the log below:
+\begin{center}
+    \begin{tabular}{l}
+    \texttt{<START T1>} \\
+    \texttt{<START T2>} \\
+    \texttt{<T2, A, 10, 20>} \\
+    \texttt{<T1, A, 20, 30>} \\
+    \texttt{<COMMIT T1>}
+    \end{tabular}
+\end{center}
+
+%crash during recovery
 
 \end{document}

@@ -614,15 +614,15 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{green}{
-        \blue{Example 5:} Suppose that \bred{undo logging} is used, and the system sees the following log after a crash.
+        \blue{Example 5:} Suppose that \bred{undo/redo logging} is used, and the system sees the following log after a crash.
         \begin{center}
         \begin{tabular}{c}
             log \\
             \hline
             \dblog{START $T_1$} \\
             \dblog{START $T_2$} \\
-            \dblog{$T_2, A, 10$} \\
-            \dblog{$T_1, A, 20$} \\
+            \dblog{$T_2, A, 10, 20$} \\
+            \dblog{$T_1, A, 20, 30$} \\
             \dblog{COMMIT $T_1$}
         \end{tabular}
         \end{center}
