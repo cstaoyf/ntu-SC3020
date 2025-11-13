@@ -209,7 +209,11 @@
 %-------------------------------------------------------------
 \myfrm{
     \cbox{blue}{
-        Two schedules are \blue{equivalent} if each operation has the same effect in both schedules.
+        Two schedules are \blue{equivalent} if
+        \myitems{
+            \item they always leave the database in the same state, and
+            \item each operation has the same effect in both schedules.
+        }
     }
 
     \cbox{green}{
