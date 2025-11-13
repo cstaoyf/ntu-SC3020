@@ -51,30 +51,7 @@ Answer the following questions:
 
 \end{sol}
 
-\extraspacing {\bf Problem 2.} Give a schedule that can produce the history in Problem 1. In your schedule, $T_1$ must be the first transaction to start, $T_2$ is the second, and $T_3$ is the last. It suffices to show the following instructions: START, WRITE, and COMMIT.
-
-\begin{sol}
-\extraspacing {\bf Solution.}
-
-\begin{center}
- \begin{tabular}{c|c}
- no & instruction \\
- \hline
-  1 & $T_1:$ START \\
-  2 & $T_1:$ WRITE$(t, (10, 10))$ \\
-  3 & $T_1:$ COMMIT \\
-  4 & $T_2:$ START \\
-  5 & $T_3:$ START \\
-  6 & $T_3:$ WRITE$(t, (20, 20))$ \\
-  7 & $T_3:$ COMMIT \\
-  8 & $T_2:$ WRITE$(t, (30, 30))$ \\
-  9 & $T_2:$ COMMIT
- \end{tabular}
-\end{center}
-
-\end{sol}
-
-\extraspacing {\bf Problem 3.} Suppose that the database attempts to execute the following instructions in the order shown using the MVCC protocol.
+\extraspacing {\bf Problem 2.} Suppose that the database attempts to execute the following instructions in the order shown using the MVCC protocol.
 
 \begin{center}
 \begin{tabular}{c|c|c|c|c}
@@ -131,7 +108,7 @@ Let us assume that $t$ is inserted to the database by the WRITE instruction of $
 
     (b) Both READ operations return 10.
 
-    (c) To analyze the serializability, let us focus on the I/O instructions:
+    (c) To analyze conflict serializability, let us focus on the schedule's I/O instructions:
 
     \begin{center}
         \begin{tabular}{c|c}
@@ -146,7 +123,50 @@ Let us assume that $t$ is inserted to the database by the WRITE instruction of $
         \end{tabular}
     \end{center}
 
+    Instructions 4 and 5 indicate that the precedence graph has an edge from $T_4$ to $T_3$. On the other hand, instructions 5 and 6 indicate that the precedence graph has an edge from $T_3$ to $T_4$. Therefore, the schedule is not conflict serializable.
 
+\end{sol}
+
+\extraspacing {\bf Problem 3.} Give a schedule that can produce the history in Problem 1. In your schedule, $T_1$ must be the first transaction to start, $T_2$ is the second, and $T_3$ is the last. It suffices to show the following instructions: START, WRITE, and COMMIT.
+
+\begin{sol}
+\extraspacing {\bf Solution.}
+
+\begin{center}
+ \begin{tabular}{c|c}
+ no & instruction \\
+ \hline
+  1 & $T_1:$ START \\
+  2 & $T_1:$ WRITE$(t, (10, 10))$ \\
+  3 & $T_1:$ COMMIT \\
+  4 & $T_2:$ START \\
+  5 & $T_3:$ START \\
+  6 & $T_3:$ WRITE$(t, (20, 20))$ \\
+  7 & $T_3:$ COMMIT \\
+  8 & $T_2:$ WRITE$(t, (30, 30))$ \\
+  9 & $T_2:$ COMMIT
+ \end{tabular}
+\end{center}
+
+\end{sol}
+
+\extraspacing {\bf Problem 4.} Construct a schedule under MVCC that causes a deadlock.
+
+\begin{sol}
+    \extraspacing {\bf Solution.}
+
+\begin{center}
+    \begin{tabular}{c|c}
+    no & instruction \\
+    \hline
+    1 & $T_1:$ START \\
+    2 & $T_1:$ LOCK$(t_1)$ \\
+    3 & $T_2:$ START \\
+    4 & $T_2:$ LOCK$(t_2)$ \\
+    5 & $T_1:$ LOCK$(t_2)$ \\
+    6 & $T_2:$ LOCK$(t_1)$
+    \end{tabular}
+    \end{center}
 \end{sol}
 
 
