@@ -78,7 +78,7 @@ Let us assume that $t$ is inserted to the database by the WRITE instruction of $
 \myitems{
     \item [(a)] Show the schedule produced, and give the history of $t$ after every instruction.
     \item [(b)] What is the value returned for each READ instruction?
-    \item [(c)] Is the schedule serializable?
+    \item [(c)] Is the schedule conflict serializable?
 }
 
 \begin{sol}
@@ -266,6 +266,29 @@ Let us assume that $t$ is inserted to the database by the WRITE instruction of $
     \texttt{<COMMIT T1>}
     \end{tabular}
 \end{center}
+
+\extraspacing {\bf Problem 10.} Consider the (system-level) schedule below:
+
+\begin{center}
+\begin{tabular}{c|l}
+    no & instruction \\
+    \hline
+    1  & $T_1$: START \\
+    2  & $T_2$: START \\
+    3  & $T_1$: READ($A$); $A = A + 10$ \\
+    4  & $T_1$: WRITE($A$) \\
+    5  & $T_2$: READ($B$); $B = B + 5$ \\
+    6  & $T_2$: WRITE($B$) \\
+    7  & $T_1$: READ($C$); $C = C - 10$ \\
+    8  & $T_1$: WRITE($C$) \\
+    9  & OUTPUT($A$) \\
+    10 & OUTPUT($C$) \\
+    11 & $T_2$: COMMIT \\
+    12 & $T_1$: ROLLBACK
+\end{tabular}
+\end{center}
+
+\noindent Discuss the rollback process at Step 12.
 
 %crash during recovery
 
