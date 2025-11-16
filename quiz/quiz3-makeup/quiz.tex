@@ -1,0 +1,208 @@
+%\documentclass{...}
+
+\input{./def/yf-formatting}
+
+\usepackage{amsfonts, amsmath, amssymb, amsthm}
+\usepackage{comment}
+\usepackage{graphicx}
+\usepackage{ifthen}
+\usepackage{latexsym}
+%\usepackage{times}
+\usepackage[normalem]{ulem}
+
+\input{./def/yf-def}
+
+\def\extraspacing{\vspace{5mm} \noindent}
+
+\def\best{\mathit{best}}
+\def\size{\mathit{size}}
+
+\newboolean{solver}\setboolean{solver}{true}
+%\newboolean{solver}\setboolean{solver}{false}
+\ifthenelse{\boolean{solver}}{\includecomment{sol}}{\excludecomment{sol}}
+
+\pagenumbering{gobble}
+
+\begin{document}
+
+.
+
+\vspace{50mm}
+
+\begin{center}
+    \uline{SC3020-CE4301-CZ4031: Quiz 3}
+\end{center}
+
+\vspace{20mm}
+\begin{center}
+    Name:
+    \uline{\hspace{30mm}}
+    \hspace{10mm}
+    Student ID:
+    \uline{\hspace{30mm}}
+\end{center}
+
+\pagebreak
+
+\extraspacing {\bf Problem 1 (40 marks).} Consider the following three transactions:
+
+\begin{center}
+    \begin{tabular}{l|l|l}
+        $T_1$ & $T_2$ & $T_3$ \\
+        \hline
+        U-LOCK(X) & S-LOCK(Y) & U-LOCK(Y) \\
+        READ(X) & READ(Y) & READ(Y) \\
+        UPGRADE(X) & X-LOCK(X) & UPGRADE(Y) \\
+        WRITE(X) & READ(X) & WRITE(Y) \\
+        COMMIT & WRITE(X) & COMMIT \\
+        & COMMIT &
+    \end{tabular}
+\end{center}
+
+\noindent Suppose that we use the strict two-phase locking (2PL) protocol to execute the transactions in a round-robin manner --- namely, each cycle first processes an instruction from $T_1$, then one from $T_2$, and finally one from $T_3$. Answer the following questions.
+\myitems{
+    \item [(a)] What is the schedule produced? \vspace{-2mm}
+    \item [(b)] Show the precedence graph of the schedule in (a). \vspace{-2mm}
+    \item [(c)] Give all the serial orders that are equivalent to the schedule in (a).
+}
+
+\begin{sol}
+    \extraspacing {\bf Solution.} (a)
+
+    \begin{center}
+    \begin{tabular}{c|l|l}
+        no & operation & remark \\
+        \hline
+        1 & $T_1$: U-LOCK(X) & Granted (no locks on $X$) \\
+        2 & $T_2$: S-LOCK(Y) & Granted (no locks on $Y$) \\
+        3 & $T_3$: U-LOCK(Y) & Granted (compatible with $T_2$’s S-lock) \\
+        4 & $T_1$: READ(X) & \\
+        5 & $T_2$: READ(Y) & \\
+        6 & $T_3$: READ(Y) & \\
+        7 & $T_1$: UPGRADE(X) & Upgraded successfully to X-lock (no conflict) \\
+        8 & $T_2$: X-LOCK(X) & Blocked (conflicts with $T_1$’s X-lock) \\
+        9 & $T_3$: UPGRADE(Y) & Blocked (conflicts with $T_2$’s S-lock on $Y$) \\
+        10 & $T_1$: WRITE(X) & \\
+        11 & $T_1$: COMMIT & Releases all locks on $X$ \\
+        12 & $T_2$: X-LOCK(X) & Granted (after $T_1$’s commit) \\
+        13 & $T_2$: READ(X) & \\
+        14 & $T_2$: WRITE(X) & \\
+        15 & $T_2$: COMMIT & Releases locks on $X$ and $Y$ \\
+        16 & $T_3$: UPGRADE(Y) & Now succeeds (no other locks on $Y$) \\
+        17 & $T_3$: WRITE(Y) & \\
+        18 & $T_3$: COMMIT &
+    \end{tabular}
+    \end{center}
+
+    (b) $T_1 \rightarrow T_2 \rightarrow T_3$
+
+    (c) There is only one equivalent serial order: $T_1, T_2, T_3$.
+\end{sol}
+
+\pagebreak
+.
+
+\vspace{100mm}
+
+\extraspacing {\bf Problem 2 (40 marks).} Suppose that the database attempts to execute the following instructions in the order shown using the MVCC protocol.
+
+\begin{center}
+\begin{tabular}{c|l|l|l}
+    & \(T_{1}\) (ID 101) & \(T_{2}\) (ID 102) & \(T_{3}\) (ID 103)  \\
+    \hline
+    1 & \(\text{READ}(t)\) & & \\
+    2 & \(\text{LOCK}(t)\) & & \\
+    3 & \(\text{WRITE}(t, 12)\) & & \\
+    4 & & \(\text{LOCK}(t)\) & \\
+    5 & & & \(\text{READ}(t)\) \\
+    6 & & \(\text{WRITE}(t, 20)\) & \\
+    7 & & \(\text{ABORT}\) & \\
+    8 & READ($t$) & \\
+    9 & \(\text{COMMIT}\) & & \\
+    10 & & & \(\text{LOCK}(t)\) \\
+    11 & & & \(\text{READ}(t)\) \\
+    12 & & & \(\text{WRITE}(t, 25)\) \\
+    13 & & & \(\text{COMMIT}\)
+\end{tabular}
+\end{center}
+
+\noindent Before the execution, the history of $t$ is $(10, 100, \text{NULL})$, and the transaction with ID 100 has committed. Answer the following questions:
+\myitems{
+    \item [(a)] Show the schedule produced. \vspace{-2mm}
+    \item [(b)] Show the values fetched by the READ operations at Instructions 1, 5, 8, and 11. \vspace{-2mm}
+    \item [(c)] What is the history of $t$ at the end of the execution?
+}
+
+\begin{sol}
+\extraspacing {\bf Solution.} (a)
+
+\begin{center}
+\begin{tabular}{c|l|l}
+no & operation & remark \\
+\hline
+1 & $T_1:$ READ($t$) \\
+2 & $T_1:$ LOCK($t$) \\
+3 & $T_1:$ WRITE($t, 12$) \\
+4 & $T_2:$ LOCK($t$) & blocked \\
+5 & $T_3:$ READ($t$) & \\
+6 & $T_1:$ READ($t$) \\
+7 & $T_1:$ COMMIT \\
+8 & $T_2:$ LOCK($t$) & \\
+9 & $T_2:$ WRITE($t$, 20) \\
+10 & $T_2:$ ABORT \\
+11 & $T_3:$ LOCK($t$) & \\
+12 & $T_3:$ READ($t$) \\
+13 & $T_3:$ WRITE($t, 25$) \\
+14 & $T_3:$ COMMIT
+\end{tabular}
+\end{center}
+
+(b) 10, 10, 12, 12.
+
+(c) (10, 100, 101), (12, 101, 103), (25, 103, NULL).
+
+\end{sol}
+\pagebreak
+.
+
+\pagebreak
+
+\extraspacing {\bf Problem 3 (20 marks).} Suppose that the database system sees the following log after a reboot.
+
+\begin{center}
+\begin{tabular}{l}
+$\langle \text{START } T_1 \rangle$ \\
+$\langle \text{START } T_2 \rangle$ \\
+$\langle T_1, P, 40, 90 \rangle$ \\
+$\langle T_2, Q, 25, 45 \rangle$ \\
+$\langle \text{START } T_3 \rangle$ \\
+$\langle T_3, R, 300, 280 \rangle$ \\
+$\langle \text{COMMIT } T_2 \rangle$ \\
+$\langle T_1, Q, 45, 70 \rangle$ \\
+$\langle \text{COMMIT } T_1 \rangle$ \\
+$\langle T_3, P, 90, 130 \rangle$
+\end{tabular}
+\end{center}
+
+\noindent Describe the steps taken by the recovery procedure.
+
+\begin{sol}
+\extraspacing {\bf Solution.} $T_1$ and $T_2$ had committed before the crash while $T_3$ had not. The redo phase processes the log forward and performs three disk modifications (in this order):
+\myitems{
+    \item set $P$ to 90;
+    \item set $Q$ to 45;
+    \item set $Q$ to 75,
+}
+The undo phase processes log backward and performs two disk modifications (in this order):
+\myitems{
+    \item set $P$ to 90;
+    \item set $R$ to 300.
+}
+\end{sol}
+
+% \pagebreak
+% .
+% \vspace{100mm}
+
+
+\end{document}
