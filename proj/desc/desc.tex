@@ -269,17 +269,17 @@ Execute the following command:
 
 \noindent Run the same query again and explain how the query plan has changed. Why did this happen?
 
-\vgap
+% \vgap
 
-\noindent Now, execute the following command:
-
-\vgap
-
-\noindent \ttt{set work\_mem = '2000MB';}
-
-\vgap
-
-\noindent Run the same query for a third time and explain how the query plan has changed. Why did this happen?
+% \noindent Now, execute the following command:
+%
+% \vgap
+%
+% \noindent \ttt{set work\_mem = '2000MB';}
+%
+% \vgap
+%
+% \noindent Run the same query for a third time and explain how the query plan has changed. Why did this happen?
 
 \subsubsection{Task 8}
 
@@ -478,7 +478,9 @@ Open a new command-line session and execute the command:
 \vgap
 
 \noindent \ttt{START TRANSACTION ISOLATION LEVEL SERIALIZABLE;}  \\
+\noindent \ttt{select * from public.t;}
 \noindent \ttt{insert into public.t values(2, 20);}  \\
+\noindent \ttt{select * from public.t;}
 \noindent \ttt{COMMIT;}
 
 \vgap
