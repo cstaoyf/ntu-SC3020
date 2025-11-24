@@ -70,7 +70,10 @@ Remark: the numbers in a schedule denote transaction IDs; e.g., R1($A$) represen
     }
     We can now conclude that the strongest isolation level is \ttt{READ COMMITTED}.
 
-    \extraspacing {\bf Solution.} (b) By swapping non-conflicting operations, it is possible to convert the schedule to the serial schedule $T_1, T_2, T_3$. Therefore, the strongest isolation level is \ttt{SERIALIZABLE}.
+    %\extraspacing {\bf Solution.}
+    %(b) By swapping non-conflicting operations, it is possible to convert the schedule to the serial schedule $T_1, T_2, T_3$. Therefore, the strongest isolation level is \ttt{SERIALIZABLE}.
+
+    (b) Due to W1(C); R3(C), it is \ttt{READ UNCOMMITTED}.
 \end{sol}
 
 \pagebreak

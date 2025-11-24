@@ -382,7 +382,7 @@ Execute the following commands:
     \ttt{where l1.l\_orderkey = l2.l\_orderkey and l2.l\_orderkey = l3.l\_orderkey;}
 }
 
-\noindent How do you explain the running time differences of the above queries? By the way, you can terminate the 3rd query if it fails to terminate within 5 minutes.
+\noindent How do you explain the running time differences of the above queries? By the way, you can terminate the 3rd query if it fails to terminate after a long time.
 
 \vgap
 
@@ -478,9 +478,9 @@ Open a new command-line session and execute the command:
 \vgap
 
 \noindent \ttt{START TRANSACTION ISOLATION LEVEL SERIALIZABLE;}  \\
-\noindent \ttt{select * from public.t;}
+\noindent \ttt{select * from public.t;} \\
 \noindent \ttt{insert into public.t values(2, 20);}  \\
-\noindent \ttt{select * from public.t;}
+\noindent \ttt{select * from public.t;} \\
 \noindent \ttt{COMMIT;}
 
 \vgap
